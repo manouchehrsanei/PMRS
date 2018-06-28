@@ -53,9 +53,7 @@ else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
 endif()
 
-
 # Adding projec files
-
 file(GLOB header *.h)
 file(GLOB source *.cpp)
 
@@ -63,19 +61,13 @@ add_executable(PMRS ${source} ${header})
 
 target_link_libraries(PMRS pz)
 
+#copying input data folders
 add_custom_command( TARGET PMRS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory  
-	"${CMAKE_CURRENT_LIST_DIR}"
-	$<TARGET_FILE_DIR:PMRS>
+	"${CMAKE_CURRENT_LIST_DIR}/input"
+	$<TARGET_FILE_DIR:PMRS>/input
 )
-# clean unnecessary files in plugins subdirs
-if(WIN32)
-	add_custom_command( TARGET PMRS POST_BUILD COMMAND del /S *.cpp *.h *.cfg CMakeLists.txt ) 	
-else()
-	add_custom_command( TARGET PMRS POST_BUILD COMMAND rm -f *.cpp *.h *.cfg CMakeLists.txt ) 	
 
-endif()
-	
-
-
-
-
+add_custom_command( TARGET PMRS POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory  
+	"${CMAKE_CURRENT_LIST_DIR}/exp_data"
+	$<TARGET_FILE_DIR:PMRS>/exp_data
+)
