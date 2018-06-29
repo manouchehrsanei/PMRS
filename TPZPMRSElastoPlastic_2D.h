@@ -16,6 +16,10 @@
 #include "TPZMatElastoPlastic.h"
 #include "TPZMaterial.h"
 
+#include "TPZSimulationData.h"
+
+
+
 /**
  * Implements an elastoplastic material and uses the memory feature to store the damage variables
  * This material works only together with the Plasticity Library.
@@ -160,15 +164,83 @@ virtual int ClassId() const;
     
 	
 protected:
+    int fPlaneStrain;
+    
+    // new file
+    
+    /** @brief define the simulation data */
+    TPZSimulationData * m_SimulationData;
+    
+    /** @brief Problem dimension */
+    int m_Dim;
+    
+    /** @brief body force */
+    TPZManVector<REAL,3>  m_b;
 	
-	
-	int fPlaneStrain;
+    /** @brief Poison coeficient */
+    REAL m_nu;
+    REAL m_nuu;
+    
+    /** @brief first Lame Parameter */
+    REAL m_lambda;
+    REAL m_lambdau;
+    
+    /** @brief Bulk modulus */
+    REAL m_K;
+    REAL m_Ku;
+    
+    /** @brief Second Lame Parameter */
+    REAL m_mu;
+    
+    /** @brief constants Biot poroelasticity */
+    REAL m_alpha;
+    
+    /** @brief Storage coefficient poroelasticity */
+    REAL m_Se;
+    
+    /** @brief Intact rock porosity */
+    REAL m_porosity_0;
+    
+    /** @brief Permeability of the rock */
+    REAL m_k;
+    
+    /** @brief Fluid viscosity */
+    REAL m_eta;
+    
+    
+    /** @brief coehsion of the rock */
+    REAL m_c;
+    
+    /** @brief Friction angle */
+    REAL m_phi_f;
+    
+    /** @Drucker Prager property */
+    REAL m_eta_dp;
+    REAL m_xi_dp;
+    
+    
+    /** @brief permeability coupling model  */
+    int m_k_model;
+    
+    /** @brief Uses plain stress
+     * @note \f$m_PlaneStress = 1\f$ => Plain stress state
+     * @note \f$m_PlaneStress != 1\f$ => Plain Strain state
+     */
+    int m_PlaneStress;
+    
+    
+    /** @brief Rock density */
+    REAL m_rho_s;
+    
+    /** @brief Fluid density */
+    REAL m_rho_f;
+
     
 };
 
 template <class T, class TMEM>
 int TPZPMRSElastoPlastic_2D<T, TMEM>::ClassId() const{
-    return Hash("TPZPMRSElastoPlastic_2D") ^ TPZMatElastoPlastic<T,TMEM>::ClassId() << 1;
+    return Hash("TPZMatElastoPlastic2D") ^ TPZMatElastoPlastic<T,TMEM>::ClassId() << 1;
 }
 
 #endif

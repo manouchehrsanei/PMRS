@@ -329,6 +329,18 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     // Begin::  Block that define the material parameters
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
+        
+        
+        int n_parameters = m_mat_props[iregion].size();
+        
+#ifdef PZDEBUG
+        if (n_parameters != 8)
+        { // 8 for linear poroelasticity
+            DebugStop();
+        }
+#endif
+        
+        
     int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
     m_young = m_mat_props[iregion][eyoung];
     m_nu = m_mat_props[iregion][nu];

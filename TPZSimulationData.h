@@ -329,10 +329,33 @@ public:
     
     // Begin::  Block that define the material parameters
     /** @brief Get the young modulus */
-    REAL Eyoung() { return m_young; }
+    REAL F_young() { return m_young; }
     
     /** @brief Get the poision ratio */
-    REAL Enu() { return m_nu; }
+    REAL F_nu() { return m_nu; }
+    
+    /** @brief Get the initial porosity */
+    REAL F_porosity() { return m_porosity; }
+    
+    /** @brief Get the initial permeability */
+    REAL F_k() { return m_k; }
+    
+    /** @brief Get the biot coefficient */
+    REAL F_alpha() { return m_alpha; }
+    
+    /** @brief Get the source coefficient */
+    REAL F_Se() { return m_Se; }
+    
+    /** @brief Get the dynamic viscosity */
+    REAL F_eta() { return m_eta; }
+    
+    /** @brief Get the density of fluid */
+    REAL F_rho_f() { return m_rho_f; }
+    
+    // Begin::  Block that define the material parameters
+    /** @brief the property of material  */
+
+
     
     
     

@@ -23,48 +23,54 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr elastoplasticLogger(Logger::getLogger("material.pzElastoPlastic2D"));
+static LoggerPtr elastoplasticLogger(Logger::getLogger("material.pzElastoPlastic_2D"));
 #endif
 
 
+/** @brief default costructor */
 template <class T, class TMEM>
 TPZPMRSElastoPlastic_2D<T,TMEM>::TPZPMRSElastoPlastic_2D() : TPZMatElastoPlastic<T,TMEM>()
 {
 	fPlaneStrain = true;
 }
 
+/** @brief costructor based on a material id */
 template <class T, class TMEM>
 TPZPMRSElastoPlastic_2D<T,TMEM>::TPZPMRSElastoPlastic_2D(int id , int PlaneStrainOrPlaneStress) : TPZMatElastoPlastic<T,TMEM>(id)
 {
 	fPlaneStrain = PlaneStrainOrPlaneStress;
 }
 
+/** @brief copy constructor $ */
 template <class T, class TMEM>
-TPZPMRSElastoPlastic_2D<T,TMEM>::TPZPMRSElastoPlastic_2D(const TPZPMRSElastoPlastic_2D<T,TMEM> &mat) : TPZMatElastoPlastic<T,TMEM>(mat), fPlaneStrain(mat.fPlaneStrain)
+TPZPMRSElastoPlastic_2D<T,TMEM>::TPZPMRSElastoPlastic_2D(const TPZPMRSElastoPlastic_2D<T,TMEM> &other) : TPZMatElastoPlastic<T,TMEM>(other), fPlaneStrain(other.fPlaneStrain)
 {
 #ifdef LOG4CXX
   if(elastoplasticLogger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		sout << ">>> TPZMatElastoPlastic2D<T,TMEM>() copy constructor called ***";
+		sout << ">>> TPZPMRSElastoPlastic_2D<T,TMEM>() copy constructor called ***";
 		LOGPZ_INFO(elastoplasticLogger,sout.str().c_str());
 	}
 #endif
 }
 
+/** @brief default destructor */
 template <class T, class TMEM>
 TPZPMRSElastoPlastic_2D<T,TMEM>::~TPZPMRSElastoPlastic_2D()
 {
 	
 }
 
+/** @brief the function that  apply delta strain */
 template <class T, class TMEM>
 void TPZPMRSElastoPlastic_2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
 {
 	
     
 #ifdef PZDEBUG
-    if (DeltaStrain.Rows() != 6) {
+    if (DeltaStrain.Rows() != 6)
+    {
         DebugStop();
     }
 #endif
@@ -78,39 +84,49 @@ void TPZPMRSElastoPlastic_2D<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, T
 
 }
 
-
+/** @brief the function that apply delta strain and compute dep */
 template <class T, class TMEM>
 void TPZPMRSElastoPlastic_2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 #ifdef PZDEBUG
-    if (DeltaStrain.Rows() != 6) {
+    if (DeltaStrain.Rows() != 6)
+    {
         DebugStop();
     }
 #endif
-    if (!fPlaneStrain) //
-    {//
+    if (!fPlaneStrain)
+    {
         DebugStop();//PlaneStress
     }
-	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);//
+	TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);
 }
 
+/** @brief of contribute */
 template <class T, class TMEM>
-void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
+void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+    TPZFMatrix<REAL> &phiu = data.phi;
+    TPZFMatrix<REAL> &dphiu = data.dphix, dphiXY;
+    
+    TPZFMatrix<REAL> &axes_u = data.axes, axesT;
+    
+    
+    
+    // Getting the solutions and derivatives
+    TPZManVector<REAL,2> u = data.sol[0];
+    TPZFNMatrix <6,REAL> du = data.dsol[0];
+    
 
-    TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
-    TPZFMatrix<REAL> &phi = data.phi;
-    TPZFMatrix<REAL> &axes = data.axes, axesT;
+    axes_u.Transpose(&axesT);
+    axesT.Multiply(dphiu, dphiXY);
 
-    axes.Transpose(&axesT);
-    axesT.Multiply(dphi, dphiXY);
-
-    const int phr = phi.Rows();
+    const int nphi_u = phiu.Rows();
 
     TPZFNMatrix<4> Deriv(2, 2);
     TPZFNMatrix<36> Dep(6, 6,0.0);
     TPZFNMatrix<6> DeltaStrain(6, 1);
     TPZFNMatrix<6> Stress(6, 1);
-    int ptindex = data.intGlobPtIndex;
+    int global_point_index = data.intGlobPtIndex;
 
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0) {
         // Loop over the solutions if update memory is true
@@ -132,7 +148,8 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
     
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
-    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {
+    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT))
+    {
         std::cout << "division by zero reported\n";
         DebugStop();
     }
@@ -144,7 +161,7 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
-        sout << "\ndata.axes = " << data.axes;
+        sout << "\ndata.axes_u = " << data.axes_u;
         sout << "\nDep " << endl;
         sout << Dep(_XX_, _XX_) << "\t" << Dep(_XX_, _YY_) << "\t" << Dep(_XX_, _XY_) << "\n";
         sout << Dep(_YY_, _XX_) << "\t" << Dep(_YY_, _YY_) << "\t" << Dep(_YY_, _XY_) << "\n";
@@ -155,34 +172,104 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
 
         sout << "\nDELTA STRAIN " << endl;
         sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
-        sout << "data.phi" << data.phi;
+        sout << "data.phiu" << data.phiu;
 
         LOGPZ_DEBUG(elastoplasticLogger, sout.str().c_str());
     }
 #endif
-    ptindex = 0;
+    global_point_index = 0;
     int nstate = NStateVariables();
     REAL val;
+    
+    int first_u = 0;
 
+    
+
+    // Start to write the contribute
+    REAL phi_poro = 0.2;
+    
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
+    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
+    
+    
+    // Computing Gradient of the Solution
+    TPZFNMatrix<6,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
+    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
+    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
+    
+    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
+    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
+    
+    
+    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0);
+    
+    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0);
+    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
+    
+    TPZFMatrix<REAL> & S_0 = m_SimulationData->Sigma_0();
+    S_0.Zero();
+    S -= S_0; // Applying prestress
+    
+    for (int iu = 0; iu < nphi_u; iu++)
+    {
+        
+        // Computing Gradient of the test function for each component
+        Grad_vx_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvx/dx
+        Grad_vx_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvx/dy
+        
+        Grad_vy_i(0,0) = dphiu(0,iu)*axes_u(0,0)+dphiu(1,iu)*axes_u(1,0); // dvy/dx
+        Grad_vy_i(1,0) = dphiu(0,iu)*axes_u(0,1)+dphiu(1,iu)*axes_u(1,1); // dvy/dy
+        
+        ef(2*iu   + first_u, 0) += weight * ((S(0,0))*Grad_vx_i(0,0)+S(0,1)*Grad_vx_i(1,0)-(m_b[0])*phiu(iu,0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0)*Grad_vy_i(0,0)+(S(1,1))*Grad_vy_i(1,0)-(m_b[1])*phiu(iu,0));
+        
+        
+        for (int ju = 0; ju < nphi_u; ju++)
+        {
+            
+            
+            // Computing Gradient of the test function
+            Grad_vx_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvx/dx
+            Grad_vx_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvx/dy
+            
+            Grad_vy_j(0,0) = dphiu(0,ju)*axes_u(0,0)+dphiu(1,ju)*axes_u(1,0); // dvy/dx
+            Grad_vy_j(1,0) = dphiu(0,ju)*axes_u(0,1)+dphiu(1,ju)*axes_u(1,1); // dvy/dy
+            
+            
+            ek(2*iu   + first_u, 2*ju   + first_u)  += (1.)*weight*(((2.0*m_mu+m_lambda)*Grad_vx_j(0,0))*Grad_vx_i(0,0)+m_mu*Grad_vx_j(1,0)*Grad_vx_i(1,0));
+            ek(2*iu   + first_u, 2*ju+1 + first_u)  += (1.)*weight*((m_lambda*Grad_vy_j(1,0))*Grad_vx_i(0,0)+m_mu*Grad_vy_j(0,0)*Grad_vx_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju   + first_u)	+= (1.)*weight*(m_mu*Grad_vx_j(1,0)*Grad_vy_i(0,0)+m_lambda*Grad_vx_j(0,0)*Grad_vy_i(1,0));
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= (1.)*weight*((2.0*m_mu+m_lambda)*Grad_vy_j(1,0)*Grad_vy_i(1,0)+m_mu*Grad_vy_j(0,0)*Grad_vy_i(0,0));
+            
+        }
+        
+    }
+    
+    
+    
     TPZManVector<STATE, 5> ForceLoc(this->fForce);
-    if (this->fForcingFunction) {
+    if (this->fForcingFunction)
+    {
         this->fForcingFunction->Execute(data.x, ForceLoc);
     }
 
     int in;
-    for (in = 0; in < phr; in++) {
+    for (in = 0; in < nphi_u; in++) {
 
-        val = ForceLoc[0] * phi(in, 0);
+        val = ForceLoc[0] * phiu(in, 0);
         val -= Stress(_XX_, 0) * dphiXY(0, in);
         val -= Stress(_XY_, 0) * dphiXY(1, in);
         ef(in * nstate + 0, 0) += weight * val;
 
-        val = ForceLoc[1] * phi(in, 0);
+        val = ForceLoc[1] * phiu(in, 0);
         val -= Stress(_XY_, 0) * dphiXY(0, in);
         val -= Stress(_YY_, 0) * dphiXY(1, in);
         ef(in * nstate + 1, 0) += weight * val;
 
-        for (int jn = 0; jn < phr; jn++) {
+        for (int jn = 0; jn < nphi_u; jn++) {
             for (int ud = 0; ud < 2; ud++) {
                 for (int vd = 0; vd < 2; vd++) {
                     Deriv(vd, ud) = dphiXY(vd, in) * dphiXY(ud, jn);
@@ -220,7 +307,8 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
     }
 
 #ifdef LOG4CXX
-    if (elastoplasticLogger->isDebugEnabled()) {
+    if (elastoplasticLogger->isDebugEnabled())
+    {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
         sout << " Resultant rhs vector:\n" << ef;
@@ -230,23 +318,26 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
 #endif
 }
 
+/** @brief of contribute */
 template <class T, class TMEM>
-void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef) {
-    TPZFMatrix<REAL> &dphi = data.dphix;
-    TPZFMatrix<REAL> &phi = data.phi;
-    TPZFMatrix<REAL> &axes = data.axes;
+void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
+{
+    TPZFMatrix<REAL> &phiu = data.phi;
+    TPZFMatrix<REAL> &dphiu = data.dphix;
+    
+    TPZFMatrix<REAL> &axes_u = data.axes;
     TPZFNMatrix<9, REAL> axesT;
     TPZFNMatrix<50, REAL> dphiXY;
 
-    axes.Transpose(&axesT);
-    axesT.Multiply(dphi, dphiXY);
+    axes_u.Transpose(&axesT);
+    axesT.Multiply(dphiu, dphiXY);
 
-    const int phr = phi.Rows();
+    const int nphi_u = phiu.Rows();
 
     //TPZFNMatrix<36> Deriv(6, 6);
     TPZFNMatrix<6> DeltaStrain(6, 1);
     TPZFNMatrix<6> Stress(6, 1);
-    int ptindex = data.intGlobPtIndex;
+    int global_point_index = data.intGlobPtIndex;
 
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0) {
         // Loop over the solutions if update memory is true
@@ -271,29 +362,31 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
     }
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
-    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT)) {
+    if (fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT))
+    {
         std::cout << "division by zero reported\n";
         DebugStop();
     }
 #endif
 
 #ifdef LOG4CXX
-    if (elastoplasticLogger->isDebugEnabled()) {
+    if (elastoplasticLogger->isDebugEnabled())
+    {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
-        sout << "\ndata.axes = " << data.axes;
+        sout << "\ndata.axes_u = " << data.axes_u;
         sout << "\nStress " << endl;
         sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
         sout << "\nDELTA STRAIN " << endl;
         sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
-        sout << "data.phi" << data.phi;
+        sout << "data.phiu" << data.phiu;
 
         LOGPZ_DEBUG(elastoplasticLogger, sout.str().c_str());
     }
 #endif
-    ptindex = 0;
+    global_point_index = 0;
     int nstate = NStateVariables();
     REAL val;
 
@@ -303,13 +396,13 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
     }
 
     int in;
-    for (in = 0; in < phr; in++) {
-        val = ForceLoc[0] * phi(in, 0);
+    for (in = 0; in < nphi_u; in++) {
+        val = ForceLoc[0] * phiu(in, 0);
         val -= Stress(_XX_, 0) * dphiXY(0, in);
         val -= Stress(_XY_, 0) * dphiXY(1, in);
         ef(in * nstate + 0, 0) += weight * val;
 
-        val = ForceLoc[1] * phi(in, 0);
+        val = ForceLoc[1] * phiu(in, 0);
         val -= Stress(_XY_, 0) * dphiXY(0, in);
         val -= Stress(_YY_, 0) * dphiXY(1, in);
         ef(in * nstate + 1, 0) += weight * val;
@@ -327,7 +420,7 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL we
 
 }
 
-
+/** @brief of fill boundary condition */
 template <class T, class TMEM>
 void TPZPMRSElastoPlastic_2D<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
 {
@@ -343,13 +436,15 @@ void TPZPMRSElastoPlastic_2D<T,TMEM>::FillBoundaryConditionDataRequirement(int t
   }
 }
 
+/** @brief of contribute of BC */
 template <class T, class TMEM>
-void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) {
-    TPZFMatrix<REAL> &phi = data.phi;
+void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
+{
+    TPZFMatrix<REAL> &phiu = data.phi;
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
     int nstate = NStateVariables();
 
-    const int phr = phi.Rows();
+    const int nphi_u = phiu.Rows();
     int in, jn, idf, jdf;
     REAL v2[2];
     v2[0] = bc.Val2()(0, 0);
@@ -358,22 +453,22 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
     TPZFMatrix<REAL> &v1 = bc.Val1();
     switch (bc.Type()) {
         case 0: // Dirichlet condition
-            for (in = 0; in < phr; in++) {
-                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phi(in, 0) * weight;
+            for (in = 0; in < nphi_u; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phiu(in, 0) * weight;
 
-                for (jn = 0; jn < phr; jn++) {
-                    ek(nstate * in + 0, nstate * jn + 0) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight;
-                    ek(nstate * in + 1, nstate * jn + 1) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight;
+                for (jn = 0; jn < nphi_u; jn++) {
+                    ek(nstate * in + 0, nstate * jn + 0) += BIGNUMBER * phiu(in, 0) * phiu(jn, 0) * weight;
+                    ek(nstate * in + 1, nstate * jn + 1) += BIGNUMBER * phiu(in, 0) * phiu(jn, 0) * weight;
 
                 }//jn
             }//in
             break;
 
         case 1: // Neumann condition
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += v2[1] * phiu(in, 0) * weight;
             }
             break;
 
@@ -386,13 +481,13 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                 }
             }
 
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[1] - res(1, 0)) * phi(in, 0) * weight;
-                for (jn = 0; jn < phi.Rows(); jn++) {
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[1] - res(1, 0)) * phiu(in, 0) * weight;
+                for (jn = 0; jn < phiu.Rows(); jn++) {
                     for (idf = 0; idf < 2; idf++) {
                         for (jdf = 0; jdf < 2; jdf++) {
-                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phi(in, 0) * phi(jn, 0) * weight;
+                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phiu(in, 0) * phiu(jn, 0) * weight;
                             //BUG FALTA COLOCAR VAL2
                             //DebugStop();
                         }
@@ -403,12 +498,12 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
             break;
 
         case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
-            for (in = 0; in < phr; in++) {
-                ef(nstate * in + 0, 0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in, 0) * weight;
-                for (jn = 0; jn < phr; jn++) {
-                    ek(nstate * in + 0, nstate * jn + 0) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight * v2[0];
-                    ek(nstate * in + 1, nstate * jn + 1) += BIGNUMBER * phi(in, 0) * phi(jn, 0) * weight * v2[1];
+            for (in = 0; in < nphi_u; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phiu(in, 0) * weight;
+                for (jn = 0; jn < nphi_u; jn++) {
+                    ek(nstate * in + 0, nstate * jn + 0) += BIGNUMBER * phiu(in, 0) * phiu(jn, 0) * weight * v2[0];
+                    ek(nstate * in + 1, nstate * jn + 1) += BIGNUMBER * phiu(in, 0) * phiu(jn, 0) * weight * v2[1];
                 }//jn
             }//in
             break;
@@ -418,9 +513,9 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
             v2[1] = v1(1, 0) * data.normal[0] + v1(1, 1) * data.normal[1];
             // The normal vector points towards the neighbor. The negative sign is there to
             // reflect the outward normal vector.
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += v2[1] * phiu(in, 0) * weight;
             }
             break;
         case 5://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
@@ -431,13 +526,13 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                     res(i, 0) += data.normal[i] * bc.Val1()(i, j) * data.sol[0][j] * data.normal[j];
                 }
             }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-                for (jn = 0; jn < phi.Rows(); jn++) {
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phiu(in, 0) * weight;
+                for (jn = 0; jn < phiu.Rows(); jn++) {
                     for (idf = 0; idf < 2; idf++) {
                         for (jdf = 0; jdf < 2; jdf++) {
-                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * data.normal[idf] * data.normal[jdf] * phi(in, 0) * phi(jn, 0) * weight;
+                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * data.normal[idf] * data.normal[jdf] * phiu(in, 0) * phiu(jn, 0) * weight;
                             // BUG FALTA COLOCAR VAL2
                             // DebugStop();
                         }
@@ -456,13 +551,13 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                     res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
                 }
             }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-                for (jn = 0; jn < phi.Rows(); jn++) {
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phiu(in, 0) * weight;
+                for (jn = 0; jn < phiu.Rows(); jn++) {
                     for (idf = 0; idf < 2; idf++) {
                         for (jdf = 0; jdf < 2; jdf++) {
-                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phi(in, 0) * phi(jn, 0) * weight;
+                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phiu(in, 0) * phiu(jn, 0) * weight;
                             // BUG FALTA COLOCAR VAL2
                             // DebugStop();
                         }
@@ -486,13 +581,14 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
     }
 }
 
+/** @brief of contribute of BC */
 template <class T, class TMEM>
 void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
-    TPZFMatrix<REAL> &phi = data.phi;
+    TPZFMatrix<REAL> &phiu = data.phi;
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
     int nstate = NStateVariables();
 
-    const int phr = phi.Rows();
+    const int nphi_u = phiu.Rows();
     int in;
     REAL v2[2];
     v2[0] = bc.Val2()(0, 0);
@@ -501,16 +597,16 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
     TPZFMatrix<REAL> &v1 = bc.Val1();
     switch (bc.Type()) {
         case 0: // Dirichlet condition
-            for (in = 0; in < phr; in++) {
-                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phi(in, 0) * weight;
+            for (in = 0; in < nphi_u; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phiu(in, 0) * weight;
             }//in
             break;
 
         case 1: // Neumann condition
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += v2[1] * phiu(in, 0) * weight;
             }
             break;
 
@@ -523,17 +619,17 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                 }
             }
 
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[1] - res(1, 0)) * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[1] - res(1, 0)) * phiu(in, 0) * weight;
             }//in
         }
             break;
 
         case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
-            for (in = 0; in < phr; in++) {
-                ef(nstate * in + 0, 0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in, 0) * weight;
+            for (in = 0; in < nphi_u; in++) {
+                ef(nstate * in + 0, 0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phiu(in, 0) * weight;
             }//in
             break;
 
@@ -542,9 +638,9 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
             v2[1] = v1(1, 0) * data.normal[0] + v1(1, 1) * data.normal[1];
             // The normal vector points towards the neighbour. The negative sign is there to
             // reflect the outward normal vector.
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += v2[0] * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += v2[1] * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += v2[0] * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += v2[1] * phiu(in, 0) * weight;
             }
             break;
 
@@ -556,9 +652,9 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                     res(i, 0) += data.normal[i] * bc.Val1()(i, j) * data.sol[0][j] * data.normal[j];
                 }
             }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phiu(in, 0) * weight;
             }
         }
             break;
@@ -571,9 +667,9 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
                     res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
                 }
             }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
+            for (in = 0; in < phiu.Rows(); in++) {
+                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phiu(in, 0) * weight;
+                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phiu(in, 0) * weight;
             }
 
         }
@@ -592,7 +688,7 @@ void TPZPMRSElastoPlastic_2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL 
 }
 
 
-
+/** @brief of the Solution */
 template <class T, class TMEM>
 void TPZPMRSElastoPlastic_2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
@@ -610,7 +706,8 @@ void TPZPMRSElastoPlastic_2D<T,TMEM>::Solution(TPZMaterialData &data, int var, T
 }
 
 template <class T, class TMEM>
-void TPZPMRSElastoPlastic_2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain) {
+void TPZPMRSElastoPlastic_2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
+{
     TPZFNMatrix<9> DSolXYZ(3, 3, 0.);
     data.axes.Multiply(data.dsol[0], DSolXYZ, 1/*transpose*/);
     if (DeltaStrain.Rows() != 6) {
@@ -643,7 +740,8 @@ std::string TPZPMRSElastoPlastic_2D<T,TMEM>::Name()
 }
 
 template <class T, class TMEM>
-void TPZPMRSElastoPlastic_2D<T,TMEM>::Write(TPZStream &buf, int withclassid) const{
+void TPZPMRSElastoPlastic_2D<T,TMEM>::Write(TPZStream &buf, int withclassid) const
+{
 	TPZMatElastoPlastic<T,TMEM>::Write(buf,withclassid);
   int classid = ClassId();
   buf.Write(&classid);
@@ -722,7 +820,7 @@ template class TPZPMRSElastoPlastic_2D<TPZVonMises>;
 template class TPZPMRSElastoPlastic_2D<TPZLadeKim, TPZPoroElastoPlasticMem>;
 template class TPZPMRSElastoPlastic_2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZPoroElastoPlasticMem>;
 template class TPZPMRSElastoPlastic_2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
-//template class TPZMatElastoPlastic2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
+//template class TPZPMRSElastoPlastic_2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZPoroElastoPlasticMem>;
 template class TPZPMRSElastoPlastic_2D<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
 template class TPZRestoreClassWithTranslator<TPZPMRSElastoPlastic_2D<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP1>, TPZElastoPlasticMem>, TPZMatElastoPlastic2DTranslator<TPZSandlerDimaggioTranslator<SANDLERDIMAGGIOSTEP1TRANSLATOR>, TPZElastoPlasticMemTranslator>>;

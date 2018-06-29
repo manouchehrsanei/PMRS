@@ -58,6 +58,7 @@
 // Simulation data structure
 #include "TPZSimulationData.h"
 
+
 // Methods declarations
 #define USING_Pardiso
 
@@ -396,41 +397,24 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
-    TPZManVector<TPZManVector<REAL,8>,8> mat_props = sim_data->MaterialProps();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
         TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
         
-        int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
-        
-        
-        int n_parameters = mat_props[iregion].size();
-        
-#ifdef PZDEBUG
-        if (n_parameters != 8)
-        { // 8 for linear poroelasticity
-            DebugStop();
-        }
-#endif
         
         int kmodel = 0;
-        REAL Ey_r = mat_props[iregion][eyoung];
-        REAL nu_r = mat_props[iregion][nu];
-        REAL porosity = mat_props[iregion][phi];
-        REAL k = mat_props[iregion][kappa];
-        REAL alpha_r = mat_props[iregion][alpha];
-        REAL Se = 1.0/mat_props[iregion][m];
-        REAL eta = mat_props[iregion][mu];
-        REAL rho_f = mat_props[iregion][rho];
-        
-        
-//        REAL c = 1010.0*to_MPa;
-//        REAL phi_f = 45.0*to_rad;
-        
-        
-        REAL c = 27.2*to_MPa;
-        REAL phi_f = 10.0*to_rad;
+        REAL Ey_r = sim_data->F_young();
+        REAL nu_r = sim_data->F_nu();
+        REAL porosity = sim_data->F_porosity();
+        REAL k = sim_data->F_k();
+        REAL alpha_r = sim_data->F_alpha();
+        REAL Se = sim_data->F_Se();
+        REAL eta = sim_data->F_eta();
+        REAL rho_f = sim_data->F_rho_f();
+    
+        REAL c = 27.2 * to_MPa;
+        REAL phi_f = 10.0 * to_rad;
         
         material->SetSimulationData(sim_data);
         material->SetPlaneProblem(planestress);
@@ -530,9 +514,7 @@ void LEDSPorosityReductionPlot()
     
     // Getting Elastic Matrix
     // MC Mohr Coloumb PV
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-    REAL c = 23.3; // MPa
-    
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;    
     
     // Experimental data
     std::string dirname = PZSOURCEDIR;
