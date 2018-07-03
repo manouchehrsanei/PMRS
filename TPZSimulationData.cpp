@@ -345,7 +345,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     m_young = m_mat_props[iregion][eyoung];
     m_nu = m_mat_props[iregion][nu];
     m_porosity = m_mat_props[iregion][phi];
-    m_k = m_mat_props[iregion][kappa];
+    m_k_0 = m_mat_props[iregion][kappa];
     m_alpha = m_mat_props[iregion][alpha];
     m_Se = 1.0/m_mat_props[iregion][m];
     m_eta = m_mat_props[iregion][mu];

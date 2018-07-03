@@ -59,6 +59,11 @@
 #include "TPZSimulationData.h"
 
 
+#include "TPZPMRSElastoPlastic_2D.h"
+
+
+
+
 // Methods declarations
 #define USING_Pardiso
 
@@ -401,8 +406,8 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     {
         int matid = material_ids[iregion].first;
         TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
-        
-        
+//        TPZPMRSElastoPlastic_2D * material = new TPZPMRSElastoPlastic_2D(matid,dim);
+
         int kmodel = 0;
         REAL Ey_r = sim_data->F_young();
         REAL nu_r = sim_data->F_nu();
@@ -426,7 +431,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         material->SetKModel(kmodel);
         
         material->SetDruckerPragerParameters(phi_f, c);
-        
+
         cmesh->InsertMaterialObject(material);
         
         

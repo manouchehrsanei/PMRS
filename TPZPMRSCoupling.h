@@ -61,8 +61,8 @@ protected:
     /** @brief Intact rock porosity */
     REAL m_porosity_0;
     
-    /** @brief Permeability of the rock */
-    REAL m_k;
+    /** @brief Initial Permeability of the rock */
+    REAL m_k_0;
     
     /** @brief Fluid viscosity */
     REAL m_eta;
@@ -133,7 +133,7 @@ public:
     /** @brief Parameters of rock and fluid: */
     void SetParameters(REAL perm, REAL m_porosity, REAL eta)
     {
-        m_k = perm;
+        m_k_0 = perm;
         m_eta = eta;
         m_porosity_0 = m_porosity;
     }
@@ -275,28 +275,34 @@ public:
     }
 
     void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                             REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+                             REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    {
         DebugStop();
     }
     void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    {
         DebugStop();
     }
     
-    void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) {
+    void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef)
+    {
         DebugStop();
     }
     
     void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
-                               REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+                               REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    {
         DebugStop();
     }
    
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    {
         DebugStop();
     }
     
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    {
         DebugStop();
     }
     

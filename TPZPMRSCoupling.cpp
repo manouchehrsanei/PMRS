@@ -27,38 +27,46 @@
 #include "TPZElasticCriterion.h"
 #include "TPZSandlerDimaggio.h"
 
+
+
 /** @brief default costructor */
-TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.), m_PlaneStress(0)
+TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.), m_PlaneStress(0)
 {
 
     m_Dim = 3;
     m_b.resize(3);
+    
     m_b[0]=0.;
     m_b[1]=0.;
     m_b[2]=0.;
+    
     m_PlaneStress = 1.;
     
     m_rho_s = 2700.0; 
     m_rho_f = 1000.0;
     
+    m_k_model = 0;
     m_eta_dp = 0.0;
     m_xi_dp = 0.0;
     
 }
 
 /** @brief costructor based on a material id */
-TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k(0.), m_eta(0.),m_PlaneStress(0)
+TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.),m_PlaneStress(0)
 {
 
     m_Dim = dim;
     m_b.resize(3);
+    
     m_b[0]=0.;
     m_b[1]=0.;
     m_b[2]=0.;
+    
     m_PlaneStress = 1;
     
     m_rho_s = 2700.0;
     m_rho_f = 1000.0;
+    
     m_k_model = 0;
     m_eta_dp = 0.0;
     m_xi_dp = 0.0;
@@ -109,13 +117,13 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
     {
         case 0:
         {
-            k = m_k;
+            k = m_k_0;
         }
             break;
             
         case 1:
         {
-            k = m_k*pow((phi/m_porosity_0),4.0);
+            k = m_k_0*pow((phi/m_porosity_0),4.0);
         }
             break;
             
@@ -842,7 +850,7 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
     {
         TPZManVector<REAL,3> f(3);
         TPZFMatrix<REAL> gradf;
-        bc.TimedependentBCForcingFunction()->Execute(datavec[p_b].x, time, f, gradf);
+        bc.TimedependentBCForcingFunction()->Execute(datavec[u_b].x, time, f, gradf);
         v[0] = f[0];	//	Ux displacement or Tnx
         v[1] = f[1];	//	Uy displacement or Tny
         v[2] = f[2];	//	Pressure or Qn
@@ -1917,7 +1925,7 @@ void TPZPMRSCoupling::Print(std::ostream &out)
     out << "\t Biot coefficient   = "										<< m_alpha	<< std::endl;
     out << "\t Body force vector B {X-direction, Y-direction}   = "			<< m_b[0] << ' ' << m_b[1]   << std::endl;
     out << "Properties for Diffusion: \n";
-    out << "\t Permeability   = "											<< m_k		<< std::endl;
+    out << "\t Initial Permeability   = "											<< m_k_0		<< std::endl;
     out << "\t Fluid Viscosity   = "										<< m_eta	<< std::endl;
     out << "\t Constrained specific storage at constant strain Se = "		<< m_Se		<< std::endl;
     out << "Class properties :";

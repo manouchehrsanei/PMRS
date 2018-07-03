@@ -122,7 +122,7 @@ protected:
     REAL m_nu;
     REAL m_porosity;
     
-    REAL m_k;
+    REAL m_k_0;
     REAL m_alpha;
     REAL m_Se;
     REAL m_eta;
@@ -338,7 +338,7 @@ public:
     REAL F_porosity() { return m_porosity; }
     
     /** @brief Get the initial permeability */
-    REAL F_k() { return m_k; }
+    REAL F_k() { return m_k_0; }
     
     /** @brief Get the biot coefficient */
     REAL F_alpha() { return m_alpha; }
