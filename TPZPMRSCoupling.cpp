@@ -109,10 +109,6 @@ int TPZPMRSCoupling::NStateVariables()
 /** @brief permeability coupling models  */
 REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
 {
-
-    
-    k = 0.0;
-    REAL tom2 = 9.869233e-16;
     switch (m_k_model)
     {
         case 0:
@@ -121,23 +117,27 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
         }
             break;
             
-        case 1:
+            
+        case 1: // Petunin et al. (2011), A = 2.0
         {
-            k = m_k_0*pow((phi/m_porosity_0),4.0);
+            k = m_k_0*pow((phi/m_porosity_0),2.0);
         }
             break;
             
-        case 2:
+            
+        case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
-            k = 0.136*(pow(phi,1.4))*tom2;
+            k = m_k_0*pow((phi/m_porosity_0),2.44);
         }
             break;
             
-        case 3:
+            
+        case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
-            k = (100.0*pow(phi,2.25))*(100.0*pow(phi,2.25))*tom2;
+            k = m_k_0*pow((phi/m_porosity_0),4.62);
         }
             break;
+        
         default:
         {
             DebugStop();
@@ -476,9 +476,11 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     /** @brief Rudnicki diffusion coefficient */
     /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
     REAL k = 0.0;
+    m_k_model = 1;
     k_permeability(phi_poro,k);
-    m_lambdau *=1.1;
-    REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+    m_lambdau = 1.1 * m_lambda;
+    
+    REAL c = 1; // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
 
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -748,9 +750,10 @@ void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     /** @brief Rudnicki diffusion coefficient */
     /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
     REAL k = 0.0;
+    m_k_model = 1;
     k_permeability(phi_poro,k);
-    m_lambdau *=1.1;
-    REAL c = 1.0;//(k/feta)*(flambdau-flambda)*(flambda + 2.0*fmu)/(falpha*falpha*(flambdau + 2.0*fmu));
+    m_lambdau = 1.1 * m_lambda;
+    REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
     
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -2027,7 +2030,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
+    REAL to_Mpa     =1; // 1.0e-6;
     REAL to_Darcy   = 1.013249966e+12;
     
     

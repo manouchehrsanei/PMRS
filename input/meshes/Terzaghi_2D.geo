@@ -1,78 +1,103 @@
 
 ////////////////////////////////////////////////////////////////
-// 2D wellbore
-// Created 28/05/2018 by Manouchehr Sanei
+// Terzaghi_2D
+// Created 10/03/2018 by Manouchehr Sanei
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
-IsquadQ = 1;
- 
-Mesh.ElementOrder = 1;
-Mesh.SecondOrderLinear = 0;
+////////////////////////////////////////////////////////////////
+// Parameters
+////////////////////////////////////////////////////////////////
 
-lf = 0.01;
-lc = 1;
-fl = 4.0;
-wr = 0.1;
-nh = 20;
-nv = 20;
-nr = 20;
+lc =1.0e1;
+r =0.1;
+h =1.0;
+nh = 10;
+nr = 2;
+Is3DQ = 0;
 
-Point(1) = {-fl,-fl,0,lc};
-Point(2) = {fl,-fl,0,lc};
-Point(3) = {fl,fl,0,lc};
-Point(4) = {-fl,fl,0,lc};
+If(Is3DQ)
 
-Point(5) = {0,0,0,lc};
-Point(6) = {wr,0,0,lc};
-Point(7) = {0,wr,0,lc};
-Point(8) = {-wr,0,0,lc};
-Point(9) = {0,-wr,0,lc};
+////////////////////////////////////////////////////////////////
+// 3D mesh
+////////////////////////////////////////////////////////////////
 
-Line(1) = {1,2};
-Line(2) = {2,3};
-Line(3) = {3,4};
-Line(4) = {4,1};
+p1 = newp; Point(p1) = {0,0,-h/2,lc};
+p2 = newp; Point(p2) = {r,0,-h/2,lc};
+p3 = newp; Point(p3) = {0,r,-h/2,lc};
+p4 = newp; Point(p4) = {-r,0,-h/2,lc};
+p5 = newp; Point(p5) = {0,-r,-h/2,lc};
 
-Circle(5) = {6,5,7};
-Circle(6) = {7,5,8};
-Circle(7) = {8,5,9};
-Circle(8) = {9,5,6};
+l1 = newl; Circle(l1) = {p2,p1,p3};
+l2 = newl; Circle(l2) = {p3,p1,p4};
+l3 = newl; Circle(l3) = {p4,p1,p5};
+l4 = newl; Circle(l4) = {p5,p1,p2};
 
+ll1 = newll; Line Loop(ll1) = {l1,l2,l3,l4};
+s1 = news; Plane Surface(s1) = {ll1};
 
-Line Loop(1) = {1,2,3,4};
-Line Loop(2) = {5,6,7,8};
-Plane Surface(1) = {1,2};
+Transfinite Line {l1,l2,l3,l4} = nr;
 
-fixed_y_points[]={6,8};
-fixed_x_points[]={7,9};
+Recombine Surface"*";
+out[] = Extrude {0,0,h} {
+  Surface{s1}; Layers{nh}; Recombine;
+};
 
-Point{fixed_y_points[],fixed_x_points[]} In Surface{1};
-
-Transfinite Line {2,4} = nh;
-Transfinite Line {1,3} = nv;
-Transfinite Line {5,6,7,8} = nr;
+lateral[] = {15,19,23,27};
+top[] = {28};
+bottom[] = {s1};
+plug[] = {1};
 
 
-holes[] = {5,6,7,8};
+Else
 
- If(IsquadQ)
-  Recombine Surface {1};
- EndIf
+////////////////////////////////////////////////////////////////
+// 2D mesh
+////////////////////////////////////////////////////////////////
+
+p1 = newp; Point(p1) = {-r,-h/2,0,lc};
+p2 = newp; Point(p2) = {r,-h/2,0,lc};
+p3 = newp; Point(p3) = {r,h/2,0,lc};
+p4 = newp; Point(p4) = {-r,h/2,0,lc};
+
+l1 = newl; Line(l1) = {p1,p2};
+l2 = newl; Line(l2) = {p2,p3};
+l3 = newl; Line(l3) = {p3,p4};
+l4 = newl; Line(l4) = {p4,p1};
+
+ll1 = newll; Line Loop(ll1) = {l1,l2,l3,l4};
+s1 = news; Plane Surface(s1) = {ll1};
+
+Transfinite Line {l2,l4} = nh;
+Transfinite Line {l1,l3} = nr;
+Transfinite Surface {s1};
+Recombine Surface"*";
+
+lateral[] = {l2,l4};
+top[] = {l3};
+bottom[] = {l1};
+plug[] = {s1};
+
+EndIf
 
 
-Physical Surface("Omega") = {1};
-Physical Line("right") = {2};
-Physical Line("left") = {4};
-Physical Line("top") = {3};
-Physical Line("bottom") = {1};
-  
-Physical Line("holes") = {holes[]};  
+////////////////////////////////////////////////////////////////
+// Physical tagging
+////////////////////////////////////////////////////////////////
+
+If(Is3DQ)
+
+Physical Volume("plug") = {plug[]};
+Physical Surface("bottom") = {bottom[]};
+Physical Surface("top") = {top[]};
+Physical Surface("lateral") = {lateral[]};
+
+Else
+
+Physical Surface("plug") = {plug[]};
+Physical Line("bottom") = {bottom[]};
+Physical Line("top") = {top[]};
+Physical Line("lateral") = {lateral[]};
 
 
-Physical Point("fixed_x") = {fixed_x_points[]};
-Physical Point("fixed_y") = {fixed_y_points[]};
-
-
-Coherence Mesh;
-
+EndIf

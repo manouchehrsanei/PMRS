@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include "pzreal.h"
 #include "pzfmatrix.h"
+#include "TPZElastoPlasticMem.h"
+
 
 class TPZPMRSMemory
 {
@@ -21,60 +23,27 @@ class TPZPMRSMemory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     // Basis functions
-    
-    /** @brief elliptic functions functions */
-    TPZFMatrix<STATE> m_phi_u;
-    
-    /** @brief elliptic functions functions */
-    TPZFMatrix<STATE> m_grad_phi_u;
+    TPZElastoPlasticMem m_Mem;
     
     
-    // initial state items
-    
-    /** @brief gradient of u_n at intial state*/
-    TPZFNMatrix<9,REAL> m_grad_u_0;
-    
-    /** @brief sigma at intial state*/
-    TPZFNMatrix<9,REAL> m_sigma_0;
-    
-    
-    
-    // last time state items
-    
-    /** @brief displacements */
-    TPZFNMatrix<3,REAL> m_u;
-    
-    /** @brief gradient of u_n */
-    TPZFNMatrix<9,REAL> m_grad_u;
-    
-    
-    
-    // current time state items
-    
-    /** @brief displacements */
-    TPZFNMatrix<3,REAL> m_u_n;
-    
-    /** @brief gradient of u_n */
+    /** @brief Gradient of deformation at at n (last) state */
     TPZFNMatrix<9,REAL> m_grad_u_n;
     
-    
-   /** @brief elastic strain at n */
+   /** @brief elastic strain at n (last) state */
     TPZFMatrix<REAL> m_epsilon_e_n;
 
-   /** @brief plastic strain at n */
+   /** @brief plastic strain at n (last) state */
     TPZFMatrix<REAL> m_epsilon_p_n;
     
+    /** @brief Gradient of pore pressure at n (last) state */
+    TPZFMatrix<REAL> m_grad_p_n;
     
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /** @brief Porosity at n (last) state */
+    TPZFMatrix<REAL> m_phi_n;
     
+    /** @brief Permeability at n (last) state */
+    TPZFMatrix<REAL> m_k_n;
     
-    /** @brief weighted pressure at intial state */
-    REAL m_p_0;
-    
-    /** @brief weighted pressure at the current timestep */
-    REAL m_p_n;
     
     
 public:
@@ -88,162 +57,109 @@ public:
     TPZPMRSMemory(const TPZPMRSMemory &copy)
     {
         
-        m_u = copy.m_u;
-        m_u_n = copy.m_u_n;
-        m_grad_u = copy.m_grad_u;
-        m_grad_u_n = copy.m_grad_u_n;
+        m_grad_u_n    = copy.m_grad_u_n;
         m_epsilon_e_n = copy.m_epsilon_e_n;
         m_epsilon_p_n = copy.m_epsilon_p_n;
+        m_grad_p_n    = copy.m_grad_p_n;
+        m_phi_n       = copy.m_phi_n;
+        m_k_n         = copy.m_k_n;
+
 
     }
     
-    TPZPMRSMemory &operator=(const TPZPMRSMemory &copy)
+    TPZPMRSMemory &operator=(const TPZPMRSMemory &other)
     {
         
-        m_u = copy.m_u;
-        m_u_n = copy.m_u_n;
-        m_grad_u = copy.m_grad_u;
-        m_grad_u_n = copy.m_grad_u_n;
-        m_epsilon_e_n = copy.m_epsilon_e_n;
-        m_epsilon_p_n = copy.m_epsilon_p_n;
+        m_grad_u_n    = other.m_grad_u_n;
+        m_epsilon_e_n = other.m_epsilon_e_n;
+        m_epsilon_p_n = other.m_epsilon_p_n;
+        m_grad_p_n    = other.m_grad_p_n;
+        m_phi_n       = other.m_phi_n;
+        m_k_n         = other.m_k_n;
         
         return *this;
     }
     
-    void UpdateSolutionMemory()///// @omar:: I think this method is completely useless!!
+    void UpdateSolutionMemory()
     {
-        //update saturation and pressure and total flux (un = unp1)
+        //update pressure and total flux (un = unp1)
         DebugStop();
     }
     
     
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    // initial state items
-    
-    /** @brief set gradient of u_n at intial state */
-    void Set_grad_u_0(TPZFMatrix<STATE> & grad_u_0)
-    {
-        m_grad_u_0 = grad_u_0;
-    }
-    
-    /** @brief get gradient of u_n at intial state */
-    TPZFMatrix<STATE> & grad_u_0()
-    {
-        return m_grad_u_0;
-    }
-    
-
-    
-    // current time state items
-    
-    /** @brief set displacements at current time */
-    void Set_u(TPZFMatrix<STATE> & u)
-    {
-        m_u = u;
-    }
-    
-    /** @brief get displacements at current time */
-    TPZFMatrix<STATE> & u(){
-        return m_u;
-    }
-    
-    
-    /** @brief set grad_u at current time */
-    void Set_grad_u(TPZFMatrix<STATE> & grad_u)
-    {
-        m_grad_u = grad_u;
-    }
-    
-    /** @brief get grad_u at current time */
-    TPZFMatrix<STATE> & grad_u(){
-        return m_grad_u;
-    }
-    
-    
-    
-    // last time state items
-    
-    /** @brief set displacements at last time */
-    void Set_u_n(TPZFMatrix<STATE> & u_n)
-    {
-        m_u_n = u_n;
-    }
-    
-    /** @brief get displacements at last time */
-    TPZFMatrix<STATE> & u_n(){
-        return m_u_n;
-    }
-    
-    /** @brief set grad_u at last time */
+    /** @brief Set Gradient of deformation at n (last) state */
     void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n)
     {
         m_grad_u_n = grad_u_n;
     }
     
-    /** @brief get grad_u at last time */
+    /** @brief Get Gradient of deformation at n (last) state */
     TPZFMatrix<STATE> & grad_u_n()
     {
         return m_grad_u_n;
     }
     
     
-    /** @brief Set elastic strain at last time */
+    /** @brief Set elastic strain at n (last) state */
     void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n)
     {
         m_epsilon_e_n = epsilon_e_n;
     }
     
-    /** @brief Get elastic strain at last time */
+    /** @brief Get elastic strain at n (last) state */
     TPZFMatrix<REAL> epsilon_e_n()
     {
         return m_epsilon_e_n;
     }
     
     
-    /** @brief Set plastic strain at last time */
+    /** @brief Set plastic strain at n (last) state */
     void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n)
     {
         m_epsilon_p_n = epsilon_p_n;
     }
     
-    /** @brief Get plastic strain at last time */
+    /** @brief Get plastic strain at n (last) state */
     TPZFMatrix<REAL> epsilon_p_n(){
         return m_epsilon_p_n;
     }
     
     
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-    /** @brief set weighted pressure at intial state */
-    void Set_p_0(STATE & p_0)
+    /** @brief Set plastic strain at n (last) state */
+    void Set_grad_p_n(TPZFMatrix<REAL> & grad_p_n)
     {
-        m_p_0 = p_0;
+        m_grad_p_n = grad_p_n;
     }
     
-    /** @brief get weighted pressure at intial state */
-    STATE & p_0(){
-        return m_p_0;
+    /** @brief Get plastic strain at n (last) state */
+    TPZFMatrix<REAL> grad_p_n(){
+        return m_grad_p_n;
     }
     
     
-    /** @brief set weighted pressure at current state */
-    void Set_p_n(STATE & p_n)
+    /** @brief Set plastic strain at n (last) state */
+    void Set_phi_n(TPZFMatrix<REAL> & phi_n)
     {
-        m_p_n = p_n;
+        m_phi_n = phi_n;
     }
     
-    /** @brief get weighted pressure at current state */
-    STATE & p_n(){
-        return m_p_n;
+    /** @brief Get plastic strain at n (last) state */
+    TPZFMatrix<REAL> phi_n(){
+        return m_phi_n;
     }
     
+    
+    /** @brief Set plastic strain at n (last) state */
+    void Set_k_n(TPZFMatrix<REAL> & k_n)
+    {
+        m_k_n = k_n;
+    }
+    
+    /** @brief Get plastic strain at n (last) state */
+    TPZFMatrix<REAL> k_n(){
+        return m_k_n;
+    }
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////

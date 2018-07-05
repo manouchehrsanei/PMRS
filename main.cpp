@@ -202,17 +202,17 @@ int main(int argc, char *argv[])
     x[0] = 0.0;
     x[1] = 0.0;
     x[2] = 0.0;
-    std::string file_ss_name("plot.nb");
-    std::string file_sp_name("porosity.nb");
-    std::string file_sk_name("permeability.nb");
-    std::string file_spex_name("porepressure.nb");
+    std::string file_ss_name("AxialStrainVsDiffStress.nb");
+    std::string file_sp_name("VolumStrainVsPorosity.nb");
+    std::string file_sk_name("VolumStrainVsPermeability.nb");
+    std::string file_spex_name("VolumStrainVsPorePressure.nb");
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
     time_analysis->PlotStrainStress(file_ss_name);
-//    time_analysis->PlotStrainPorosity(file_sp_name);
-//    time_analysis->PlotStrainPermeability(file_sk_name);
-//    time_analysis->PlotStrainPressure(file_spex_name);
+    time_analysis->PlotStrainPorosity(file_sp_name);
+    time_analysis->PlotStrainPermeability(file_sk_name);
+    time_analysis->PlotStrainPressure(file_spex_name);
     std::cout << " Execution finished" << std::endl;
 
     

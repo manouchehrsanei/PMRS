@@ -10,62 +10,34 @@
 
 /** @brief Default constructor */
 TPZPMRSMemory::TPZPMRSMemory(){
-  
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-    // initial state items
-    
-    /** @brief gradient of u_n at intial state*/
-    m_grad_u_0.Resize(3, 3);
-    m_grad_u_0.Zero();
-    
-    
-    // last time state items
-    
-    /** @brief displacements */
-    m_u.Resize(3, 0);
-    
-    /** @brief gradient of u_n */
-    m_grad_u.Resize(3, 3);
-    m_grad_u.Zero();
-    
-    
-    // current time state items
-    
-    /** @brief displacements */
-    m_u_n.Resize(3, 0);
-    
-    /** @brief gradient of u_n */
+    /** @brief Gradient of deformation at n (last) state */
     m_grad_u_n.Resize(3, 3);
     m_grad_u_n.Zero();
     
     
-    /** @brief elastic strain at n */
+    /** @brief Elastic strain at n (last) state */
     m_epsilon_e_n.Resize(3, 3);
     m_epsilon_e_n.Zero();
     
     
-    /** @brief plastic strain at n */
+    /** @brief Plastic strain at n (last) state */
     m_epsilon_p_n.Resize(3, 3);
     m_epsilon_p_n.Zero();
     
+    /** @brief Gradient of pore pressure at n (last) state */
+    m_grad_p_n.Resize(3, 3);
+    m_grad_p_n.Zero();
     
+    /** @brief Porosity at n (last) state */
+    m_phi_n.Resize(3, 3);
+    m_phi_n.Zero();
     
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    // initial state items
-    
-    /** @brief weighted pressure at intial state */
-    m_p_0 = 0.0;
-    
-    /** @brief weighted pressure at the previous timestep */
-    m_p_n = 0.0;
-    
+    /** @brief Permeability at n (last) state */
+    m_k_n.Resize(3, 3);
+    m_k_n.Zero();
+
     
 }
 
