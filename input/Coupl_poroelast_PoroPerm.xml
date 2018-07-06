@@ -3,12 +3,12 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/neopz/Projects/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/CoupPoroPerm.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.1" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -31,13 +31,19 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D.vtk" n_divisions="0" n_scalars="3" n_vectors="2"
+        <PostProcessing vtk_file="CouplPoroelastPoroPerm.vtk" n_divisions="0" n_scalars="10" n_vectors="2"
         />
         <Scalars>
             <Var name="s_x" />
             <Var name="s_y" />
             <Var name="p" />
-
+            <Var name="k_x" />
+            <Var name="k_y" />
+            <Var name="phi" />
+            <Var name="e_x" />
+            <Var name="e_y" />
+            <Var name="ep_x" />
+            <Var name="ep_y" />
         </Scalars>
         <Vectors>
             <Var name="u" />
@@ -66,7 +72,7 @@
     </RegionsDefinition>
     <BoundaryConditions>
         <BoundaryCondition bc_id="2" type="Duy_Nq" uy="0.0" qn="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0" p="0.3" />
+        <BoundaryCondition bc_id="4" type="Dux_Dp" ux="0.0" p="0.0" />
     </BoundaryConditions>           
 </CaseData>
