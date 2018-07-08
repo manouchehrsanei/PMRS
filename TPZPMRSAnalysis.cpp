@@ -178,14 +178,14 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
         
         if(m_error < epsilon_res || (m_dx_norm < epsilon_cor && k > 3 ) )
         {
-            std::cout << "Permeability Coupling:: Converged with iterations:  " << k << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
+            std::cout << "PMRS:: Converged with iterations:  " << k << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
             m_X = m_X_n;
             return;
         }
         
     }
     
-    std::cout << "Permeability Coupling:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
+    std::cout << "PMRS:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
     
     
 }
@@ -238,7 +238,7 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
         this->AppendStrain_Permeability(x);
         this->AppendStrain_Pressure(x);
         time = (i+1)* dt;
-        std::cout<< "Permeability Coupling:: Current time (s) = " << time << std::endl;
+        std::cout<< "PMRS:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
 
         
