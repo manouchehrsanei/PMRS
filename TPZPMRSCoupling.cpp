@@ -120,21 +120,21 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
             
         case 1: // Petunin et al. (2011), A = 2.0
         {
-            k = m_k_0*pow((phi/m_porosity_0),2.0);
+            k = m_k_0*pow((1+phi/m_porosity_0),2.0);
         }
             break;
             
             
         case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
-            k = m_k_0*pow((phi/m_porosity_0),2.44);
+            k = m_k_0*pow((1+phi/m_porosity_0),2.44);
         }
             break;
             
             
         case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
-            k = m_k_0*pow((phi/m_porosity_0),4.62);
+            k = m_k_0*pow((1+phi/m_porosity_0),4.62);
         }
             break;
         
@@ -2030,8 +2030,8 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1; // 1.0e-6;
-    REAL to_Darcy   = 1; //1.013249966e+12;
+    REAL to_Mpa     = 1.0e-6;
+    REAL to_Darcy   = 1.013249966e+12;
     
     
     // Computing Gradient of the Solution
@@ -2081,21 +2081,21 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     //	sigma_x
     if(var == 2)
     {
-        Solout[0] = S(0,0)*to_Mpa;
+        Solout[0] = S(0,0)*to_Mpa-p[0]*to_Mpa;
         return;
     }
     
     //	sigma_y
     if(var == 3)
     {
-        Solout[0] = S(1,1)*to_Mpa;
+        Solout[0] = S(1,1)*to_Mpa-p[0]*to_Mpa;
         return;
     }
     
     //	sigma_z
     if(var == 4)
     {
-        Solout[0] = S(2,2)*to_Mpa;
+        Solout[0] = S(2,2)*to_Mpa-p[0]*to_Mpa;
         return;
     }
     
