@@ -120,21 +120,21 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
             
         case 1: // Petunin et al. (2011), A = 2.0
         {
-            k = m_k_0*pow((1+phi/m_porosity_0),2.0);
+            k = m_k_0*pow((phi/m_porosity_0),2.0);
         }
             break;
             
             
         case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
-            k = m_k_0*pow((1+phi/m_porosity_0),2.44);
+            k = m_k_0*pow((phi/m_porosity_0),2.44);
         }
             break;
             
             
         case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
-            k = m_k_0*pow((1+phi/m_porosity_0),4.62);
+            k = m_k_0*pow((phi/m_porosity_0),4.62);
         }
             break;
         
@@ -480,7 +480,7 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     k_permeability(phi_poro,k);
     m_lambdau = 1.1 * m_lambda;
     
-    REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+    REAL c = (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
 
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -2031,7 +2031,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     
     REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.013249966e+12;
+    REAL to_Darcy   = 1; // 1.013249966e+12;
     
     
     // Computing Gradient of the Solution
@@ -2081,21 +2081,24 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     //	sigma_x
     if(var == 2)
     {
-        Solout[0] = S(0,0)*to_Mpa-p[0]*to_Mpa;
+//        Solout[0] = S(0,0)*to_Mpa-p[0]*to_Mpa;
+        Solout[0] = S(0,0)*to_Mpa;
         return;
     }
     
     //	sigma_y
     if(var == 3)
     {
-        Solout[0] = S(1,1)*to_Mpa-p[0]*to_Mpa;
+//        Solout[0] = S(1,1)*to_Mpa-p[0]*to_Mpa;
+        Solout[0] = S(1,1)*to_Mpa;
         return;
     }
     
     //	sigma_z
     if(var == 4)
     {
-        Solout[0] = S(2,2)*to_Mpa-p[0]*to_Mpa;
+//        Solout[0] = S(2,2)*to_Mpa-p[0]*to_Mpa;
+        Solout[0] = S(2,2)*to_Mpa;
         return;
     }
     

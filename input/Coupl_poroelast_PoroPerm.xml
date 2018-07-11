@@ -62,7 +62,7 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries="3" n_parameters="8" >
-            <Parameters eyoung="100e6" nu="0.2" phi="0.2" kappa="5.0e-9" alpha="1.0" m="1.0e29" rho="1000.0" mu="0.001" />
+            <Parameters eyoung="100e6" nu="0.2" phi="0.25" kappa="5.0e-9" alpha="1.0" m="1.0e29" rho="1000.0" mu="0.001" />
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -71,8 +71,8 @@
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="1.0e6" p="0.0e6" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-3.0e6" p="2.0e6" />
-        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="1.0" />
+        <BoundaryCondition bc_id="2" type="Duy_Dp" uy="0.0" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-5.0e6" p="2.0e6" />
+        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>
