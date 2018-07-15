@@ -466,7 +466,7 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 //                bc->SetTimedependentBCForcingFunction(boundary_data);
 //            }
             
-            if (time_depend_bound_type == "Ntn_time_Dp")
+            if (time_depend_bound_type == "Ntny_time_Dp")
             {
                 TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
                 bc->SetTimedependentBCForcingFunction(boundary_data);

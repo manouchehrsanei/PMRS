@@ -635,9 +635,8 @@ void TPZSimulationData::LoadBoundaryConditions()
         chunk.second.second.resize(0);
         
         // Neumann for elasticity and Dirichlet for diffusion (time dependent)
-        chunk.first = "Ntn_time_Dp"; // name
+        chunk.first = "Ntny_time_Dp"; // name
         chunk.second.first = 11; // index
-        chunk.second.second.push_back("tx");
         chunk.second.second.push_back("ty");
         chunk.second.second.push_back("p");
         m_condition_type_to_index_value_names.insert(chunk);

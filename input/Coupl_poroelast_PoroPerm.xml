@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an Terzaghi poroelastic  -->
+    <!-- Example 1: Simulating an Coupl_Poroelastic_PoroPerm  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
