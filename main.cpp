@@ -66,6 +66,7 @@
 
 // Methods declarations
 #define USING_Pardiso
+# define PZDEBUG
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
@@ -83,7 +84,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data);
 TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
 
 // Create a computational mesh for PorePerm Coupling
-TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
 
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
     
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PorePermCoupling(mesh_vector,sim_data);
+    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PoroPermCoupling(mesh_vector,sim_data);
     
     
     // The initial condition is set up to zero for Deformation and Pore Pressure
@@ -333,7 +334,8 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     std::ofstream out("CmeshDeformation.txt");
     cmesh->Print(out);
 #endif
-    
+    // number of equations in CMesh_Deformation, DOF
+    int64_t nequd = cmesh->NEquations();
     return cmesh;
     
 }
@@ -377,13 +379,14 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
     std::ofstream out("CmeshPorePressure.txt");
     cmesh->Print(out);
 #endif
-    
+    // number of equations in CMesh_PorePressure, DOF
+    int64_t nequp = cmesh->NEquations();
     return cmesh;
 }
 
 
 // Create a computational mesh for PorePerm Coupling
-TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
     mesh_vector[1] = CMesh_PorePressure(sim_data);
@@ -431,10 +434,12 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         material->SetKModel(kmodel);
         
         material->SetDruckerPragerParameters(phi_f, c);
+        
 
         cmesh->InsertMaterialObject(material);
         
-        
+       
+
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.size();
@@ -503,11 +508,16 @@ TPZCompMesh * CMesh_PorePermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         mfcel->PrepareIntPtIndices();
     }
     
+    
+    
 #ifdef PZDEBUG
     std::ofstream out("PorePermCoupling.txt");
     cmesh->Print(out);
 #endif
     cmesh->InitializeBlock();
+    
+    // number of equations in CMesh_PoroPermCoupling, DOF
+    int64_t nequmult = cmesh->NEquations();
     return cmesh;
     
 }
