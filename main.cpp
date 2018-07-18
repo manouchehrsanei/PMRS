@@ -66,7 +66,7 @@
 
 // Methods declarations
 #define USING_Pardiso
-# define PZDEBUG
+
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
@@ -210,10 +210,10 @@ int main(int argc, char *argv[])
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-    time_analysis->PlotStrainStress(file_ss_name);
-    time_analysis->PlotStrainPorosity(file_sp_name);
-    time_analysis->PlotStrainPermeability(file_sk_name);
-    time_analysis->PlotStrainPressure(file_spex_name);
+//    time_analysis->PlotStrainStress(file_ss_name);
+//    time_analysis->PlotStrainPorosity(file_sp_name);
+//    time_analysis->PlotStrainPermeability(file_sk_name);
+//    time_analysis->PlotStrainPressure(file_spex_name);
     std::cout << " Execution finished" << std::endl;
 
     
@@ -465,13 +465,13 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
             
             // selecting the boundary that is time dependent
             
-//            if (time_depend_bound_type == "Duy_time_Dp")
+//            if (time_depend_bound_type == "Du_time_Dp")
 //            {
 //                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_y);
 //                bc->SetTimedependentBCForcingFunction(boundary_data);
 //            }
             
-            if (time_depend_bound_type == "Ntny_time_Dp")
+            if (time_depend_bound_type == "Ntn_time_Dp")
             {
                 TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
                 bc->SetTimedependentBCForcingFunction(boundary_data);
