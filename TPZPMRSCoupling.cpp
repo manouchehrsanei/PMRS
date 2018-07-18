@@ -2,7 +2,7 @@
 //  TPZPMRSCoupling.cpp
 //  PZ
 //
-//  Created by Omar and Manouchehr on 8/28/16.
+//  Created by Manouchehr on Jun 27, 2018.
 //
 //
 
@@ -1192,10 +1192,6 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
 
         case 10 : //Du_time_Dp
         {
-            REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Uy displacement
-            v[2] = bc.Val2()(2,0);    //    Pressure
             
             //    Elasticity Equation
             for(in = 0 ; in < phru; in++)
@@ -1231,10 +1227,6 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             
         case 11 : // Ntn_time_Dp
         {
-            REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Tnx
-            v[1] = bc.Val2()(1,0);    //    Tny
-            v[2] = bc.Val2()(2,0);    //    Pressure
             
             //    Neumann condition for each state variable
             //    Elasticity Equation
@@ -1261,8 +1253,6 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             }
             break;
         }
-            
-            
             
 
         default:

@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-//    time_analysis->PlotStrainStress(file_ss_name);
+    time_analysis->PlotStrainStress(file_ss_name);
 //    time_analysis->PlotStrainPorosity(file_sp_name);
 //    time_analysis->PlotStrainPermeability(file_sk_name);
 //    time_analysis->PlotStrainPressure(file_spex_name);
