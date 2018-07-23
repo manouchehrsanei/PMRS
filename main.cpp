@@ -32,7 +32,14 @@
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
-#include "TPZPMRSCoupling.h"
+
+//#include "TPZPMRSCoupling.h"
+
+#include "TPZPMRSCouplPoroElast.h"
+
+//#include "TPZPMRSCouplPoroPlast.h"
+
+
 
 // Elasticity
 #include "TPZElasticCriterion.h"
@@ -59,7 +66,6 @@
 #include "TPZSimulationData.h"
 
 
-#include "TPZPMRSElastoPlastic_2D.h"
 
 
 
@@ -217,7 +223,6 @@ int main(int argc, char *argv[])
     std::cout << " Execution finished" << std::endl;
 
     
-    
 	return EXIT_SUCCESS;
 }
 
@@ -334,8 +339,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     std::ofstream out("CmeshDeformation.txt");
     cmesh->Print(out);
 #endif
-    // number of equations in CMesh_Deformation, DOF
-    int64_t nequd = cmesh->NEquations();
+
     return cmesh;
     
 }
@@ -379,8 +383,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
     std::ofstream out("CmeshPorePressure.txt");
     cmesh->Print(out);
 #endif
-    // number of equations in CMesh_PorePressure, DOF
-    int64_t nequp = cmesh->NEquations();
+    
     return cmesh;
 }
 
@@ -392,7 +395,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     mesh_vector[1] = CMesh_PorePressure(sim_data);
     
     // Plane strain assumption
-    int planestress = 0;
     int dim = sim_data->Dimension();
     TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
     
@@ -400,16 +402,19 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
     std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
     
-    REAL to_MPa = 1.0e6;
-    REAL to_rad = M_PI/180.0;
     
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
-//        TPZPMRSElastoPlastic_2D * material = new TPZPMRSElastoPlastic_2D(matid,dim);
+        
+//        TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
+        
+        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
+        
+//        TPZPMRSCouplPoroPlast * material = new TPZPMRSCouplPoroPlast(matid,dim);
+
 
         int kmodel = 0;
         REAL Ey_r = sim_data->F_young();
@@ -419,13 +424,10 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL alpha_r = sim_data->F_alpha();
         REAL Se = sim_data->F_Se();
         REAL eta = sim_data->F_eta();
-        REAL rho_f = sim_data->F_rho_f();
-    
-        REAL c = 27.2 * to_MPa;
-        REAL phi_f = 10.0 * to_rad;
+ 
+
         
         material->SetSimulationData(sim_data);
-        material->SetPlaneProblem(planestress);
         
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
@@ -433,13 +435,9 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
         
-        material->SetDruckerPragerParameters(phi_f, c);
-        
 
         cmesh->InsertMaterialObject(material);
         
-       
-
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.size();
@@ -515,9 +513,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     cmesh->Print(out);
 #endif
     cmesh->InitializeBlock();
-    
-    // number of equations in CMesh_PoroPermCoupling, DOF
-    int64_t nequmult = cmesh->NEquations();
+
     return cmesh;
     
 }

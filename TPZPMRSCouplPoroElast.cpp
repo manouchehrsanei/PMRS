@@ -1,12 +1,12 @@
 //
-//  TPZPMRSCoupling.cpp
+//  TPZPMRSCouplPoroElast.cpp
 //  PZ
 //
-//  Created by Omar and Manouchehr on 8/28/16.
+//  Created by Manouchehr on Jun 27, 2018.
 //
 //
 
-#include "TPZPMRSCoupling.h"
+#include "TPZPMRSCouplPoroElast.h"
 #include <iostream>
 #include <string>
 #include "pzbndcond.h"
@@ -30,7 +30,7 @@
 
 
 /** @brief default costructor */
-TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.), m_PlaneStress(0)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
 
     m_Dim = 3;
@@ -40,19 +40,17 @@ TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousG
     m_b[1]=0.;
     m_b[2]=0.;
     
-    m_PlaneStress = 1.;
     
     m_rho_s = 2700.0; 
     m_rho_f = 1000.0;
     
     m_k_model = 0;
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
+
     
 }
 
 /** @brief costructor based on a material id */
-TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.),m_PlaneStress(0)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
 
     m_Dim = dim;
@@ -62,25 +60,23 @@ TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory
     m_b[1]=0.;
     m_b[2]=0.;
     
-    m_PlaneStress = 1;
     
     m_rho_s = 2700.0;
     m_rho_f = 1000.0;
     
     m_k_model = 0;
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
+
     
 }
 
 /** @brief default destructor */
-TPZPMRSCoupling::~TPZPMRSCoupling()
+TPZPMRSCouplPoroElast::~TPZPMRSCouplPoroElast()
 {
 }
 
 
 /** @brief copy constructor $ */
-TPZPMRSCoupling::TPZPMRSCoupling(const TPZPMRSCoupling& other)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(const TPZPMRSCouplPoroElast& other)
 {
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
@@ -88,7 +84,7 @@ TPZPMRSCoupling::TPZPMRSCoupling(const TPZPMRSCoupling& other)
 
 
 /** @brief Copy assignemnt operator $ */
-TPZPMRSCoupling& TPZPMRSCoupling::operator = (const TPZPMRSCoupling& other)
+TPZPMRSCouplPoroElast& TPZPMRSCouplPoroElast::operator = (const TPZPMRSCouplPoroElast& other)
 {
     
     if (this != & other) // prevent self-assignment
@@ -101,13 +97,13 @@ TPZPMRSCoupling& TPZPMRSCoupling::operator = (const TPZPMRSCoupling& other)
 
 
 /** @brief number of state variables */
-int TPZPMRSCoupling::NStateVariables()
+int TPZPMRSCouplPoroElast::NStateVariables()
 {
     return 1;
 }
 
 /** @brief permeability coupling models  */
-REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
+REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
 {
     switch (m_k_model)
     {
@@ -150,7 +146,7 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
 }
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPMRSCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
+REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -185,7 +181,7 @@ REAL TPZPMRSCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
 
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPMRSCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
+REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -224,80 +220,8 @@ REAL TPZPMRSCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 }
 
 
-
-/** @brief computation of effective sigma 2D */
-void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
-{
-    
-    TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
-    Grad_u.Transpose(&Grad_ut);
-    
-    epsilon = Grad_u + Grad_ut;
-    epsilon *= 0.5;
-    
-    I(0,0) = 1.0;
-    I(1,1) = 1.0;
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S_eff = 2.0 * m_mu * epsilon + m_lambda * trace * I - 0.0 * m_alpha * p_ex * I;
-    
-}
-
-/** @brief computation of sigma 2D */
-void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v)
-{
-    
-    TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
-    Grad_v.Transpose(&Grad_vt);
-    
-    epsilon = Grad_v + Grad_vt;
-    epsilon *= 0.5;
-    
-    I.Identity();
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S = 2.0 * m_mu * epsilon + m_lambda * trace * I;
-    
-}
-
-
-/** @brief Compute effective stress 3D */
-void TPZPMRSCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
-{
-    
-    
-    REAL trace;
-    for (int i = 0; i < 3; i++)
-    {
-        trace = 0.0;
-        for (int j = 0; j < 3; j++)
-        {
-            S(i,j) = mu * (Grad_u(i,j) + Grad_u(j,i));
-            trace +=  Grad_u(j,j);
-        }
-        S(i,i) += l * trace;
-    }
-    
-    return;
-}
-
-
-
-/** @brief of inner product in 3D */
-REAL TPZPMRSCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
-
-{
-
-    REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(0,2) * T(0,2) + S(1,0) * T(1,0) + S(1,1) * T(1,1) + S(1,2) * T(1,2) + S(2,0) * T(2,0) + S(2,1) * T(2,1) + S(2,2) * T(2,2); //     S11 T11 + S12 T12 + S13 T13 + S21 T21 + S22 T22 + S23 T23 + S31 T31 + S32 T32 + S33 T33
-
-    return inner_product;
-}
-
-
 /** @brief of contribute of BC */
-void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
 
     if (m_Dim == 3)
@@ -314,7 +238,7 @@ void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 
 /** @brief of contribute in 2 dimensional */
-void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -349,7 +273,7 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     int first_p = 2*nphi_u;
     
     // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected(datavec);
+    REAL phi_poro = porosity_corrected_2D(datavec);
     
     REAL dt = m_SimulationData->dt();
     if (!m_SimulationData->IsCurrentStateQ())
@@ -366,7 +290,6 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
         return;
     }
     
-
     
     REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
@@ -387,15 +310,14 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    
-    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
-    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
+    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0);
 
-    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0),T(2,2,0.0);
-    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0),Tj_x;
-    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0),Tj_y;
+    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0);
+    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
 
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     
@@ -520,7 +442,7 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
 
 // Contribute Methods being used
 
-void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -599,16 +521,16 @@ void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0),Si_x;
-    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0),Si_y;
-    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0),Si_z;
+    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0);
     
-    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0),T(3,3,0.0);
-    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0),Tj_x;
-    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0),Tj_y;
-    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0),Tj_z;
+    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0);
+    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0);
     
     REAL dvxdx, dvxdy, dvxdz;
     REAL dvydx, dvydy, dvydz;
@@ -795,7 +717,7 @@ void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weigh
 
 
 /** @brief of contribute  */
-void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
@@ -803,7 +725,7 @@ void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 }
 
 /** @brief of contribute of BC */
-void TPZPMRSCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     if (!m_SimulationData->IsCurrentStateQ())
@@ -826,7 +748,7 @@ void TPZPMRSCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,
 
 
 /** @brief of contribute of BC_2D */
-void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 
     int u_b = 0;
@@ -1267,7 +1189,7 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
 }
 
 
-void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -1948,8 +1870,7 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
 }
 
 
-
-void TPZPMRSCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+void TPZPMRSCouplPoroElast::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
@@ -1963,7 +1884,7 @@ void TPZPMRSCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
     }
 }
 
-void TPZPMRSCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+void TPZPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
@@ -1974,10 +1895,9 @@ void TPZPMRSCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMa
     }
 }
 
-void TPZPMRSCoupling::Print(std::ostream &out)
+void TPZPMRSCouplPoroElast::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << m_PlaneStress << std::endl;
     out << "Properties for TPZPMRSCoupling: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
@@ -1997,7 +1917,7 @@ void TPZPMRSCoupling::Print(std::ostream &out)
 }
 
 /** Returns the variable index associated with the name */
-int TPZPMRSCoupling::VariableIndex(const std::string &name)
+int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
 {
     //	Elasticity Variables
     if(!strcmp("u",name.c_str()))				return	1;
@@ -2036,7 +1956,7 @@ int TPZPMRSCoupling::VariableIndex(const std::string &name)
     return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPMRSCoupling::NSolutionVariables(int var)
+int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
 {
     if(var == 1)	return m_Dim;
     if(var == 2)	return 1;
@@ -2069,7 +1989,7 @@ int TPZPMRSCoupling::NSolutionVariables(int var)
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     
     Solout.Resize( this->NSolutionVariables(var));
@@ -2122,7 +2042,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
     
     //	Displacements
@@ -2194,7 +2114,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
             Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
             
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k;
             k_permeability(phi, k);
             Solout[0] = -(k/m_eta) * Grad_p(0,0);
@@ -2222,7 +2142,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-        REAL phi = porosity_corrected(datavec);
+        REAL phi = porosity_corrected_2D(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
         Solout[0] = k*to_Darcy;
@@ -2244,7 +2164,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k = 0.0;
             k_permeability(phi, k);
             Solout[0] = k*to_Darcy;
@@ -2265,7 +2185,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k = 0.0;
             k_permeability(phi, k);
             Solout[0] = k*to_Darcy;
@@ -2286,7 +2206,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            Solout[0] = porosity_corrected(datavec);
+            Solout[0] = porosity_corrected_2D(datavec);
             return;
         }
         else
@@ -2389,208 +2309,10 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
 }
 
-/** @brief mean stress */
-REAL TPZPMRSCoupling::p_m(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL mean_stress = 0.0;
-    mean_stress = fabs((T(0,0) + T(1,1) + T(2,2)))/3.0;
-    return mean_stress;
-}
 
-/** @brief deviatoric stress */
-TPZFMatrix<REAL> TPZPMRSCoupling::s(TPZFMatrix<REAL> T)
-{
 
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL  mean_stress = p_m(T);
-    TPZFMatrix<REAL> H = T;
-    TPZFNMatrix<9,REAL> I(3,3,0.0);
-    I.Identity();
-    H = T - mean_stress * I;
-    return H;
-}
-
-/** @brief J2 invariant stress */
-REAL TPZPMRSCoupling::J2(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> S = T;
-    TPZFMatrix<REAL> S_inner = T;
-    S.Transpose(&S);
-    S.Multiply(T,S_inner);
-    
-    REAL j2 = 0.5*(S_inner(0,0) + S_inner(1,1) + S_inner(2,2));
-    
-    return j2
-    ;
-}
-
-/** @brief J3 invariant stress */
-REAL TPZPMRSCoupling::J3(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> Tinv = T;
-    REAL det = T(0,0)*T(1,1)-T(1,0)*T(0,1);
-    Tinv.Resize(3, 3);
-    Tinv(2,2) = Tinv(1,1);
-    Tinv.DeterminantInverse(det, Tinv);
-    
-    return det;
-    
-}
-
-/** @brief Lode angle, theta */
-REAL TPZPMRSCoupling::theta(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta;
-    REAL arg = -3.0*sqrt(3.0)*J3(s(T))/(2.0*pow(J2(s(T)), 1.5)) + 1.0e-14;
-    theta = (1.0/3.0)*asin(arg);
-    
-    return theta;
-}
-
-/** @brief Phi Mohr-Coulomb */
-REAL TPZPMRSCoupling::Phi_MC(TPZFMatrix<REAL> T)
-{
-
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta_v = theta(T);
-    
-    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(m_phi_f)) * sqrt(J2(s(T))) + p_m(T)*sin(m_phi_f) - m_c * cos(m_phi_f);
-    return phi;
-}
-
-/** @brief Phi Drucker-Prager */
-REAL TPZPMRSCoupling::Phi_DP(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    REAL eta = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL xi = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL phi = sqrt(J2(s(T))) + eta *  p_m(T) - xi * m_c ;
-    return phi;
-
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPMRSCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    REAL phi = sqrt(J2(s(T))) - m_mu * d_gamma_guest + m_eta_dp *  (p_m(T) - m_K * m_eta_dp * d_gamma_guest) - m_xi_dp * m_c ;
-    return phi;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPMRSCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-
-    REAL d_phi_d_delta_gamma = - m_mu - m_K * m_eta_dp * m_eta_dp;
-    
-    if (fabs(d_phi_d_delta_gamma) <= 1.0e-18)
-    {
-        d_phi_d_delta_gamma = 1.0e-18;
-    }
-    
-    return d_phi_d_delta_gamma;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma using newton iterations */
-REAL TPZPMRSCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-    REAL tol = 1.0e-10;
-    REAL error = 1.0;
-    int n_iter = 20;
-    REAL d_gamma_converged = d_gamma_guest;
-    
-    for (int i = 0; i < n_iter; i++) {
-        d_gamma_converged = d_gamma_converged - Phi_tilde_DP(T,d_gamma_converged) / Phi_tilde_DP_delta_gamma(T,d_gamma_converged);
-        error = Phi_tilde_DP(T,d_gamma_converged);
-        if (error <= tol) {
-            break;
-        }
-        
-    }
-    
-    return d_gamma_converged;
-    
-}
-
-/** @brief Drucker prager strain update */
-TPZFMatrix<REAL> TPZPMRSCoupling::strain_DP(TPZFMatrix<REAL> T)
-{
-    DebugStop();
-	return T;
-}
-
-/** @brief Drucker prager stress update */
-TPZFMatrix<REAL> TPZPMRSCoupling::stress_DP(TPZFMatrix<REAL> T)
-{
-    DebugStop();
-	return T;
-}
-
-/** @brief Drucker prager elastoplastic corrector  */
-void TPZPMRSCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
+/** @brief computation of effective sigma */
+void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
 {
     
 #ifdef PZDEBUG
@@ -2627,51 +2349,31 @@ void TPZPMRSCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> G
     delta_e *= 0.5;
     
     
-    TPZFNMatrix<9,REAL> e_t, e_trial;
-    TPZFNMatrix<9,REAL> S_trial,s_trial, I(delta_e.Rows(),delta_e.Cols(),0.0);
+    TPZFNMatrix<9,REAL> e_t, e_tn;
+    TPZFNMatrix<9,REAL> S_tn,s_tn, I(delta_e.Rows(),delta_e.Cols(),0.0);
     I.Identity();
     
     /** Trial strain */
     e_t = e_e + e_p;
-    e_trial = e_t + delta_e;
+    e_tn = e_t + delta_e;
 
     /** Trial stress */
-    REAL trace = (e_trial(0,0) + e_trial(1,1) + e_trial(2,2));
-    s_trial = 2.0 * m_mu * e_trial + m_lambda * trace * I;
+    REAL trace = (e_tn(0,0) + e_tn(1,1) + e_tn(2,2));
+    s_tn = 2.0 * m_mu * e_tn + m_lambda * trace * I;
     
     // convert to principal stresses
-    Principal_Stress(s_trial, S_trial);
+    Principal_Stress(s_tn, S_tn);
     
     /** Elastic update */
-    e_e = e_trial;
-    S = s_trial;
+    e_e = e_tn;
+    S = s_tn;
     
     return;
-    
-    if (Phi_DP(s_trial) < 0.0)
-    {
-        /** Elastic update */
-        e_e = e_trial;
-        S = s_trial;
-    }
-    else{
-        /** Plastic update */
-        REAL delta_gamma = 0.0;
-        delta_gamma = delta_gamma_finder(s_trial, delta_gamma);
-        e_e = e_trial;
-        e_p = delta_gamma * ( ( 1.0/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_eta_dp/3.0)* I);
-        S = s_trial - delta_gamma * ( ( m_mu/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_K * m_eta_dp/3.0)* I);
-
-//        e_e.Print("e_e = ");
-//        e_p.Print("e_p = ");
-//        s_trial.Print("s_trial = ");
-//        S.Print("s = ");
-    }
     
 }
 
 /** @brief Principal Stress */
-void TPZPMRSCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
+void TPZPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
 {
     
 #ifdef PZDEBUG

@@ -9,8 +9,9 @@
 #include "TPZPMRSMemory.h"
 
 /** @brief Default constructor */
-TPZPMRSMemory::TPZPMRSMemory(){
+TPZPMRSMemory::TPZPMRSMemory():  fSigma() {
     
+   
     
     /** @brief Gradient of deformation at n (last) state */
     m_grad_u_n.Resize(3, 3);

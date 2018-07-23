@@ -1,36 +1,39 @@
 //
-//  TPZPMRSCoupling.cpp
+//  TPZPMRSCouplPoroPlast.cpp
 //  PZ
 //
-//  Created by Omar and Manouchehr on 8/28/16.
+//  Created by Manouchehr on Jun 27, 2018.
 //
 //
 
-#include "TPZPMRSCoupling.h"
+
+#include "TPZPMRSCouplPoroPlast.h"
 #include <iostream>
 #include <string>
+#include "pzelasmat.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include <algorithm>
+#include "pzintel.h"
+#include "TPZElasticResponse.h"
+
 
 #include "pzfmatrix.h"
 #include "TPZTensor.h"
 
-// Elasticity
-#include "TPZElasticCriterion.h"
 
-// Plasticity
-#include "TPZPlasticStepPV.h"
-#include "TPZSandlerExtended.h"
-#include "TPZYCMohrCoulombPV.h"
-#include "TPZMatElastoPlastic.h"
-#include "TPZElasticCriterion.h"
-#include "TPZSandlerDimaggio.h"
+#include "TPZPMRSMemory.h"
+
+
+#ifdef LOG4CXX
+#include "pzlog.h"
+static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+#endif
 
 
 
 /** @brief default costructor */
-TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.), m_PlaneStress(0)
+template<class T,class TPZPMRSMemory>
+TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,TPZPMRSMemory>()
 {
 
     m_Dim = 3;
@@ -40,21 +43,21 @@ TPZPMRSCoupling::TPZPMRSCoupling():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousG
     m_b[1]=0.;
     m_b[2]=0.;
     
-    m_PlaneStress = 1.;
     
     m_rho_s = 2700.0; 
     m_rho_f = 1000.0;
     
     m_k_model = 0;
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
+    
+    this->SetCurrentState();
+    m_SetRunPlasticity = false;
     
 }
 
 /** @brief costructor based on a material id */
-TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.),m_PlaneStress(0)
+template<class T,class TPZPMRSMemory>
+TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::TPZPMRSCouplPoroPlast(int matid, int dim):TPZMatElastoPlastic2D<T,TPZPMRSMemory>(matid,1)
 {
-
     m_Dim = dim;
     m_b.resize(3);
     
@@ -62,25 +65,25 @@ TPZPMRSCoupling::TPZPMRSCoupling(int matid, int dim):TPZMatWithMem<TPZPMRSMemory
     m_b[1]=0.;
     m_b[2]=0.;
     
-    m_PlaneStress = 1;
     
     m_rho_s = 2700.0;
     m_rho_f = 1000.0;
     
     m_k_model = 0;
-    m_eta_dp = 0.0;
-    m_xi_dp = 0.0;
-    
+    this->SetCurrentState();
+    m_SetRunPlasticity = false;
 }
 
 /** @brief default destructor */
-TPZPMRSCoupling::~TPZPMRSCoupling()
+template<class T,class TPZPMRSMemory>
+TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::~TPZPMRSCouplPoroPlast()
 {
 }
 
 
 /** @brief copy constructor $ */
-TPZPMRSCoupling::TPZPMRSCoupling(const TPZPMRSCoupling& other)
+template<class T,class TPZPMRSMemory>
+TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast& other)
 {
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
@@ -88,7 +91,8 @@ TPZPMRSCoupling::TPZPMRSCoupling(const TPZPMRSCoupling& other)
 
 
 /** @brief Copy assignemnt operator $ */
-TPZPMRSCoupling& TPZPMRSCoupling::operator = (const TPZPMRSCoupling& other)
+template<class T,class TPZPMRSMemory>
+TPZPMRSCouplPoroPlast<T,TPZPMRSMemory> &TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::operator = (const TPZPMRSCouplPoroPlast& other)
 {
     
     if (this != & other) // prevent self-assignment
@@ -101,13 +105,15 @@ TPZPMRSCoupling& TPZPMRSCoupling::operator = (const TPZPMRSCoupling& other)
 
 
 /** @brief number of state variables */
-int TPZPMRSCoupling::NStateVariables()
+template<class T,class TPZPMRSMemory>
+int TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::NStateVariables()
 {
     return 1;
 }
 
 /** @brief permeability coupling models  */
-REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
+template<class T,class TPZPMRSMemory>
+REAL TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::k_permeability(REAL &phi, REAL &k)
 {
     switch (m_k_model)
     {
@@ -150,7 +156,8 @@ REAL TPZPMRSCoupling::k_permeability(REAL &phi, REAL &k)
 }
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPMRSCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
+template<class T,class TPZPMRSMemory>
+REAL TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -185,7 +192,8 @@ REAL TPZPMRSCoupling::porosity_corrected(TPZVec<TPZMaterialData> &datavec)
 
 
 /** @brief Poroelastic porosity correction */
-REAL TPZPMRSCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
+template<class T,class TPZPMRSMemory>
+REAL TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -224,80 +232,9 @@ REAL TPZPMRSCoupling::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 }
 
 
-
-/** @brief computation of effective sigma 2D */
-void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S_eff,TPZFMatrix<REAL> & Grad_u, REAL p_ex)
-{
-    
-    TPZFNMatrix<6,REAL> Grad_ut(2,2,0.0), epsilon(2,2,0.0), I(2,2,0.0);
-    Grad_u.Transpose(&Grad_ut);
-    
-    epsilon = Grad_u + Grad_ut;
-    epsilon *= 0.5;
-    
-    I(0,0) = 1.0;
-    I(1,1) = 1.0;
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S_eff = 2.0 * m_mu * epsilon + m_lambda * trace * I - 0.0 * m_alpha * p_ex * I;
-    
-}
-
-/** @brief computation of sigma 2D */
-void TPZPMRSCoupling::Compute_Sigma(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_v)
-{
-    
-    TPZFNMatrix<6,REAL> Grad_vt(3,3,0.0), epsilon(3,3,0.0), I(3,3,0.0);
-    Grad_v.Transpose(&Grad_vt);
-    
-    epsilon = Grad_v + Grad_vt;
-    epsilon *= 0.5;
-    
-    I.Identity();
-    
-    REAL trace = (epsilon(0,0) + epsilon(1,1));
-    
-    S = 2.0 * m_mu * epsilon + m_lambda * trace * I;
-    
-}
-
-
-/** @brief Compute effective stress 3D */
-void TPZPMRSCoupling::Compute_Sigma(REAL & l, REAL & mu, TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & Grad_u)
-{
-    
-    
-    REAL trace;
-    for (int i = 0; i < 3; i++)
-    {
-        trace = 0.0;
-        for (int j = 0; j < 3; j++)
-        {
-            S(i,j) = mu * (Grad_u(i,j) + Grad_u(j,i));
-            trace +=  Grad_u(j,j);
-        }
-        S(i,i) += l * trace;
-    }
-    
-    return;
-}
-
-
-
-/** @brief of inner product in 3D */
-REAL TPZPMRSCoupling::Inner_Product(TPZFMatrix<REAL> & S,TPZFMatrix<REAL> & T)
-
-{
-
-    REAL inner_product = S(0,0) * T(0,0) + S(0,1) * T(0,1) + S(0,2) * T(0,2) + S(1,0) * T(1,0) + S(1,1) * T(1,1) + S(1,2) * T(1,2) + S(2,0) * T(2,0) + S(2,1) * T(2,1) + S(2,2) * T(2,2); //     S11 T11 + S12 T12 + S13 T13 + S21 T21 + S22 T22 + S23 T23 + S31 T31 + S32 T32 + S33 T33
-
-    return inner_product;
-}
-
-
 /** @brief of contribute of BC */
-void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
 
     if (m_Dim == 3)
@@ -314,7 +251,8 @@ void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 
 /** @brief of contribute in 2 dimensional */
-void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -349,8 +287,10 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     int first_p = 2*nphi_u;
     
     // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected(datavec);
+    REAL phi_poro = porosity_corrected_2D(datavec);
     
+    
+    // @brief of checking whether the time of diffusion is in the current state or not
     REAL dt = m_SimulationData->dt();
     if (!m_SimulationData->IsCurrentStateQ())
     {
@@ -366,7 +306,21 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
         return;
     }
     
-
+    
+    // @brief the state of elasticity
+    if(gState == ELastState)
+    {
+        return;
+    }
+    
+    
+    int nref =  datavec.size();
+    if (nref != 2) {
+        std::cout << " Error.!! the size of datavec is equal to two\n";
+        std::cout << " datavec[0]->elasticity and datavec[1]->diffusion\n";
+        DebugStop();
+    }
+    
     
     REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
@@ -380,22 +334,21 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
-    // Get the solution at the integrations points
+//     Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemory &point_memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &point_memory = TPZMatWithMem<TPZPMRSMemory>::fMemory[global_point_index];
     e_e = point_memory.epsilon_e_n();
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    
-    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0),Si_x;
-    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0),Si_y;
+    TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0);
 
-    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0),T(2,2,0.0);
-    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0),Tj_x;
-    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0),Tj_y;
+    TPZFNMatrix<6,REAL> Grad_v(2,2,0.0);
+    TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0);
+    TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
 
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     
@@ -515,12 +468,184 @@ void TPZPMRSCoupling::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weigh
         
     }
     
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "<<< TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Contribute_2D ***";
+        sout << " Resultant rhs vector:\n" << ef;
+        sout << " Resultant stiff vector:\n" << ek;
+        LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    
+    
+    
+    if (m_SetRunPlasticity)
+    {
+        ContributePlastic_2D(datavec[0],weight,ek,ef);
+        
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "<<< TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributePlastic_2D ***";
+            sout << " Resultant rhs vector:\n" << ef;
+            sout << " Resultant stiff vector:\n" << ek;
+            LOGPZ_DEBUG(logger,sout.str().c_str());
+        }
+#endif
+        
+        return;
+    }
+    
+}
+
+
+
+/** @brief of contribute of plasticity in 2 dimensional */
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+
+    TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
+    TPZFMatrix<REAL> &phi  = data.phi;
+    dphiXY = dphi;
+    
+    
+    int first_u = 0;
+    const int n_phi_u = phi.Rows();
+    
+    TPZFNMatrix<4>  Deriv(2,2);
+    TPZFNMatrix<9> Dep(3,3);
+    TPZFNMatrix<3>  DeltaStrain(3,1);
+    TPZFNMatrix<3>  Stress(3,1);
+    int ptindex = data.intGlobPtIndex;
+    
+    
+    
+    if (TPZMatWithMem<TPZPMRSMemory>::fUpdateMem && data.sol.size() > 0)
+    {
+        // Loop over the solutions if update memory is true
+        TPZSolVec locsol(data.sol);
+        TPZGradSolVec locdsol(data.dsol);
+        int numsol = locsol.size();
+        
+        for (int is=0; is<numsol; is++)
+        {
+            data.sol[0] = locsol[is];
+            data.dsol[0] = locdsol[is];
+            
+            this->ComputeDeltaStrainVector(data, DeltaStrain);
+            this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+        }
+    }
+    else
+    {
+        
+        this->ComputeDeltaStrainVector(data, DeltaStrain);
+        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+    }
+#ifdef MACOS
+    feclearexcept(FE_ALL_EXCEPT);
+    if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT    )) {
+        std::cout << "division by zero reported\n";
+        DebugStop();
+    }
+#endif
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << ">>> TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributePlastic_2D ***";
+        sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
+        sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
+        sout << "\ndata.axes = " << data.axes;
+        sout << "\nDep " <<endl;
+        sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
+        sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
+        sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
+        
+        sout << "\nStress " <<endl;
+        sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
+        
+        sout << "\nDELTA STRAIN " <<endl;
+        sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
+        sout << "data.phi" << data.phi;
+        
+        LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    
+    ptindex = 0;
+    REAL val;
+    
+    for(int iu = 0; iu < n_phi_u; iu++)
+    {
+        
+        val -= m_b[0] * phi(0,iu);
+        val += Stress(0,0) * dphiXY(0,iu); //dphixdx
+        val += Stress(2,0) * dphiXY(1,iu); //dphixdy
+        ef(2*iu+0 + first_u,0) += weight * val;
+        
+        val -= m_b[1] * phi(1,iu);
+        val += Stress(2,0) * dphiXY(2,iu); //dphiydx
+        val += Stress(1,0) * dphiXY(3,iu); //dphiydy
+        ef(2*iu+1 + first_u,0) += weight * val;
+        
+        
+        for (int ju = 0; ju < n_phi_u; ju++)
+        {
+            for (int ud = 0; ud < 2; ud++)
+            {
+                for (int vd = 0; vd < 2; vd++)
+                {
+                    Deriv(vd, ud) = dphiXY(vd, iu) * dphiXY(ud, ju);
+                }
+            }
+        
+        
+        
+        val  = 2. * Dep(0,0) * Deriv(0, 0); //dvdx*dudx
+        val +=      Dep(0,2) * Deriv(0, 1); //dvdx*dudy
+        val += 2. * Dep(2,0) * Deriv(1, 0); //dvdy*dudx
+        val +=      Dep(2,2) * Deriv(1, 1); //dvdy*dudy
+        val *= 0.5;
+        ek(2*iu+0 + first_u, 2*ju+0 + first_u) += weight * val;
+        
+        val  =      Dep(0,2) * Deriv(0, 0); //dvdx*dudx
+        val += 2. * Dep(0,1) * Deriv(0, 1); //dvdx*dudy
+        val +=      Dep(2,2) * Deriv(1, 0); //dvdy*dudx
+        val += 2. * Dep(2,1) * Deriv(1, 1); //dvdy*dudy
+        val *= 0.5;
+        ek(2*iu+0 + first_u, 2*ju+1 + first_u) += weight * val;
+        
+        val  = 2. * Dep(2,0) * Deriv(0, 0); //dvdx*dudx
+        val +=      Dep(2,2) * Deriv(0, 1); //dvdx*dudy
+        val += 2. * Dep(1,0) * Deriv(1, 0); //dvdy*dudx
+        val +=      Dep(1,2) * Deriv(1, 1); //dvdy*dudy
+        val *= 0.5;
+        ek(2*iu+1 + first_u, 2*ju+0 + first_u) += weight * val;
+        
+        val  =      Dep(2,2) * Deriv(0, 0); //dvdx*dudx
+        val += 2. * Dep(2,1) * Deriv(0, 1); //dvdx*dudy
+        val +=      Dep(1,2) * Deriv(1, 0); //dvdy*dudx
+        val += 2. * Dep(1,1) * Deriv(1, 1); //dvdy*dudy
+        val *= 0.5;
+        ek(2*iu+1 + first_u, 2*ju+1 + first_u) += weight * val;
+            
+        }
+        
+    }
+    
 }
 
 
 // Contribute Methods being used
-
-void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -594,21 +719,21 @@ void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemory &point_memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &point_memory = TPZMatWithMem<TPZPMRSMemory>::fMemory[global_point_index];
     e_e = point_memory.epsilon_e_n();
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0),Si_x;
-    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0),Si_y;
-    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0),Si_z;
+    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0);
     
-    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0),T(3,3,0.0);
-    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0),Tj_x;
-    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0),Tj_y;
-    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0),Tj_z;
+    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0);
+    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0);
+    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0);
     
     REAL dvxdx, dvxdy, dvxdz;
     REAL dvydx, dvydy, dvydz;
@@ -795,7 +920,8 @@ void TPZPMRSCoupling::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weigh
 
 
 /** @brief of contribute  */
-void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
@@ -803,7 +929,8 @@ void TPZPMRSCoupling::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 }
 
 /** @brief of contribute of BC */
-void TPZPMRSCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     if (!m_SimulationData->IsCurrentStateQ())
@@ -820,13 +947,13 @@ void TPZPMRSCoupling::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,
          this->ContributeBC_2D(datavec, weight, ek, ef, bc);
     }
     
-
     
 }
 
 
 /** @brief of contribute of BC_2D */
-void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 
     int u_b = 0;
@@ -842,6 +969,7 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
     int phru = phiu.Rows();
     int phrp = phip.Rows();
     short in,jn;
+    const REAL BIGNUMBER = TPZMaterial::gBigNumber;
 
     
     // The boundary is time dependent
@@ -874,14 +1002,14 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in  ,0)      += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in  ,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in,2*jn    )    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
 
@@ -891,12 +1019,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -914,12 +1042,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += BIGNUMBER*(d_ux)*phiu(in,0)*weight;    // X displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in,2*jn)        += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                 }
             }
 
@@ -929,12 +1057,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -952,12 +1080,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement
+                ef(2*in+1,0)      += BIGNUMBER*(d_uy)*phiu(in,0)*weight;    // y displacement
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
 
@@ -967,12 +1095,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1001,12 +1129,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1036,12 +1164,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1058,14 +1186,14 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in,0)        += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in,2*jn)        += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
 
@@ -1091,12 +1219,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += BIGNUMBER*(d_ux)*phiu(in,0)*weight;    // X displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in,2*jn)        += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                 }
             }
 
@@ -1121,12 +1249,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += gBigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in+1,0)      += BIGNUMBER*(d_uy)*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
 
@@ -1199,14 +1327,14 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in  ,0)      += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in  ,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in,2*jn    )    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
             
@@ -1216,12 +1344,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1245,12 +1373,12 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1266,8 +1394,8 @@ void TPZPMRSCoupling::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL wei
 
 }
 
-
-void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -1284,7 +1412,7 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
     int phru = phiu.Rows();
     int phrp = phip.Rows();
     short in,jn;
-    
+    const REAL BIGNUMBER = TPZMaterial::gBigNumber;
     
     switch (bc.Type())
     {
@@ -1303,16 +1431,16 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             
@@ -1322,12 +1450,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1347,14 +1475,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
             //    Diffusion Equation
@@ -1363,12 +1491,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1388,14 +1516,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             //    Diffusion Equation
@@ -1404,12 +1532,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1429,14 +1557,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             //    Diffusion Equation
@@ -1445,12 +1573,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1469,13 +1597,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in,0)		+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in,3*jn)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     
                 }
             }
@@ -1485,12 +1613,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1509,13 +1637,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)		+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+1,0)		+= BIGNUMBER*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+1,3*jn+1)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     
                 }
             }
@@ -1525,12 +1653,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1549,13 +1677,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+2,0)		+= gBigNumber*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+2,0)		+= BIGNUMBER*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+2,3*jn+2)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in+2,3*jn+2)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                     
                 }
             }
@@ -1565,12 +1693,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1603,12 +1731,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1640,12 +1768,12 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phrp; in++)
             {
                 //    Contribution for load Vector
-                ef(in+3*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                ef(in+3*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
                 
                 for (jn = 0 ; jn < phrp; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(in+3*phru,jn+3*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                    ek(in+3*phru,jn+3*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
                 }
             }
             break;
@@ -1666,16 +1794,16 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             
@@ -1701,14 +1829,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
             //    Diffusion Equation
@@ -1733,14 +1861,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             //    Diffusion Equation
@@ -1765,14 +1893,14 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)	+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
-                    ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
             //    Diffusion Equation
@@ -1796,13 +1924,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in,0)		+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in,0)		+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in,3*jn)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in,3*jn)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     
                 }
             }
@@ -1828,13 +1956,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)		+= gBigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+1,0)		+= BIGNUMBER*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+1,3*jn+1)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+1,3*jn+1)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     
                 }
             }
@@ -1860,13 +1988,13 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+2,0)		+= gBigNumber*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+2,0)		+= BIGNUMBER*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in+2,3*jn+2)		+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    ek(3*in+2,3*jn+2)		+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                     
                 }
             }
@@ -1947,9 +2075,8 @@ void TPZPMRSCoupling::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
-
-
-void TPZPMRSCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
@@ -1963,7 +2090,8 @@ void TPZPMRSCoupling::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
     }
 }
 
-void TPZPMRSCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
@@ -1974,10 +2102,10 @@ void TPZPMRSCoupling::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMa
     }
 }
 
-void TPZPMRSCoupling::Print(std::ostream &out)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << m_PlaneStress << std::endl;
     out << "Properties for TPZPMRSCoupling: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
@@ -1997,7 +2125,8 @@ void TPZPMRSCoupling::Print(std::ostream &out)
 }
 
 /** Returns the variable index associated with the name */
-int TPZPMRSCoupling::VariableIndex(const std::string &name)
+template<class T,class TPZPMRSMemory>
+int TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::VariableIndex(const std::string &name)
 {
     //	Elasticity Variables
     if(!strcmp("u",name.c_str()))				return	1;
@@ -2036,7 +2165,8 @@ int TPZPMRSCoupling::VariableIndex(const std::string &name)
     return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPMRSCoupling::NSolutionVariables(int var)
+template<class T,class TPZPMRSMemory>
+int TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::NSolutionVariables(int var)
 {
     if(var == 1)	return m_Dim;
     if(var == 2)	return 1;
@@ -2069,7 +2199,8 @@ int TPZPMRSCoupling::NSolutionVariables(int var)
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     
     Solout.Resize( this->NSolutionVariables(var));
@@ -2122,7 +2253,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     
-    corrector_DP(Grad_u_n, Grad_u, e_e, e_p, S);
+    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
     
     //	Displacements
@@ -2194,7 +2325,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
             Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
             
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k;
             k_permeability(phi, k);
             Solout[0] = -(k/m_eta) * Grad_p(0,0);
@@ -2222,7 +2353,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-        REAL phi = porosity_corrected(datavec);
+        REAL phi = porosity_corrected_2D(datavec);
         REAL k = 0.0;
         k_permeability(phi, k);
         Solout[0] = k*to_Darcy;
@@ -2244,7 +2375,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k = 0.0;
             k_permeability(phi, k);
             Solout[0] = k*to_Darcy;
@@ -2265,7 +2396,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            REAL phi = porosity_corrected(datavec);
+            REAL phi = porosity_corrected_2D(datavec);
             REAL k = 0.0;
             k_permeability(phi, k);
             Solout[0] = k*to_Darcy;
@@ -2286,7 +2417,7 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     {
         if (m_Dim != 3)
         {
-            Solout[0] = porosity_corrected(datavec);
+            Solout[0] = porosity_corrected_2D(datavec);
             return;
         }
         else
@@ -2389,208 +2520,11 @@ void TPZPMRSCoupling::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
 }
 
-/** @brief mean stress */
-REAL TPZPMRSCoupling::p_m(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL mean_stress = 0.0;
-    mean_stress = fabs((T(0,0) + T(1,1) + T(2,2)))/3.0;
-    return mean_stress;
-}
 
-/** @brief deviatoric stress */
-TPZFMatrix<REAL> TPZPMRSCoupling::s(TPZFMatrix<REAL> T)
-{
 
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL  mean_stress = p_m(T);
-    TPZFMatrix<REAL> H = T;
-    TPZFNMatrix<9,REAL> I(3,3,0.0);
-    I.Identity();
-    H = T - mean_stress * I;
-    return H;
-}
-
-/** @brief J2 invariant stress */
-REAL TPZPMRSCoupling::J2(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> S = T;
-    TPZFMatrix<REAL> S_inner = T;
-    S.Transpose(&S);
-    S.Multiply(T,S_inner);
-    
-    REAL j2 = 0.5*(S_inner(0,0) + S_inner(1,1) + S_inner(2,2));
-    
-    return j2
-    ;
-}
-
-/** @brief J3 invariant stress */
-REAL TPZPMRSCoupling::J3(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    TPZFMatrix<REAL> Tinv = T;
-    REAL det = T(0,0)*T(1,1)-T(1,0)*T(0,1);
-    Tinv.Resize(3, 3);
-    Tinv(2,2) = Tinv(1,1);
-    Tinv.DeterminantInverse(det, Tinv);
-    
-    return det;
-    
-}
-
-/** @brief Lode angle, theta */
-REAL TPZPMRSCoupling::theta(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta;
-    REAL arg = -3.0*sqrt(3.0)*J3(s(T))/(2.0*pow(J2(s(T)), 1.5)) + 1.0e-14;
-    theta = (1.0/3.0)*asin(arg);
-    
-    return theta;
-}
-
-/** @brief Phi Mohr-Coulomb */
-REAL TPZPMRSCoupling::Phi_MC(TPZFMatrix<REAL> T)
-{
-
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3) {
-        DebugStop();
-    }
-#endif
-    
-    REAL theta_v = theta(T);
-    
-    REAL phi = (cos(theta_v) - (1.0/sqrt(3.0))*sin(theta_v)*sin(m_phi_f)) * sqrt(J2(s(T))) + p_m(T)*sin(m_phi_f) - m_c * cos(m_phi_f);
-    return phi;
-}
-
-/** @brief Phi Drucker-Prager */
-REAL TPZPMRSCoupling::Phi_DP(TPZFMatrix<REAL> T)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    REAL eta = 6.0*(sin(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL xi = 6.0*(cos(m_phi_f))/(sqrt(3.0)*(3.0-sin(m_phi_f)));
-    REAL phi = sqrt(J2(s(T))) + eta *  p_m(T) - xi * m_c ;
-    return phi;
-
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPMRSCoupling::Phi_tilde_DP(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-    REAL phi = sqrt(J2(s(T))) - m_mu * d_gamma_guest + m_eta_dp *  (p_m(T) - m_K * m_eta_dp * d_gamma_guest) - m_xi_dp * m_c ;
-    return phi;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma */
-REAL TPZPMRSCoupling::Phi_tilde_DP_delta_gamma(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-#ifdef PZDEBUG
-    if (T.Rows() != 3 && T.Cols() != 3)
-    {
-        DebugStop();
-    }
-#endif
-
-    REAL d_phi_d_delta_gamma = - m_mu - m_K * m_eta_dp * m_eta_dp;
-    
-    if (fabs(d_phi_d_delta_gamma) <= 1.0e-18)
-    {
-        d_phi_d_delta_gamma = 1.0e-18;
-    }
-    
-    return d_phi_d_delta_gamma;
-    
-}
-
-/** @brief plasticity multiplier delta_gamma using newton iterations */
-REAL TPZPMRSCoupling::delta_gamma_finder(TPZFMatrix<REAL> T, REAL d_gamma_guest)
-{
-    
-    REAL tol = 1.0e-10;
-    REAL error = 1.0;
-    int n_iter = 20;
-    REAL d_gamma_converged = d_gamma_guest;
-    
-    for (int i = 0; i < n_iter; i++) {
-        d_gamma_converged = d_gamma_converged - Phi_tilde_DP(T,d_gamma_converged) / Phi_tilde_DP_delta_gamma(T,d_gamma_converged);
-        error = Phi_tilde_DP(T,d_gamma_converged);
-        if (error <= tol) {
-            break;
-        }
-        
-    }
-    
-    return d_gamma_converged;
-    
-}
-
-/** @brief Drucker prager strain update */
-TPZFMatrix<REAL> TPZPMRSCoupling::strain_DP(TPZFMatrix<REAL> T)
-{
-    DebugStop();
-	return T;
-}
-
-/** @brief Drucker prager stress update */
-TPZFMatrix<REAL> TPZPMRSCoupling::stress_DP(TPZFMatrix<REAL> T)
-{
-    DebugStop();
-	return T;
-}
-
-/** @brief Drucker prager elastoplastic corrector  */
-void TPZPMRSCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
+/** @brief computation of effective sigma */
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
 {
     
 #ifdef PZDEBUG
@@ -2627,69 +2561,50 @@ void TPZPMRSCoupling::corrector_DP(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> G
     delta_e *= 0.5;
     
     
-    TPZFNMatrix<9,REAL> e_t, e_trial;
-    TPZFNMatrix<9,REAL> S_trial,s_trial, I(delta_e.Rows(),delta_e.Cols(),0.0);
+    TPZFNMatrix<9,REAL> e_t, e_tn;
+    TPZFNMatrix<9,REAL> S_tn,s_tn, I(delta_e.Rows(),delta_e.Cols(),0.0);
     I.Identity();
     
     /** Trial strain */
     e_t = e_e + e_p;
-    e_trial = e_t + delta_e;
+    e_tn = e_t + delta_e;
 
     /** Trial stress */
-    REAL trace = (e_trial(0,0) + e_trial(1,1) + e_trial(2,2));
-    s_trial = 2.0 * m_mu * e_trial + m_lambda * trace * I;
+    REAL trace = (e_tn(0,0) + e_tn(1,1) + e_tn(2,2));
+    s_tn = 2.0 * m_mu * e_tn + m_lambda * trace * I;
     
     // convert to principal stresses
-    Principal_Stress(s_trial, S_trial);
+    Principal_Stress(s_tn, S_tn);
     
     /** Elastic update */
-    e_e = e_trial;
-    S = s_trial;
+    e_e = e_tn;
+    S = s_tn;
     
     return;
-    
-    if (Phi_DP(s_trial) < 0.0)
-    {
-        /** Elastic update */
-        e_e = e_trial;
-        S = s_trial;
-    }
-    else{
-        /** Plastic update */
-        REAL delta_gamma = 0.0;
-        delta_gamma = delta_gamma_finder(s_trial, delta_gamma);
-        e_e = e_trial;
-        e_p = delta_gamma * ( ( 1.0/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_eta_dp/3.0)* I);
-        S = s_trial - delta_gamma * ( ( m_mu/(2.0*sqrt(J2(s(s_trial))) ) ) * s(s_trial) + (m_K * m_eta_dp/3.0)* I);
-
-//        e_e.Print("e_e = ");
-//        e_p.Print("e_p = ");
-//        s_trial.Print("s_trial = ");
-//        S.Print("s = ");
-    }
     
 }
 
 /** @brief Principal Stress */
-void TPZPMRSCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
+template<class T,class TPZPMRSMemory>
+void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Principal_Stress(TPZFMatrix<REAL> S, TPZFMatrix<REAL> & PrinStres)
 {
     
 #ifdef PZDEBUG
     
-    if (T.Rows() != 3 && T.Cols() != 3)
+    if (S.Rows() != 3 && S.Cols() != 3)
     {
         DebugStop();
     }
     
 #endif
     
-    T += 1.0e-18;
+    S += 1.0e-18;
     
     REAL a,b,c,d;
     a = 1.0;
-    b = - T(0,0) - T(1,1) - T(2,2);
-    c = - T(0,1)*T(0,1) - 2.0*T(0,2)*T(0,2) + T(0,0) * T(1,1) + T(0,0) * T(2,2) + T(1,1) * T(2,2);
-    d = T(0,0) * T(0,2)*T(0,2) - 2.0* T(0,1) * T(0,2)*T(0,2) + T(0,2)*T(0,2) * T(1,1) + T(0,1)*T(0,1)*T(2,2) - T(0,0) * T(1,1) * T(2,2);
+    b = - S(0,0) - S(1,1) - S(2,2);
+    c = - S(0,1)*S(0,1) - 2.0*S(0,2)*S(0,2) + S(0,0) * S(1,1) + S(0,0) * S(2,2) + S(1,1) * S(2,2);
+    d = S(0,0) * S(0,2)*S(0,2) - 2.0* S(0,1) * S(0,2)*S(0,2) + S(0,2)*S(0,2) * S(1,1) + S(0,1)*S(0,1)*S(2,2) - S(0,0) * S(1,1) * S(2,2);
     REAL p,q;
     
     p = (3.0 * a * c - b * b) / (3.0 * a * a);
@@ -2706,23 +2621,31 @@ void TPZPMRSCoupling::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
     r[2] = A*cos((1.0/3.0) * (C+4.0*M_PI))+B;
     
     // sorting
-    REAL s1 = std::max(r[0], std::max(r[1], r[2]));
-    REAL s3 = std::min(r[0], std::min(r[1], r[2]));
-    REAL s2 = 0.0;
+    REAL prins1 = std::max(r[0], std::max(r[1], r[2]));
+    REAL prins3 = std::min(r[0], std::min(r[1], r[2]));
+    REAL prins2 = 0.0;
     for (int i = 0; i < 3 ; i++)
     {
-        if(fabs(r[i]  - s1) <= 1.0e-10 || fabs(r[i] - s3) <= 1.0e-10)
+        if(fabs(r[i]  - prins1) <= 1.0e-10 || fabs(r[i] - prins3) <= 1.0e-10)
         {
             continue;
         }
-        s2 = r[i];
+        prins2 = r[i];
     }
     
-    S.Resize(3, 3);
-    S.Zero();
-    S(0,0) = s1;
-    S(1,1) = s2;
-    S(2,2) = s3;
+    PrinStres.Resize(3, 3);
+    PrinStres.Zero();
+    PrinStres(0,0) = prins1;
+    PrinStres(1,1) = prins2;
+    PrinStres(2,2) = prins3;
     
 }
 
+
+#include "TPZSandlerExtended.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZSandlerDimaggio.h"
+
+//template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
+//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;

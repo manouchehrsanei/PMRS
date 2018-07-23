@@ -279,7 +279,7 @@ public:
     }
     
     /** @brief Get prestress state */
-    TPZFMatrix<REAL> & Sigma_0()
+    TPZFMatrix<REAL> & PreStress()
     {
         return m_sigma_0;
     }
