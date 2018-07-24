@@ -12,6 +12,7 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 #include <algorithm>
+#include "pzlog.h"
 
 #include "pzfmatrix.h"
 #include "TPZTensor.h"
@@ -26,6 +27,12 @@
 #include "TPZMatElastoPlastic.h"
 #include "TPZElasticCriterion.h"
 #include "TPZSandlerDimaggio.h"
+
+
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
+#endif
 
 
 
@@ -1898,7 +1905,7 @@ void TPZPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec
 void TPZPMRSCouplPoroElast::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Properties for TPZPMRSCoupling: \n";
+    out << "Properties for TPZPMRSCouplPoroElast: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;

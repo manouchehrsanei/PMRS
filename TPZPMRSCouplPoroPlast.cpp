@@ -25,8 +25,7 @@
 
 
 #ifdef LOG4CXX
-#include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroPlast"));
 #endif
 
 
@@ -2106,7 +2105,7 @@ template<class T,class TPZPMRSMemory>
 void TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Properties for TPZPMRSCoupling: \n";
+    out << "Properties for TPZPMRSCouplPoroPlast: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;

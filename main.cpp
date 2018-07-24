@@ -26,18 +26,16 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzbuildmultiphysicsmesh.h"
-
 #include "pzlog.h"
 
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 
-//#include "TPZPMRSCoupling.h"
-
+// select another material
 #include "TPZPMRSCouplPoroElast.h"
-
 //#include "TPZPMRSCouplPoroPlast.h"
+
 
 
 
@@ -65,13 +63,14 @@
 // Simulation data structure
 #include "TPZSimulationData.h"
 
-
-
-
-
-
 // Methods declarations
 #define USING_Pardiso
+
+
+#ifdef LOG4CXX
+static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
+#endif
+
 
 
 // Apply the mesh refinement
@@ -91,10 +90,6 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
 
 // Create a computational mesh for PorePerm Coupling
 TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
-
-#ifdef LOG4CXX
-static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
-#endif
 
 
 // Shear-enhanced compaction and strain localization:
@@ -409,8 +404,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     {
         int matid = material_ids[iregion].first;
         
-//        TPZPMRSCoupling * material = new TPZPMRSCoupling(matid,dim);
-        
+       
         TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
 //        TPZPMRSCouplPoroPlast * material = new TPZPMRSCouplPoroPlast(matid,dim);
@@ -459,7 +453,10 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
                 REAL value = it_bc_id_to_values->second[i];
                 val2(i,0) = value;
             }
+            
+            
             TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+            
             
             // selecting the boundary that is time dependent
             
@@ -707,3 +704,4 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file)
     }
     return data;
 }
+

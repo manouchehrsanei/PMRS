@@ -239,7 +239,7 @@ public:
     int VariableIndex(const std::string &name);
     int NSolutionVariables(int var);
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
+
     void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
     {
         DebugStop();
@@ -288,4 +288,4 @@ int TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ClassId() const{
 }
 
 
-#endif /* TPZPMRSCouplingPoroElast_hpp */
+#endif /* TPZPMRSCouplPoroPlast_hpp */
