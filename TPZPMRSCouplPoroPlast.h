@@ -18,15 +18,16 @@
 #include "TPZMatElastoPlastic2D.h"
 #include "TPZMatWithMem.h"
 
+
 #include "TPZSimulationData.h"
 
-#include "TPZPMRSMemory.h"
+#include "TPZCouplElasPlastMem.h"
 
 
 
 
-template <class T, class TPZPMRSMemory>
-class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TPZPMRSMemory>
+template <class T, class TMEM = TPZCouplElasPlastMem>
+class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     
 protected:
@@ -282,9 +283,9 @@ public:
 };
 
 
-template <class T, class TPZPMRSMemory>
-int TPZPMRSCouplPoroPlast<T,TPZPMRSMemory>::ClassId() const{
-    return Hash("TPZPMRSCouplPoroPlast") ^ TPZMatElastoPlastic2D<T,TPZPMRSMemory>::ClassId() << 1;
+template <class T, class TMEM>
+int TPZPMRSCouplPoroPlast<T,TMEM>::ClassId() const{
+    return Hash("TPZPMRSCouplPoroPlast") ^ TPZMatElastoPlastic2D<T,TMEM>::ClassId() << 1;
 }
 
 

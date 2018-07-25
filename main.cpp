@@ -32,9 +32,18 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 
+
 // select another material
 #include "TPZPMRSCouplPoroElast.h"
 //#include "TPZPMRSCouplPoroPlast.h"
+
+#include "TPZCouplElasPlastMem.h"
+#include "TPZSandlerExtended.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZSandlerDimaggio.h"
+
+
 
 
 
@@ -407,7 +416,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
        
         TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
-//        TPZPMRSCouplPoroPlast * material = new TPZPMRSCouplPoroPlast(matid,dim);
+//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
 
 
         int kmodel = 0;
