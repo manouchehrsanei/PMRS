@@ -39,27 +39,19 @@ static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
 /** @brief default costructor */
 TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZCouplElasPlastMem,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
-
     m_Dim = 3;
     m_b.resize(3);
     
     m_b[0]=0.;
     m_b[1]=0.;
     m_b[2]=0.;
-    
-    
-    m_rho_s = 2700.0; 
-    m_rho_f = 1000.0;
-    
-    m_k_model = 0;
 
-    
+    m_k_model = 0;
 }
 
 /** @brief costructor based on a material id */
 TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZCouplElasPlastMem,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
-
     m_Dim = dim;
     m_b.resize(3);
     
@@ -67,13 +59,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<T
     m_b[1]=0.;
     m_b[2]=0.;
     
-    
-    m_rho_s = 2700.0;
-    m_rho_f = 1000.0;
-    
     m_k_model = 0;
-
-    
 }
 
 /** @brief default destructor */
@@ -327,6 +313,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
 
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
+    
     
     Sigma_0.Zero();
     S -= Sigma_0; // Applying prestress

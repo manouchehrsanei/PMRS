@@ -14,6 +14,8 @@
 #include "TPZPlasticState.h"
 #include "TPZElastoPlasticMem.h"
 
+#include "TPZMatWithMem.h"
+
 
   /**
    * This class defines the material memory that should be stored at each integration point

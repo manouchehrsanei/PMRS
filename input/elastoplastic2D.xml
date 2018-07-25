@@ -60,8 +60,9 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="8" >
-            <Parameters eyoung="4.36e9" nu="0.2" phi="0.25" kappa="1.0e-14" alpha="0.7" m="1.0e-7" rho="1000.0" mu="0.001" />
+        <RegionData mat_id="1" n_boundaries="3" n_parameters="12" >
+            <Parameters eyoung="4.36e9" nu="0.2" phi="0.25" kappa="1.0e-14" alpha="0.7" m="1.0e-7" mu="0.001" rhof="1000.0" rhos="2700.0"
+            MCcoh="0.0" MCphi="0.0" MCpsi="0.0"/>
             <Boundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

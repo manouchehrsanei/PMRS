@@ -34,7 +34,6 @@ static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroPlast"));
 template<class T,class TMEM>
 TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,TMEM>()
 {
-
     m_Dim = 3;
     m_b.resize(3);
     
@@ -42,15 +41,9 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,T
     m_b[1]=0.;
     m_b[2]=0.;
     
-    
-    m_rho_s = 2700.0; 
-    m_rho_f = 1000.0;
-    
     m_k_model = 0;
     
-    this->SetCurrentState();
     m_SetRunPlasticity = false;
-    
 }
 
 /** @brief costructor based on a material id */
@@ -63,13 +56,9 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(int matid, int dim):TPZMatE
     m_b[0]=0.;
     m_b[1]=0.;
     m_b[2]=0.;
-    
-    
-    m_rho_s = 2700.0;
-    m_rho_f = 1000.0;
-    
+
     m_k_model = 0;
-    this->SetCurrentState();
+
     m_SetRunPlasticity = false;
 }
 
@@ -304,21 +293,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         return;
     }
-    
-    
-    // @brief the state of elasticity
-    if(gState == ELastState)
-    {
-        return;
-    }
-    
-    
-    int nref =  datavec.size();
-    if (nref != 2) {
-        std::cout << " Error.!! the size of datavec is equal to two\n";
-        std::cout << " datavec[0]->elasticity and datavec[1]->diffusion\n";
-        DebugStop();
-    }
+
     
     
     REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
@@ -335,7 +310,10 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     
 //     Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
+//    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
+    
+    TMEM &point_memory = TPZMatWithMem<TMEM>::GetMemory()[global_point_index];
+    
     e_e = point_memory.epsilon_e_n();
     e_p = point_memory.epsilon_p_n();
     Grad_u_n = point_memory.grad_u_n();
@@ -2648,4 +2626,4 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Principal_Stress(TPZFMatrix<REAL> S, TPZFMat
 #include "TPZSandlerDimaggio.h"
 
 //template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
-//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZCouplElasPlastMem>;

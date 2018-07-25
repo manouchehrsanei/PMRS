@@ -91,10 +91,10 @@ protected:
     int m_n_regions;
     
     /** @brief Material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,8>>,8> m_mat_ids;
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12> m_mat_ids;
     
     /** @brief Material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,8>,8> m_mat_props;
+    TPZManVector<TPZManVector<REAL,12>,12> m_mat_props;
 
     // Controled by the kernel
     
@@ -127,6 +127,11 @@ protected:
     REAL m_Se;
     REAL m_eta;
     REAL m_rho_f;
+    REAL m_rho_s;
+    
+    REAL mc_coh;
+    REAL mc_phi;
+    REAL mc_psi;
 
 
     
@@ -294,10 +299,10 @@ public:
     int NumberOfRegions() { return m_n_regions; }
     
     /** @brief Get the material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,8>>,8> & MaterialIds() { return m_mat_ids; }
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12> & MaterialIds() { return m_mat_ids; }
     
     /** @brief Get the material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,8>,8> & MaterialProps() { return m_mat_props; }
+    TPZManVector<TPZManVector<REAL,12>,12> & MaterialProps() { return m_mat_props; }
     
     /** @brief Get the physical dimension of the domain */
     int Dimension() { return m_dimesion; }
@@ -327,32 +332,45 @@ public:
     std::map<int, std::string> & BCIdToConditionType() { return m_bc_id_to_type; }
     
     
+    
     // Begin::  Block that define the material parameters
     /** @brief Get the young modulus */
-    REAL F_young() { return m_young; }
+    REAL Get_young() { return m_young; }
     
     /** @brief Get the poision ratio */
-    REAL F_nu() { return m_nu; }
+    REAL Get_nu() { return m_nu; }
     
     /** @brief Get the initial porosity */
-    REAL F_porosity() { return m_porosity; }
+    REAL Get_porosity() { return m_porosity; }
     
     /** @brief Get the initial permeability */
-    REAL F_k() { return m_k_0; }
+    REAL Get_k() { return m_k_0; }
     
     /** @brief Get the biot coefficient */
-    REAL F_alpha() { return m_alpha; }
+    REAL Get_alpha() { return m_alpha; }
     
     /** @brief Get the source coefficient */
-    REAL F_Se() { return m_Se; }
+    REAL Get_Se() { return m_Se; }
     
     /** @brief Get the dynamic viscosity */
-    REAL F_eta() { return m_eta; }
+    REAL Get_eta() { return m_eta; }
     
     /** @brief Get the density of fluid */
-    REAL F_rho_f() { return m_rho_f; }
+    REAL Get_rho_f() { return m_rho_f; }
     
-    // Begin::  Block that define the material parameters
+    /** @brief Get the density of solid */
+    REAL Get_rho_s() { return m_rho_s; }
+    
+    /** @brief Get the cohesion of Mohr-Coloumb */
+    REAL Get_mc_coh() { return mc_coh; }
+    
+    /** @brief Get the friction of Mohr-Coloumb */
+    REAL Get_mc_phi() { return mc_phi; }
+    
+    /** @brief Get the dilation of Mohr-Coloumb */
+    REAL Get_mc_psi() { return mc_psi; }
+    
+    // End::  Block that define the material parameters
     /** @brief the property of material  */
 
 

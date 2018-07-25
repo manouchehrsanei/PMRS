@@ -89,7 +89,6 @@ void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
 // Create some functions
 static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
-static void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
 
 // Create a computational mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data);
@@ -294,16 +293,6 @@ void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REA
     return;
 }
 
-void u_xy(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
-{
-    
-    REAL u = -(1.0/100.0)*time*0.2;
-    
-    f[0] = u;
-    f[1] = u;
-    f[2] = 0.0;
-    return;
-}
 
 
 // Create a computational mesh for Deformation
@@ -315,7 +304,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     int nstate = dim;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -359,7 +348,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -408,7 +397,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,8>>,8>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -420,15 +409,23 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 
 
         int kmodel = 0;
-        REAL Ey_r = sim_data->F_young();
-        REAL nu_r = sim_data->F_nu();
-        REAL porosity = sim_data->F_porosity();
-        REAL k = sim_data->F_k();
-        REAL alpha_r = sim_data->F_alpha();
-        REAL Se = sim_data->F_Se();
-        REAL eta = sim_data->F_eta();
+        REAL Ey_r = sim_data->Get_young();
+        REAL nu_r = sim_data->Get_nu();
+        REAL porosity = sim_data->Get_porosity();
+        REAL k = sim_data->Get_k();
+        REAL alpha_r = sim_data->Get_alpha();
+        REAL Se = sim_data->Get_Se();
+        REAL eta = sim_data->Get_eta();
+        
+        REAL rho_f = sim_data->Get_rho_f();
+        REAL rho_s = sim_data->Get_rho_s();
  
 
+        REAL MC_coh = sim_data->Get_mc_coh();
+        REAL MC_phi = sim_data->Get_mc_phi();
+        REAL MC_psi = sim_data->Get_mc_psi();
+        
+        
         
         material->SetSimulationData(sim_data);
         
@@ -437,6 +434,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
+        
+        material->SetDensityFluidRock(rho_f, rho_s);
+        
+        material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
+        
         
 
         cmesh->InsertMaterialObject(material);

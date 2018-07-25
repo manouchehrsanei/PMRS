@@ -271,8 +271,14 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     par_names.Push("kappa");
     par_names.Push("alpha");
     par_names.Push("m");
-    par_names.Push("rho");
     par_names.Push("mu");
+    par_names.Push("rhof");
+    par_names.Push("rhos");
+    
+    par_names.Push("MCcoh");
+    par_names.Push("MCphi");
+    par_names.Push("MCpsi");
+    
 
     
     
@@ -334,14 +340,14 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         int n_parameters = m_mat_props[iregion].size();
         
 #ifdef PZDEBUG
-        if (n_parameters != 8)
-        { // 8 for linear poroelasticity
+        if (n_parameters != 12)
+        { // 12 for linear poroelastoplastic
             DebugStop();
         }
 #endif
         
         
-    int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, rho = 6, mu = 7;
+    int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, mu = 6, rhof = 7, rhos = 8, MCcoh = 9, MCphi = 10, MCpsi = 11;
     m_young = m_mat_props[iregion][eyoung];
     m_nu = m_mat_props[iregion][nu];
     m_porosity = m_mat_props[iregion][phi];
@@ -349,7 +355,14 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     m_alpha = m_mat_props[iregion][alpha];
     m_Se = 1.0/m_mat_props[iregion][m];
     m_eta = m_mat_props[iregion][mu];
-    m_rho_f = m_mat_props[iregion][rho];
+    m_rho_f = m_mat_props[iregion][rhof];
+    m_rho_s = m_mat_props[iregion][rhos];
+        
+    mc_coh = m_mat_props[iregion][MCcoh];
+    mc_phi = m_mat_props[iregion][MCphi];
+    mc_psi = m_mat_props[iregion][MCpsi];
+    
+        
     }
     // End::  Block that define the material parameters
 
