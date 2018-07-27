@@ -298,10 +298,10 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZCouplElasPlastMem &point_memory = GetMemory()[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
-    Grad_u_n = point_memory.grad_u_n();
+    TPZCouplElasPlastMem &memory = GetMemory()[global_point_index];
+    e_e = memory.epsilon_e_n();
+    e_p = memory.epsilon_p_n();
+    Grad_u_n = memory.grad_u_n();
     
     Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
@@ -510,10 +510,10 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZCouplElasPlastMem &point_memory = GetMemory()[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
-    Grad_u_n = point_memory.grad_u_n();
+    TPZCouplElasPlastMem &memory = GetMemory()[global_point_index];
+    e_e = memory.epsilon_e_n();
+    e_p = memory.epsilon_p_n();
+    Grad_u_n = memory.grad_u_n();
     
     Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
@@ -2294,6 +2294,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     // ************************	Displacement Variables ************************
+    //  Displacement Variable
     if(var == 22)
     {
         Solout[0] = u[0];
@@ -2479,18 +2480,21 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     // ************************	Yield Surface Variable ************************
+    //  YS_1
     if(var == 36)
     {
        Solout[0] = 0;
         return;
     }
     
+    //  YS_2
     if(var == 37)
     {
         Solout[0] = 0;
         return;
     }
     
+    //  YS_3
     if(var == 38)
     {
         Solout[0] = 0;
@@ -2531,30 +2535,28 @@ void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatri
    
     TPZFNMatrix<9,REAL> Grad_du, Grad_du_Transpose = Grad_u, delta_e;
     
-    //
     Grad_u_n = Grad_u;
     Grad_du = Grad_u_n; // Linear case
     Grad_du.Transpose(&Grad_du_Transpose);
     delta_e = Grad_du + Grad_du_Transpose;
     delta_e *= 0.5;
     
-    
     TPZFNMatrix<9,REAL> e_t, e_tn;
     TPZFNMatrix<9,REAL> S_tn,s_tn, I(delta_e.Rows(),delta_e.Cols(),0.0);
     I.Identity();
     
-    /** Trial strain */
+    /** Total strain */
     e_t = e_e + e_p;
     e_tn = e_t + delta_e;
 
-    /** Trial stress */
+    /** Total stress */
     REAL trace = (e_tn(0,0) + e_tn(1,1) + e_tn(2,2));
     s_tn = 2.0 * m_mu * e_tn + m_lambda * trace * I;
     
-    // convert to principal stresses
+    // Convert to principal stresses
     Principal_Stress(s_tn, S_tn);
     
-    /** Elastic update */
+    /** Update the parameters */
     e_e = e_tn;
     S = s_tn;
     
@@ -2597,7 +2599,7 @@ void TPZPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL
     r[1] = A*cos((1.0/3.0) * (C+2.0*M_PI))+B;
     r[2] = A*cos((1.0/3.0) * (C+4.0*M_PI))+B;
     
-    // sorting
+    // Sorting of Stress
     REAL s1 = std::max(r[0], std::max(r[1], r[2]));
     REAL s3 = std::min(r[0], std::min(r[1], r[2]));
     REAL s2 = 0.0;

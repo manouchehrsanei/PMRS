@@ -95,10 +95,6 @@ protected:
     
     /** @brief new ************************************************ */
     bool m_SetRunPlasticity;
-    
-    /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
-    bool m_UpdateToUseFullDiplacement;
-    
 
     
 
@@ -184,13 +180,13 @@ public:
     
     virtual int NStateVariables();
     
+    /** @brief some functions for plasticity */
+    void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
     void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
+    void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
     void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
     
-    
-    /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
-    void SetUpdateToUseFullU(bool update = true);
     
     /** @brief permeability correction model */
     REAL k_permeability(REAL &phi, REAL &k);
