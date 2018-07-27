@@ -24,6 +24,9 @@
 #include "TPZCouplElasPlastMem.h"
 
 
+#include "TPZMatElastoPlastic.h"
+
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroPlast"));
 #endif
@@ -103,7 +106,7 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::NStateVariables()
 template <class T, class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
 {
-    TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(data, DeltaStrain);
+    TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(data, DeltaStrain);
 }
 
 /** @brief a computation of stress and tangent */
@@ -129,7 +132,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZ
         DebugStop();
     }
 #endif
-    TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);
+    TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);
 }
 
 
@@ -181,7 +184,6 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
             break;
     }
     
-
     return k;
 }
 
@@ -189,7 +191,6 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
 template<class T,class TMEM>
 REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
 {
-    
     int u_b = 0;
     int p_b = 1;
     
@@ -217,7 +218,6 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZVec<TPZMaterialData
     REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
     
     return phi;
-
 }
 
 
@@ -225,7 +225,6 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZVec<TPZMaterialData
 template<class T,class TMEM>
 REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
-    
     int u_b = 0;
     int p_b = 1;
     
@@ -258,7 +257,6 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZVec<TPZMaterialData
     REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
     
     return phi;
-    
 }
 
 /// Transform a voight notation to a tensor
@@ -281,7 +279,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::FromVoight(TPZVec<STATE> &Svoight, TPZFMatri
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
-
     if (m_Dim == 3)
     {
         this->Contribute_3D(datavec, weight, ek, ef);
@@ -290,7 +287,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec,
     {
         this->Contribute_2D(datavec, weight, ek, ef);
     }
-    
 }
 
 
@@ -299,7 +295,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec,
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
-    
     int u_b = 0;
     int p_b = 1;
     
@@ -339,8 +334,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     REAL dt = m_SimulationData->dt();
     if (!m_SimulationData->IsCurrentStateQ())
     {
-        
-
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++)
         {
@@ -385,7 +378,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         
         for (int ju = 0; ju < nphi_u; ju++) {
-            
            
             // Computing Gradient of the test function
             Grad_vx_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0); // dvx/dx
@@ -399,9 +391,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
             ek(2*iu   + first_u, 2*ju+1 + first_u)  += (1.)*weight*((m_lambda*Grad_vy_j(1,0))*Grad_vx_i(0,0)+m_mu*Grad_vy_j(0,0)*Grad_vx_i(1,0));
             ek(2*iu+1 + first_u, 2*ju   + first_u)	+= (1.)*weight*(m_mu*Grad_vx_j(1,0)*Grad_vy_i(0,0)+m_lambda*Grad_vx_j(0,0)*Grad_vy_i(1,0));
             ek(2*iu+1 + first_u, 2*ju+1 + first_u)	+= (1.)*weight*((2.0*m_mu+m_lambda)*Grad_vy_j(1,0)*Grad_vy_i(1,0)+m_mu*Grad_vy_j(0,0)*Grad_vy_i(0,0));
-            
         }
-        
     }
     
     TPZFNMatrix<6,REAL> dv(2,1,0.0);
@@ -455,7 +445,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
    {
-        
         Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0);
         Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1);
         
@@ -481,9 +470,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
             
             ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0));
         }
-        
     }
-    
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -496,8 +483,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     }
 #endif
     
-    
-    
+     // @brief of checking whether the plasticity is necessary
     if (m_SetRunPlasticity)
     {
         ContributePlastic_2D(datavec[0],weight,ek,ef);
@@ -515,7 +501,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         return;
     }
-    
 }
 
 
@@ -524,7 +509,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-
     TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
     TPZFMatrix<REAL> &phi  = data.phi;
     dphiXY = dphi;
@@ -534,25 +518,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     const int n_phi_u = phi.Rows();
     
     TPZFNMatrix<4>  Deriv(2,2);
-    TPZFNMatrix<9> Dep(3,3);
-    TPZFNMatrix<3>  DeltaStrain(3,1);
-    TPZFNMatrix<3>  Stress(3,1);
-    int ptindex = data.intGlobPtIndex;
-    
+    TPZFNMatrix<36> Dep(6,6,0.0);
+    TPZFNMatrix<6>  DeltaStrain(6,1);
+    TPZFNMatrix<6>  Stress(6,1);
 
-        // Loop over the solutions if update memory is true
-    TPZSolVec locsol(data.sol);
-    TPZGradSolVec locdsol(data.dsol);
-    int numsol = locsol.size();
-        
-    for (int is=0; is<numsol; is++)
-    {
-        data.sol[0] = locsol[is];
-        data.dsol[0] = locdsol[is];
-        
-        this->ComputeDeltaStrainVector(data, DeltaStrain);
-        this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
-    }
+    this->ComputeDeltaStrainVector(data, DeltaStrain);
+    this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
 
 
 #ifdef MACOS
@@ -572,37 +543,31 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
         sout << "\nDep " <<endl;
-        sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
-        sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
-        sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
-        
+        sout << Dep(_XX_, _XX_) << "\t" << Dep(_XX_, _YY_) << "\t" << Dep(_XX_, _XY_) << "\n";
+        sout << Dep(_YY_, _XX_) << "\t" << Dep(_YY_, _YY_) << "\t" << Dep(_YY_, _XY_) << "\n";
+        sout << Dep(_XY_, _XX_) << "\t" << Dep(_XY_, _YY_) << "\t" << Dep(_XY_, _XY_) << "\n";
         sout << "\nStress " <<endl;
-        sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
-        
+        sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
         sout << "\nDELTA STRAIN " <<endl;
-        sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
+        sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
         sout << "data.phi" << data.phi;
-        
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
     
-    ptindex = 0;
     REAL val;
     
     for(int iu = 0; iu < n_phi_u; iu++)
     {
-        
-        val -= m_b[0] * phi(0,iu);
-        val += Stress(0,0) * dphiXY(0,iu); //dphixdx
-        val += Stress(2,0) * dphiXY(1,iu); //dphixdy
+        val = - m_b[0] * phi(iu,0);
+        val += Stress(_XX_, 0) * dphiXY(0, iu); //dphixdx
+        val += Stress(_XY_, 0) * dphiXY(1, iu); //dphixdy
         ef(2*iu+0 + first_u,0) += weight * val;
         
-        val -= m_b[1] * phi(1,iu);
-        val += Stress(2,0) * dphiXY(2,iu); //dphiydx
-        val += Stress(1,0) * dphiXY(3,iu); //dphiydy
+        val = - m_b[1] * phi(iu,0);
+        val += Stress(_XY_, 0) * dphiXY(0, iu); //dphiydx
+        val += Stress(_YY_, 0) * dphiXY(1, iu); //dphiydy
         ef(2*iu+1 + first_u,0) += weight * val;
-        
         
         for (int ju = 0; ju < n_phi_u; ju++)
         {
@@ -614,40 +579,36 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
                 }
             }
         
-        
-        
-        val  = 2. * Dep(0,0) * Deriv(0, 0); //dvdx*dudx
-        val +=      Dep(0,2) * Deriv(0, 1); //dvdx*dudy
-        val += 2. * Dep(2,0) * Deriv(1, 0); //dvdy*dudx
-        val +=      Dep(2,2) * Deriv(1, 1); //dvdy*dudy
+        val  = 2. * Dep(_XX_, _XX_) * Deriv(0, 0); //dvdx*dudx
+        val +=      Dep(_XX_, _XY_) * Deriv(0, 1); //dvdx*dudy
+        val += 2. * Dep(_XY_, _XX_) * Deriv(1, 0); //dvdy*dudx
+        val +=      Dep(_XY_, _XY_) * Deriv(1, 1); //dvdy*dudy
         val *= 0.5;
         ek(2*iu+0 + first_u, 2*ju+0 + first_u) += weight * val;
         
-        val  =      Dep(0,2) * Deriv(0, 0); //dvdx*dudx
-        val += 2. * Dep(0,1) * Deriv(0, 1); //dvdx*dudy
-        val +=      Dep(2,2) * Deriv(1, 0); //dvdy*dudx
-        val += 2. * Dep(2,1) * Deriv(1, 1); //dvdy*dudy
+        val  =      Dep(_XX_, _XY_) * Deriv(0, 0); //dvdx*dudx
+        val += 2. * Dep(_XX_, _YY_) * Deriv(0, 1); //dvdx*dudy
+        val +=      Dep(_XY_, _XY_) * Deriv(1, 0); //dvdy*dudx
+        val += 2. * Dep(_XY_, _YY_) * Deriv(1, 1); //dvdy*dudy
         val *= 0.5;
         ek(2*iu+0 + first_u, 2*ju+1 + first_u) += weight * val;
         
-        val  = 2. * Dep(2,0) * Deriv(0, 0); //dvdx*dudx
-        val +=      Dep(2,2) * Deriv(0, 1); //dvdx*dudy
-        val += 2. * Dep(1,0) * Deriv(1, 0); //dvdy*dudx
-        val +=      Dep(1,2) * Deriv(1, 1); //dvdy*dudy
+        val  = 2. * Dep(_XY_, _XX_) * Deriv(0, 0); //dvdx*dudx
+        val +=      Dep(_XY_, _XY_) * Deriv(0, 1); //dvdx*dudy
+        val += 2. * Dep(_YY_, _XX_) * Deriv(1, 0); //dvdy*dudx
+        val +=      Dep(_YY_, _XY_) * Deriv(1, 1); //dvdy*dudy
         val *= 0.5;
         ek(2*iu+1 + first_u, 2*ju+0 + first_u) += weight * val;
         
-        val  =      Dep(2,2) * Deriv(0, 0); //dvdx*dudx
-        val += 2. * Dep(2,1) * Deriv(0, 1); //dvdx*dudy
-        val +=      Dep(1,2) * Deriv(1, 0); //dvdy*dudx
-        val += 2. * Dep(1,1) * Deriv(1, 1); //dvdy*dudy
+        val  =      Dep(_XY_, _XY_) * Deriv(0, 0); //dvdx*dudx
+        val += 2. * Dep(_XY_, _YY_) * Deriv(0, 1); //dvdx*dudy
+        val +=      Dep(_YY_, _XY_) * Deriv(1, 0); //dvdy*dudx
+        val += 2. * Dep(_YY_, _YY_) * Deriv(1, 1); //dvdy*dudy
         val *= 0.5;
         ek(2*iu+1 + first_u, 2*ju+1 + first_u) += weight * val;
             
         }
-        
     }
-    
 }
 
 
@@ -655,7 +616,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    
     int u_b = 0;
     int p_b = 1;
     
@@ -761,7 +721,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     
     for (int iu = 0; iu < nphi_u; iu++)
     {
-        
         // Computing Gradient of the test function for each component
         for (int d = 0; d < m_Dim; d++)
         {
@@ -830,7 +789,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
             ek(3*iu+2 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
             ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
             ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
-            
         }
     }
     
@@ -868,10 +826,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     for(int ip = 0; ip < nphi_p; ip++ )
     {
         
-        
         for(int ju = 0; ju < nphi_u; ju++)
         {
-            
             dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0);
             dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1);
             dv(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2);
@@ -879,7 +835,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
             ek(first_p+ip,3*ju+0) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
             ek(first_p+ip,3*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
             ek(first_p+ip,3*ju+2) += (1./dt) * weight * m_alpha * dv(2,0) * phip(ip,0);
-            
         }
     }
     
@@ -923,9 +878,248 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
             
             ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
         }
-        
     }
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
+        sout << " Resultant rhs vector:\n" << ef;
+        sout << " Resultant stiff vector:\n" << ek;
+        LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    
+    // @brief of checking whether the plasticity is necessary
+    if (m_SetRunPlasticity)
+    {
+        ContributePlastic_3D(datavec[0],weight,ek,ef);
+        
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
+            sout << " Resultant rhs vector:\n" << ef;
+            sout << " Resultant stiff vector:\n" << ek;
+            LOGPZ_DEBUG(logger,sout.str().c_str());
+        }
+#endif
+        return;
+    }
+}
+
+
+/** @brief of contribute of plasticity in 2 dimensional */
+template<class T,class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+    TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
+    TPZFMatrix<REAL> &phi  = data.phi;
+    dphiXY = dphi;
+    
+    
+    int first_u = 0;
+    const int n_phi_u = phi.Rows();
+    
+    TPZFNMatrix<9>  Deriv(3,3);
+    TPZFNMatrix<36> Dep(6,6);
+    TPZFNMatrix<6>  DeltaStrain(6,1);
+    TPZFNMatrix<6>  Stress(6,1);
+    
+    this->ComputeDeltaStrainVector(data, DeltaStrain);
+    this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+    
+#ifdef MACOS
+    feclearexcept(FE_ALL_EXCEPT);
+    if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT    )) {
+        std::cout << "division by zero reported\n";
+        DebugStop();
+    }
+#endif
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << ">>> TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D ***";
+        sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
+        sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
+        sout << "\ndata.axes = " << data.axes;
+        sout << "\nDep " <<endl;
+        sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
+        sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
+        sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
+        sout << "\nStress " <<endl;
+        sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
+        sout << "\nDELTA STRAIN " <<endl;
+        sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
+        sout << "data.phi" << data.phi;
+        LOGPZ_DEBUG(logger,sout.str().c_str());
+    }
+#endif
+    
+    //#define _XX_ 0
+    //#define _XY_ 1
+    //#define _XZ_ 2
+    //#define _YY_ 3
+    //#define _YZ_ 4
+    //#define _ZZ_ 5
+    
+    REAL val,val2,val3,val4,val5,val6,val7,val8,val9,val10;
+    
+    for(int iu = 0; iu < n_phi_u; iu++)
+    {
+        val = - m_b[0] * phi(iu,0);
+        val += Stress(_XX_,0) * dphiXY(0,iu); //dphixdx
+        val += Stress(_XY_,0) * dphiXY(1,iu); //dphixdy
+        val += Stress(_XZ_,0) * dphiXY(2,iu); //dphixdz
+        ef(2*iu+0 + first_u,0) += weight * val;
+        
+        val = - m_b[1] * phi(iu,0);
+        val += Stress(_XY_,0) * dphiXY(0,iu); //dphiydx
+        val += Stress(_YY_,0) * dphiXY(1,iu); //dphiydy
+        val += Stress(_YZ_,0) * dphiXY(2,iu); //dphiydz
+        ef(2*iu+1 + first_u,0) += weight * val;
+        
+        val = - m_b[2] * phi(iu,0);
+        val += Stress(_XZ_,0) * dphiXY(0,iu); //dphizdx
+        val += Stress(_YZ_,0) * dphiXY(1,iu); //dphizdy
+        val += Stress(_ZZ_,0) * dphiXY(2,iu); //dphizdz
+        ef(2*iu+2 + first_u,0) += weight * val;
+        
+        
+        for (int ju = 0; ju < n_phi_u; ju++)
+        {
+            for (int ud = 0; ud < 3; ud++)
+            {
+                for (int vd = 0; vd < 3; vd++)
+                {
+                    Deriv(vd, ud) = dphiXY(vd, iu) * dphiXY(ud, ju);
+                }//ud
+            }//vd
+            
+            
+            // The matrix is:
+            //  {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
+            //  {dvdy*dudx , dvdy*dudy, dvdy*dudz},
+            //  {dvdz*dudx , dvdz*dudy, dvdz*dudz}}
+            //
+            
+            //First equation Dot[Sigma1, gradV1]
+            val2  = 2. * Dep(_XX_,_XX_) * Deriv(0,0);//dvdx*dudx
+            val2 +=      Dep(_XX_,_XY_) * Deriv(0,1);//dvdx*dudy
+            val2 +=	     Dep(_XX_,_XZ_) * Deriv(0,2);//dvdx*dudz
+            val2 += 2. * Dep(_XY_,_XX_) * Deriv(1,0);//dvdy*dudx
+            val2 +=      Dep(_XY_,_XY_) * Deriv(1,1);//dvdy*dudy
+            val2 +=      Dep(_XY_,_XZ_) * Deriv(1,2);//dvdy*dudz
+            val2 += 2. * Dep(_XZ_,_XX_) * Deriv(2,0);//dvdz*dudx
+            val2 +=      Dep(_XZ_,_XY_) * Deriv(2,1);//dvdz*dudy
+            val2 +=      Dep(_XZ_,_XZ_) * Deriv(2,2);//dvdz*dudz
+            val2 *= 0.5;
+            ek(2*iu+0 + first_u, 2*ju+0 + first_u) += weight * val2;
+            
+            val3  =      Dep(_XX_,_XY_) * Deriv(0,0);
+            val3 += 2. * Dep(_XX_,_YY_) * Deriv(0,1);
+            val3 +=      Dep(_XX_,_YZ_) * Deriv(0,2);
+            val3 +=      Dep(_XY_,_XY_) * Deriv(1,0);
+            val3 += 2. * Dep(_XY_,_YY_) * Deriv(1,1);
+            val3 +=      Dep(_XY_,_YZ_) * Deriv(1,2);
+            val3 +=      Dep(_XZ_,_XY_) * Deriv(2,0);
+            val3 += 2. * Dep(_XZ_,_YY_) * Deriv(2,1);
+            val3 +=      Dep(_XZ_,_YZ_) * Deriv(2,2);
+            val3 *= 0.5;
+            ek(2*iu+0 + first_u, 2*ju+1 + first_u) += weight * val3;
+            
+            val4  =      Dep(_XX_,_XZ_) * Deriv(0,0);
+            val4 +=      Dep(_XX_,_YZ_) * Deriv(0,1);
+            val4 += 2. * Dep(_XX_,_ZZ_) * Deriv(0,2);//
+            val4 +=      Dep(_XY_,_XZ_) * Deriv(1,0);
+            val4 +=      Dep(_XY_,_YZ_) * Deriv(1,1);
+            val4 += 2. * Dep(_XY_,_ZZ_) * Deriv(1,2);//
+            val4 +=      Dep(_XZ_,_XZ_) * Deriv(2,0);
+            val4 +=      Dep(_XZ_,_YZ_) * Deriv(2,1);
+            val4 += 2. * Dep(_XZ_,_ZZ_) * Deriv(2,2);
+            val4 *= 0.5;
+            ek(2*iu+0 + first_u, 2*ju+2 + first_u) += weight * val4;
+            
+            //Second equation Dot[Sigma2, gradV2]
+            val5  = 2. * Dep(_XY_,_XX_) * Deriv(0,0);
+            val5 +=      Dep(_XY_,_XY_) * Deriv(0,1);
+            val5 +=      Dep(_XY_,_XZ_) * Deriv(0,2);
+            val5 += 2. * Dep(_YY_,_XX_) * Deriv(1,0);
+            val5 +=      Dep(_YY_,_XY_) * Deriv(1,1);
+            val5 +=      Dep(_YY_,_XZ_) * Deriv(1,2);
+            val5 += 2. * Dep(_YZ_,_XX_) * Deriv(2,0);
+            val5 +=      Dep(_YZ_,_XY_) * Deriv(2,1);
+            val5 +=      Dep(_YZ_,_XZ_) * Deriv(2,2);
+            val5 *= 0.5;
+            ek(2*iu+1 + first_u, 2*ju+0 + first_u) += weight * val5;
+            
+            val6  =      Dep(_XY_,_XY_) * Deriv(0,0);
+            val6 += 2. * Dep(_XY_,_YY_) * Deriv(0,1);
+            val6 +=      Dep(_XY_,_YZ_) * Deriv(0,2);
+            val6 +=      Dep(_YY_,_XY_) * Deriv(1,0);
+            val6 += 2. * Dep(_YY_,_YY_) * Deriv(1,1);
+            val6 +=      Dep(_YY_,_YZ_) * Deriv(1,2);
+            val6 +=      Dep(_YZ_,_XY_) * Deriv(2,0);
+            val6 += 2. * Dep(_YZ_,_YY_) * Deriv(2,1);
+            val6 +=      Dep(_YZ_,_YZ_) * Deriv(2,2);
+            val6 *= 0.5;
+            ek(2*iu+1 + first_u, 2*ju+1 + first_u) += weight * val6;
+            
+            val7  =      Dep(_XY_,_XZ_) * Deriv(0,0);
+            val7 +=      Dep(_XY_,_YZ_) * Deriv(0,1);
+            val7 += 2. * Dep(_XY_,_ZZ_) * Deriv(0,2);//
+            val7 +=      Dep(_YY_,_XZ_) * Deriv(1,0);
+            val7 +=      Dep(_YY_,_YZ_) * Deriv(1,1);
+            val7 += 2. * Dep(_YY_,_ZZ_) * Deriv(1,2);//
+            val7 +=      Dep(_YZ_,_XZ_) * Deriv(2,0);
+            val7 +=      Dep(_YZ_,_YZ_) * Deriv(2,1);
+            val7 += 2. * Dep(_YZ_,_ZZ_) * Deriv(2,2);
+            val7 *= 0.5;
+            ek(2*iu+1 + first_u, 2*ju+2 + first_u) += weight * val7;
+            
+            
+            //Third equation Dot[Sigma3, gradV3]
+            val8  = 2. * Dep(_XZ_,_XX_) * Deriv(0,0);
+            val8 +=      Dep(_XZ_,_XY_) * Deriv(0,1);
+            val8 +=      Dep(_XZ_,_XZ_) * Deriv(0,2);
+            val8 += 2. * Dep(_YZ_,_XX_) * Deriv(1,0);
+            val8 +=      Dep(_YZ_,_XY_) * Deriv(1,1);
+            val8 +=      Dep(_YZ_,_XZ_) * Deriv(1,2);
+            val8 += 2. * Dep(_ZZ_,_XX_) * Deriv(2,0);//
+            val8 +=      Dep(_ZZ_,_XY_) * Deriv(2,1);//
+            val8 +=      Dep(_ZZ_,_XZ_) * Deriv(2,2);
+            val8 *= 0.5;
+            ek(2*iu+2 + first_u, 2*ju+0 + first_u) += weight * val8;
+            
+            val9  =      Dep(_XZ_,_XY_) * Deriv(0,0);
+            val9 += 2. * Dep(_XZ_,_YY_) * Deriv(0,1);
+            val9 +=      Dep(_XZ_,_YZ_) * Deriv(0,2);
+            val9 +=      Dep(_YZ_,_XY_) * Deriv(1,0);
+            val9 += 2. * Dep(_YZ_,_YY_) * Deriv(1,1);
+            val9 +=      Dep(_YZ_,_YZ_) * Deriv(1,2);
+            val9 +=      Dep(_ZZ_,_XY_) * Deriv(2,0);//
+            val9 += 2. * Dep(_ZZ_,_YY_) * Deriv(2,1);//
+            val9 +=      Dep(_ZZ_,_YZ_) * Deriv(2,2);
+            val9 *= 0.5;
+            ek(2*iu+2 + first_u, 2*ju+1 + first_u) += weight * val9;
+            
+            val10  =      Dep(_XZ_,_XZ_) * Deriv(0,0);
+            val10 +=      Dep(_XZ_,_YZ_) * Deriv(0,1);
+            val10 += 2. * Dep(_XZ_,_ZZ_) * Deriv(0,2);
+            val10 +=      Dep(_YZ_,_XZ_) * Deriv(1,0);
+            val10 +=      Dep(_YZ_,_YZ_) * Deriv(1,1);
+            val10 += 2. * Dep(_YZ_,_ZZ_) * Deriv(1,2);
+            val10 +=      Dep(_ZZ_,_XZ_) * Deriv(2,0);
+            val10 +=      Dep(_ZZ_,_YZ_) * Deriv(2,1);
+            val10 += 2. * Dep(_ZZ_,_ZZ_) * Deriv(2,2);//
+            val10 *= 0.5;
+            ek(2*iu+2 + first_u, 2*ju+2 + first_u) += weight * val10;
+        }
+    }
 }
 
 
@@ -1013,13 +1207,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in  ,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+0,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -1130,7 +1324,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
 
@@ -1165,7 +1359,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
 
@@ -1197,13 +1391,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+0,0)        += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)        += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -1291,7 +1485,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)     += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
 
@@ -1318,7 +1512,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)      += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
 
@@ -1338,13 +1532,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in  ,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+0,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -1442,14 +1636,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
@@ -1486,13 +1680,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
@@ -1527,13 +1721,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
@@ -1731,7 +1925,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * v[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * v[2] * phiu(in,0);		//	Tnz
             }
@@ -1768,7 +1962,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * tn * n[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * tn * n[2] * phiu(in,0);		//	Tnz
             }
@@ -1805,14 +1999,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
@@ -1840,13 +2034,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
@@ -1872,13 +2066,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+2,0)	+= BIGNUMBER*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+2,3*jn+2)	+= BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
@@ -2073,6 +2267,83 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
             {
                 //    Normal Flux on neumman boundary
                 ef(in+3*phru,0)    += 1.0 * weight * v[1] * phip(in,0);    // Qnormal
+            }
+            break;
+        }
+          
+            
+        case 18 : //Du_time_Dp
+        {
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            //    Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //    Contribution for load Vector
+                ef(2*in+0,0)      += BIGNUMBER*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BIGNUMBER*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(2*in+2,0)      += BIGNUMBER*(u[2] - v[2])*phiu(in,0)*weight;    // Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(2*in+0,2*jn+0)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in+2,2*jn+2)    += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;    // Z displacement
+                }
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+        }
+            
+        case 19 : // Ntn_time_Dp
+        {
+            //    Neumann condition for each state variable
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Tnx
+            v[1] = bc.Val2()(1,0);    //    Tny
+            v[2] = bc.Val2()(2,0);	  //	Tnz
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
+                ef(2*in+2,0)    += -1.0 * weight * v[2] * phiu(in,0);        //    Tnz
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+2*phru,0)        += BIGNUMBER*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+2*phru,jn+2*phru)        += BIGNUMBER*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
             }
             break;
         }

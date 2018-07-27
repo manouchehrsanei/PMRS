@@ -639,7 +639,7 @@ void TPZSimulationData::LoadBoundaryConditions()
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);       
 
-        // Dirichlet for elasticity in y_direction and Dirichlet for diffusion (time dependent)
+        // Dirichlet for elasticity and Dirichlet for diffusion (time dependent)
         chunk.first = "Du_time_Dp"; // name
         chunk.second.first = 10; // index
         chunk.second.second.push_back("ux");
@@ -656,7 +656,6 @@ void TPZSimulationData::LoadBoundaryConditions()
         chunk.second.second.push_back("p");
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
-        
         
     }
     else
@@ -821,8 +820,27 @@ void TPZSimulationData::LoadBoundaryConditions()
         chunk.second.second.push_back("qn");
         m_condition_type_to_index_value_names.insert(chunk);
         chunk.second.second.resize(0);
+        
+        // Dirichlet for elasticity and Dirichlet for diffusion (time dependent)
+        chunk.first = "Du_time_Dp"; // name
+        chunk.second.first = 18; // index
+        chunk.second.second.push_back("ux");
+        chunk.second.second.push_back("uy");
+        chunk.second.second.push_back("uz");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
+        
+        // Neumann for elasticity and Dirichlet for diffusion (time dependent)
+        chunk.first = "Ntn_time_Dp"; // name
+        chunk.second.first = 19; // index
+        chunk.second.second.push_back("tx");
+        chunk.second.second.push_back("ty");
+        chunk.second.second.push_back("tz");
+        chunk.second.second.push_back("p");
+        m_condition_type_to_index_value_names.insert(chunk);
+        chunk.second.second.resize(0);
     }
     
-
     return;
 }

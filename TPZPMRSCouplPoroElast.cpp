@@ -790,13 +790,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in  ,0)      += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+0,0)      += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -907,7 +907,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
 
@@ -942,7 +942,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
 
@@ -974,13 +974,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+0,0)        += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)        += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -1068,7 +1068,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)     += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
 
@@ -1095,7 +1095,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)      += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
 
@@ -1121,7 +1121,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn    )    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+0,2*jn+0)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -1151,7 +1151,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in <phru; in++)
             {
                 //    Normal Tension Components on neumman boundary
-                ef(2*in  ,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
             
@@ -1172,7 +1172,6 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
             break;
         }
             
-
         default:
         {
             DebugStop();
@@ -1214,19 +1213,18 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             v[2] = bc.Val2()(2,0);	  //	Uz displacement
             v[3] = bc.Val2()(3,0);    //    Pressure
             
-            
             //	Elasticity Equation
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
@@ -1247,9 +1245,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
                 }
             }
             break;
-            
         }
-            
             
         case 1 : // Duxy_Dp
             // Dirichlet in x and y direction of displacement and Pressure
@@ -1263,13 +1259,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
@@ -1288,7 +1284,6 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
                 }
             }
             break;
-            
         }
             
             
@@ -1304,13 +1299,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
@@ -1329,10 +1324,9 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
                 }
             }
             break;
-            
         }
             
-            
+
         case 3 : // Duyz_Dp
             // Dirichlet in y and z direction of displacement and Pressure
         {
@@ -1508,7 +1502,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * v[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * v[2] * phiu(in,0);		//	Tnz
             }
@@ -1545,7 +1539,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * tn * n[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * tn * n[2] * phiu(in,0);		//	Tnz
             }
@@ -1582,14 +1576,14 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 ef(3*in+2,0)	+= gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                     ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
@@ -1617,13 +1611,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+1,0)	+= gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+1,3*jn+1)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
                 }
             }
@@ -1649,13 +1643,13 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in  ,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+0,0)	+= gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
                 ef(3*in+2,0)	+= gBigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //	Contribution for Stiffness Matrix
-                    ek(3*in  ,3*jn  )	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+0,3*jn+0)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
                     ek(3*in+2,3*jn+2)	+= gBigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
                 }
             }
@@ -1811,7 +1805,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * v[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * v[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * v[2] * phiu(in,0);		//	Tnz
             }
@@ -1840,7 +1834,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             for(in = 0 ; in < phru; in++)
             {
                 //	Normal Tension Components on neumman boundary
-                ef(3*in  ,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
+                ef(3*in+0,0)	+= -1.0 * weight * tn * n[0] * phiu(in,0);		//	Tnx
                 ef(3*in+1,0)	+= -1.0 * weight * tn * n[1] * phiu(in,0);		//	Tny
                 ef(3*in+2,0)	+= -1.0 * weight * tn * n[2] * phiu(in,0);		//	Tnz
             }
@@ -1853,7 +1847,83 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
             }
             break;
         }
+         
             
+        case 18 : //Du_time_Dp
+        {
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);	  //	Uz displacement
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            //    Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //    Contribution for load Vector
+                ef(2*in+0,0)      += gBigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += gBigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(2*in+2,0)      += gBigNumber*(u[2] - v[2])*phiu(in,0)*weight;    // Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(2*in+0,2*jn+0)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(2*in+2,2*jn+2)    += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Z displacement
+                }
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+        }
+            
+        case 19 : // Ntn_time_Dp
+        {
+            //    Neumann condition for each state variable
+            REAL v[4];
+            v[0] = bc.Val2()(0,0);    //    Tnx
+            v[1] = bc.Val2()(1,0);    //    Tny
+            v[2] = bc.Val2()(2,0);	  //	Tnz
+            v[3] = bc.Val2()(3,0);    //    Pressure
+            
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
+                ef(2*in+2,0)    += -1.0 * weight * v[2] * phiu(in,0);        //    Tnz
+            }
+            
+            //    Diffusion Equation
+            REAL p_s = p[0];
+            REAL d_p = (p_s-v[3]);
+            for(in = 0 ; in < phrp; in++)
+            {
+                //    Contribution for load Vector
+                ef(in+2*phru,0)        += gBigNumber*(d_p)*phip(in,0)*weight;    // P Pressure
+                
+                for (jn = 0 ; jn < phrp; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(in+2*phru,jn+2*phru)        += gBigNumber*phip(in,0)*phip(jn,0)*weight;    // P Pressure
+                }
+            }
+            break;
+        }
             
         default:
         {
