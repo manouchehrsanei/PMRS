@@ -294,6 +294,10 @@ public:
     {
         return m_geometry;
     }
+    
+    
+    /** @brief dimension of the model: */
+    int Dimension() const {return m_dimesion;}
 
     /** @brief Get the number of regions presented in the geometry */
     int NumberOfRegions() { return m_n_regions; }
@@ -330,7 +334,6 @@ public:
     
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> & BCIdToConditionType() { return m_bc_id_to_type; }
-    
     
     
     // Begin::  Block that define the material parameters
@@ -373,9 +376,6 @@ public:
     // End::  Block that define the material parameters
     /** @brief the property of material  */
 
-
-    
-    
     
     
 private:

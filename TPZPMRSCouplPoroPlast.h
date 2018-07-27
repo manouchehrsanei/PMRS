@@ -23,10 +23,13 @@
 
 #include "TPZCouplElasPlastMem.h"
 
+#include "TPZElastoPlasticMem.h"
+
+// TPZElastoPlasticMem
+// TPZCouplElasPlastMem
 
 
-
-template <class T, class TMEM = TPZCouplElasPlastMem>
+template <class T, class TMEM = TPZElastoPlasticMem>
 class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     
@@ -93,10 +96,73 @@ protected:
     /** @brief new ************************************************ */
     bool m_SetRunPlasticity;
     
+    /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
+    bool m_UpdateToUseFullDiplacement;
+    
+
     
 
     
 public:
+    
+    enum VariableIndex
+    
+        {// Total Strain
+        InxTotStrainVol   = 0,
+        InxTotStrainXX    = 1,
+        InxTotStrainYY    = 2,
+        InxTotStrainZZ    = 3,
+        InxTotStrainXY    = 4,
+        InxTotStrainXZ    = 5,
+        InxTotStrainYZ    = 6,
+            
+        // Elastic Strain
+        InxElStrainVol    = 7,
+        InxElStrainXX     = 8,
+        InxElStrainYY     = 9,
+        InxElStrainZZ     = 10,
+        InxElStrainXY     = 11,
+        InxElStrainXZ     = 12,
+        InxElStrainYZ     = 13,
+            
+        // Plastic Strain
+        InxPlStrainVol    = 14,
+        InxPlStrainXX     = 15,
+        InxPlStrainYY     = 16,
+        InxPlStrainZZ     = 17,
+        InxPlStrainXY     = 18,
+        InxPlStrainXZ     = 19,
+        InxPlStrainYZ     = 20,
+
+        // Displacement
+        InxDisplacement   = 21,
+        InxPorePressure   = 22,
+        InxVelocity       = 23,
+        InxPorosity       = 24,
+        InxPermeabilityXX = 25,
+        InxPermeabilityYY = 26,
+        InxPermeabilityZZ = 27,
+
+        // Total Stress
+        InxTotStressXX    = 28,
+        InxTotStressYY    = 29,
+        InxTotStressZZ    = 30,
+        InxTotStressXY    = 31,
+        InxTotStressXZ    = 32,
+        InxTotStressYZ    = 33,
+        
+        // Stress Ratio
+        InxStressRatio    = 34,
+
+        // Yield Surface
+        InxYieldSurface1  = 35,
+        InxYieldSurface2  = 36,
+        InxYieldSurface3  = 37,
+    };
+
+    
+    
+    // Default constructor
     
     TPZPMRSCouplPoroPlast();
     
@@ -118,6 +184,14 @@ public:
     
     virtual int NStateVariables();
     
+    void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+    void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
+    void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
+    
+    
+    /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
+    void SetUpdateToUseFullU(bool update = true);
+    
     /** @brief permeability correction model */
     REAL k_permeability(REAL &phi, REAL &k);
     
@@ -125,6 +199,10 @@ public:
     REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
     
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
+    
+    /// Transform a voight notation to a tensor
+    enum MVoight {Exx,Exy,Exz,Eyy,Eyz,Ezz};
+    void FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S);
     
     /** @brief computation of effective sigma */
     void Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
@@ -150,7 +228,7 @@ public:
     
     int VariableIndex(const std::string &name);
     int NSolutionVariables(int var);
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZVec<TPZMaterialData > &datavec, int var, TPZVec<STATE> &Solout);
 
     void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
     {
@@ -280,6 +358,19 @@ public:
         mc_phi = phi;
         mc_psi = psi;
     }
+    
+    
+    // ****************************************************************** plasticity ***********************
+    
+    /** @brief if IsPlasticity is true, it will calculate the contribution of a plastic material
+     */
+    void SetRunPlasticity(bool IsPlasticity = true);
+    
+
+    
+    
+    
+    
     
 };
 

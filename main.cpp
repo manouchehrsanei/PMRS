@@ -32,22 +32,6 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 
-
-// select another material
-#include "TPZPMRSCouplPoroElast.h"
-//#include "TPZPMRSCouplPoroPlast.h"
-
-#include "TPZCouplElasPlastMem.h"
-#include "TPZSandlerExtended.h"
-#include "TPZPlasticStepPV.h"
-#include "TPZYCMohrCoulombPV.h"
-#include "TPZSandlerDimaggio.h"
-
-
-
-
-
-
 // Elasticity
 #include "TPZElasticCriterion.h"
 
@@ -55,6 +39,10 @@
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
+
+#include "TPZCouplElasPlastMem.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZSandlerDimaggio.h"
 
 // Analysis
 #include "pzanalysis.h"
@@ -71,6 +59,11 @@
 
 // Simulation data structure
 #include "TPZSimulationData.h"
+
+// ElastoPlastic Materials
+#include "TPZPMRSCouplPoroElast.h"
+#include "TPZPMRSCouplPoroPlast.h"
+
 
 // Methods declarations
 #define USING_Pardiso
@@ -403,9 +396,9 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         
        
-        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
+//        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
-//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
+        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
 
 
         int kmodel = 0;
@@ -416,31 +409,19 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL alpha_r = sim_data->Get_alpha();
         REAL Se = sim_data->Get_Se();
         REAL eta = sim_data->Get_eta();
-        
         REAL rho_f = sim_data->Get_rho_f();
         REAL rho_s = sim_data->Get_rho_s();
- 
-
         REAL MC_coh = sim_data->Get_mc_coh();
         REAL MC_phi = sim_data->Get_mc_phi();
         REAL MC_psi = sim_data->Get_mc_psi();
         
-        
-        
         material->SetSimulationData(sim_data);
-        
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
         material->SetBiotParameters(alpha_r, Se);
-        
         material->SetParameters(k, porosity, eta);
         material->SetKModel(kmodel);
-        
         material->SetDensityFluidRock(rho_f, rho_s);
-        
         material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
-        
-        
-
         cmesh->InsertMaterialObject(material);
         
         
@@ -471,11 +452,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
             
             // selecting the boundary that is time dependent
             
-//            if (time_depend_bound_type == "Du_time_Dp")
-//            {
-//                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_y);
-//                bc->SetTimedependentBCForcingFunction(boundary_data);
-//            }
+            if (time_depend_bound_type == "Du_time_Dp")
+            {
+                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_y);
+                bc->SetTimedependentBCForcingFunction(boundary_data);
+            }
             
             if (time_depend_bound_type == "Ntn_time_Dp")
             {

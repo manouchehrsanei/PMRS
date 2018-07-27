@@ -96,8 +96,50 @@ TPZPMRSCouplPoroPlast<T,TMEM> &TPZPMRSCouplPoroPlast<T,TMEM>::operator = (const 
 template<class T,class TMEM>
 int TPZPMRSCouplPoroPlast<T,TMEM>::NStateVariables()
 {
-    return 1;
+    return 2;
 }
+
+/** @brief a computation of delta strain */
+template <class T, class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
+{
+    TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(data, DeltaStrain);
+}
+
+/** @brief a computation of stress and tangent */
+template <class T, class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
+{
+#ifdef PZDEBUG
+    if (DeltaStrain.Rows() != 6)
+    {
+        DebugStop();
+    }
+#endif
+    TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(data,DeltaStrain,Stress,Dep);
+}
+
+/** @brief a computation of stress */
+template <class T, class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
+{
+#ifdef PZDEBUG
+    if (DeltaStrain.Rows() != 6)
+    {
+        DebugStop();
+    }
+#endif
+    TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrain(data,DeltaStrain,Stress);
+}
+
+
+template<class T,class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::SetUpdateToUseFullU(bool update)
+{
+    m_UpdateToUseFullDiplacement = update;
+}
+
+
 
 /** @brief permeability coupling models  */
 template<class T,class TMEM>
@@ -219,6 +261,21 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZVec<TPZMaterialData
     
 }
 
+/// Transform a voight notation to a tensor
+template<class T,class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S)
+{
+    S(0,0) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Exx];
+    S(0,1) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Exy];
+    S(0,2) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Exz];
+    S(1,0) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Exy];
+    S(1,1) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Eyy];
+    S(1,2) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Eyz];
+    S(2,0) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Exz];
+    S(2,1) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Eyz];
+    S(2,2) = Svoight[TPZPMRSCouplPoroPlast<T,TMEM>::Ezz];
+}
+
 
 /** @brief of contribute of BC */
 template<class T,class TMEM>
@@ -257,7 +314,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
     // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
+    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
     TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
@@ -293,33 +350,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         return;
     }
-
-    
     
     REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
 
     // Computing Gradient of the Solution
-    TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-    
-    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    
-//     Get the solution at the integrations points
-    long global_point_index = datavec[0].intGlobPtIndex;
-//    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
-    
-    TMEM &point_memory = TPZMatWithMem<TMEM>::GetMemory()[global_point_index];
-    
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
-    Grad_u_n = point_memory.grad_u_n();
-    
-    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
-    
+    TPZFNMatrix<6,REAL> S(3,3,0.0);
+
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
     TPZFNMatrix<6,REAL> Grad_vy_i(2,1,0.0);
 
@@ -330,7 +368,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     
     Sigma_0.Zero();
-    S -= Sigma_0; // Applying prestress
+    
+    S = Sigma_0; // Applying prestress
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -500,30 +539,22 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     TPZFNMatrix<3>  Stress(3,1);
     int ptindex = data.intGlobPtIndex;
     
-    
-    
-    if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 0)
-    {
+
         // Loop over the solutions if update memory is true
-        TPZSolVec locsol(data.sol);
-        TPZGradSolVec locdsol(data.dsol);
-        int numsol = locsol.size();
+    TPZSolVec locsol(data.sol);
+    TPZGradSolVec locdsol(data.dsol);
+    int numsol = locsol.size();
         
-        for (int is=0; is<numsol; is++)
-        {
-            data.sol[0] = locsol[is];
-            data.dsol[0] = locdsol[is];
-            
-            this->ComputeDeltaStrainVector(data, DeltaStrain);
-            this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
-        }
-    }
-    else
+    for (int is=0; is<numsol; is++)
     {
+        data.sol[0] = locsol[is];
+        data.dsol[0] = locdsol[is];
         
         this->ComputeDeltaStrainVector(data, DeltaStrain);
         this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
     }
+
+
 #ifdef MACOS
     feclearexcept(FE_ALL_EXCEPT);
     if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT    )) {
@@ -682,26 +713,29 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     
     // Computing Gradient of the Solution
     TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
-    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
-    Grad_u(0,2) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
-    
-    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0)+du(2,1)*axes_u(2,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1)+du(2,1)*axes_u(2,1); // duy/dy
-    Grad_u(1,2) = du(0,1)*axes_u(0,2)+du(1,1)*axes_u(1,2)+du(2,1)*axes_u(2,2); // duy/dz
-    
-    Grad_u(2,0) = du(0,2)*axes_u(0,0)+du(1,2)*axes_u(1,0)+du(2,2)*axes_u(2,0); // duz/dx
-    Grad_u(2,1) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
-    Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
+//    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
+//    Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
+//    Grad_u(0,2) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
+//    
+//    Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0)+du(2,1)*axes_u(2,0); // duy/dx
+//    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1)+du(2,1)*axes_u(2,1); // duy/dy
+//    Grad_u(1,2) = du(0,1)*axes_u(0,2)+du(1,1)*axes_u(1,2)+du(2,1)*axes_u(2,2); // duy/dz
+//    
+//    Grad_u(2,0) = du(0,2)*axes_u(0,0)+du(1,2)*axes_u(1,0)+du(2,2)*axes_u(2,0); // duz/dx
+//    Grad_u(2,1) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
+//    Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
     
     // Get the solution at the integrations points
-    long global_point_index = datavec[0].intGlobPtIndex;
-    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
-    e_e = point_memory.epsilon_e_n();
-    e_p = point_memory.epsilon_p_n();
-    Grad_u_n = point_memory.grad_u_n();
+//    long global_point_index = datavec[0].intGlobPtIndex;
+//    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
     
-    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
+//    TMEM &point_memory = TPZMatWithMem<TMEM>::GetMemory()[global_point_index];
+
+//    e_e = point_memory.epsilon_e_n();
+//    e_p = point_memory.epsilon_p_n();
+//    Grad_u_n = point_memory.grad_u_n();
+//    
+//    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
     TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
@@ -723,7 +757,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     
     Sigma_0.Zero();
-    S -= Sigma_0; // Applying prestress
+    S = Sigma_0; // Applying prestress
     
     for (int iu = 0; iu < nphi_u; iu++)
     {
@@ -2105,39 +2139,59 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Print(std::ostream &out)
 template<class T,class TMEM>
 int TPZPMRSCouplPoroPlast<T,TMEM>::VariableIndex(const std::string &name)
 {
-    //	Elasticity Variables
-    if(!strcmp("u",name.c_str()))				return	1;
-    if(!strcmp("s_x",name.c_str()))             return	2;
-    if(!strcmp("s_y",name.c_str()))             return	3;
-    if(!strcmp("s_z",name.c_str()))             return	4;
-    if(!strcmp("t_xy",name.c_str()))            return	5;
-    if(!strcmp("t_xz",name.c_str()))            return	6;
-    if(!strcmp("t_yz",name.c_str()))            return	7;
+    //	Total Strain Variables
+    if(!strcmp("et_v",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainVol;
+    if(!strcmp("et_x",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXX;
+    if(!strcmp("et_y",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYY;
+    if(!strcmp("et_z",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainZZ;
+    if(!strcmp("et_xy",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXY;
+    if(!strcmp("et_xz",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXZ;
+    if(!strcmp("et_yz",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYZ;
+    
+    //	Elastic Strain Variables
+    if(!strcmp("e_v",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainVol;
+    if(!strcmp("e_x",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXX;
+    if(!strcmp("e_y",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYY;
+    if(!strcmp("e_z",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainZZ;
+    if(!strcmp("e_xy",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXY;
+    if(!strcmp("e_xz",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXZ;
+    if(!strcmp("e_yz",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYZ;
+    
+    //	Plastic Strain Variables
+    if(!strcmp("ep_v",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainVol;
+    if(!strcmp("ep_x",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXX;
+    if(!strcmp("ep_y",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYY;
+    if(!strcmp("ep_z",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainZZ;
+    if(!strcmp("ep_xy",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXY;
+    if(!strcmp("ep_xz",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXZ;
+    if(!strcmp("ep_yz",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYZ;
+    
+    //	Displacement Variables
+    if(!strcmp("u",name.c_str()))		      return TPZPMRSCouplPoroPlast<T,TMEM>::InxDisplacement;
     
     //	Diffusion Variables
-    if(!strcmp("p",name.c_str()))				return	8;
-    if(!strcmp("v",name.c_str()))				return	9;
-    if(!strcmp("k_x",name.c_str()))				return	10;
-    if(!strcmp("k_y",name.c_str()))				return	11;
-    if(!strcmp("k_z",name.c_str()))				return	12;
-    if(!strcmp("phi",name.c_str()))				return	13;
+    if(!strcmp("p",name.c_str()))		      return TPZPMRSCouplPoroPlast<T,TMEM>::InxPorePressure;
+    if(!strcmp("v",name.c_str()))			  return TPZPMRSCouplPoroPlast<T,TMEM>::InxVelocity;
+    if(!strcmp("phi",name.c_str()))			  return TPZPMRSCouplPoroPlast<T,TMEM>::InxPorosity;
+    if(!strcmp("k_x",name.c_str()))		      return TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityXX;
+    if(!strcmp("k_y",name.c_str()))		      return TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityYY;
+    if(!strcmp("k_z",name.c_str()))		      return TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityZZ;
     
-    //	Defformation Variables
-    if(!strcmp("e_x",name.c_str()))             return	14;
-    if(!strcmp("e_y",name.c_str()))             return	15;
-    if(!strcmp("e_z",name.c_str()))             return	16;
-    if(!strcmp("e_xy",name.c_str()))            return	17;
-    if(!strcmp("e_xz",name.c_str()))            return	18;
-    if(!strcmp("e_yz",name.c_str()))            return	19;
-    if(!strcmp("ep_x",name.c_str()))            return	20;
-    if(!strcmp("ep_y",name.c_str()))            return	21;
-    if(!strcmp("ep_z",name.c_str()))            return	22;
-    if(!strcmp("ep_xy",name.c_str()))           return	23;
-    if(!strcmp("ep_xz",name.c_str()))           return	24;
-    if(!strcmp("ep_yz",name.c_str()))           return	25;
+    //	Total Stress Variables
+    if(!strcmp("s_x",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXX;
+    if(!strcmp("s_y",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYY;
+    if(!strcmp("s_z",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressZZ;
+    if(!strcmp("t_xy",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXY;
+    if(!strcmp("t_xz",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXZ;
+    if(!strcmp("t_yz",name.c_str()))          return TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYZ;
     
     //	Stress Ratio Variable
-    if(!strcmp("K_0",name.c_str()))             return	26;
+    if(!strcmp("K_0",name.c_str()))           return TPZPMRSCouplPoroPlast<T,TMEM>::InxStressRatio;
+    
+    //	Yield Surface Variable
+    if(!strcmp("YS_1",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface1;
+    if(!strcmp("YS_2",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface2;
+    if(!strcmp("YS_3",name.c_str()))         return TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface3;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -2145,355 +2199,70 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::VariableIndex(const std::string &name)
 template<class T,class TMEM>
 int TPZPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
 {
-    if(var == 1)	return m_Dim;
-    if(var == 2)	return 1;
-    if(var == 3)	return 1;
-    if(var == 4)	return 1;
-    if(var == 5)	return 1;
-    if(var == 6)	return 1;
-    if(var == 7)	return 1;
-    if(var == 8)	return 1;
-    if(var == 9)	return m_Dim;
-    if(var == 10)	return 1;
-    if(var == 11)	return 1;
-    if(var == 12)	return 1;
-    if(var == 13)	return 1;
-    if(var == 14)	return 1;
-    if(var == 15)	return 1;
-    if(var == 16)	return 1;
-    if(var == 17)	return 1;
-    if(var == 18)	return 1;
-    if(var == 19)	return 1;
-    if(var == 20)	return 1;
-    if(var == 21)	return 1;
-    if(var == 22)	return 1;
-    if(var == 23)	return 1;
-    if(var == 24)	return 1;
-    if(var == 25)	return 1;
-    if(var == 26)	return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainVol)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXX)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYY)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainZZ)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXY)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXZ)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYZ)           return 1;
+    
+    //	Elastic Strain Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainVol)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXX)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYY)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainZZ)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXY)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXZ)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYZ)            return 1;
+    
+    //	Plastic Strain Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainVol)           return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXX)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYY)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainZZ)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXY)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXZ)            return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYZ)            return 1;
+    
+    //	Displacement Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxDisplacement)		    return m_Dim;
+    
+    //	Diffusion Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPorePressure)		   return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxVelocity)			   return m_Dim;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPorosity)			   return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityXX)	   return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityYY)	   return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityZZ)	   return 1;
+    
+    //	Total Stress Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXX)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYY)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressZZ)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXY)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXZ)          return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYZ)          return 1;
+    
+    //	Stress Ratio Variable
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxStressRatio)          return 1;
+    
+    //	Yield Surface Variable
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface1)        return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface2)        return 1;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface3)        return 1;
+    
     
     return TPZMaterial::NSolutionVariables(var);
 }
 
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData > &datavec, int var, TPZVec<STATE> &Solout)
 {
-    
-    Solout.Resize( this->NSolutionVariables(var));
-    
-    int u_b = 0;
-    int p_b = 1;
-    
-    // Getting the space functions
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
-    TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
-    
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    
-    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
-    
-    
-    REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.01327e+12; // 1.013249966e+12;
-    
-    
-    // Computing Gradient of the Solution
-    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
-    
-    
-    // Computing Gradient of deformation in 2D for corrector_DP function
-    if (m_Dim != 3)
-    {
-        Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-        Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-        
-        Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-        Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    }
-    else
-    {
-        Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
-        Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
-        Grad_u(0,2) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
-        
-        Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0)+du(2,1)*axes_u(2,0); // duy/dx
-        Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1)+du(2,1)*axes_u(2,1); // duy/dy
-        Grad_u(1,2) = du(0,1)*axes_u(0,2)+du(1,1)*axes_u(1,2)+du(2,1)*axes_u(2,2); // duy/dz
-        
-        Grad_u(2,0) = du(0,2)*axes_u(0,0)+du(1,2)*axes_u(1,0)+du(2,2)*axes_u(2,0); // duz/dx
-        Grad_u(2,1) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
-        Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
-    }
-    
-    
-    Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
-    
-    
-    //	Displacements
-    if(var == 1)
-    {
-        Solout[0] = u[0];
-        Solout[1] = u[1];
-        if (m_Dim == 3)
-        {
-            Solout[2] = u[2];
-        }
-        return;
-    }
 
-    //	sigma_x
-    if(var == 2)
-    {
-        Solout[0] = S(0,0)*to_Mpa;
-        return;
-    }
     
-    //	sigma_y
-    if(var == 3)
-    {
-        Solout[0] = S(1,1)*to_Mpa;
-        return;
-    }
     
-    //	sigma_z
-    if(var == 4)
-    {
-        Solout[0] = S(2,2)*to_Mpa;
-        return;
-    }
-    
-    //	tau_xy
-    if(var == 5)
-    {
-        Solout[0] = S(0,1)*to_Mpa;
-        return;
-    }
-    
-    //	tau_xz
-    if(var == 6)
-    {
-        Solout[0] = S(0,2)*to_Mpa;
-        return;
-    }
-    
-    //	tau_yz
-    if(var == 7)
-    {
-        Solout[0] = S(1,2)*to_Mpa;
-        return;
-    }
-    
-    //	pore pressure
-    if(var == 8)
-    {
-        Solout[0] = p[0]*to_Mpa;
-        return;
-    }
-    
-    //	Darcy's velocity
-    if(var == 9)
-    {
-        if (m_Dim != 3)
-        {
-            Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0); // dp/dx
-            Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1); // dp/dy
-            
-            REAL phi = porosity_corrected_2D(datavec);
-            REAL k;
-            k_permeability(phi, k);
-            Solout[0] = -(k/m_eta) * Grad_p(0,0);
-            Solout[1] = -(k/m_eta) * Grad_p(1,0);
-            return;
-        }
-        else
-        {
-            Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0); // dp/dx
-            Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1)+dp(2,0)*axes_p(2,1); // dp/dy
-            Grad_p(2,0) = dp(0,0)*axes_p(0,2)+dp(1,0)*axes_p(1,2)+dp(2,0)*axes_p(2,2); // dp/dz
-            
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k;
-            k_permeability(phi, k);
-            Solout[0] = -(k/m_eta) * Grad_p(0,0);
-            Solout[1] = -(k/m_eta) * Grad_p(1,0);
-            Solout[2] = -(k/m_eta) * Grad_p(2,0);
-            return;
-        }
-    }
-    
-    //	k_x
-    if(var == 10)
-    {
-        if (m_Dim != 3)
-        {
-        REAL phi = porosity_corrected_2D(datavec);
-        REAL k = 0.0;
-        k_permeability(phi, k);
-        Solout[0] = k*to_Darcy;
-        return;
-        }
-        
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-    }
-    
-    //	k_y
-    if(var == 11)
-    {
-        if (m_Dim != 3)
-        {
-            REAL phi = porosity_corrected_2D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-    }
-    
-    //	k_z
-    if(var == 12)
-    {
-        if (m_Dim != 3)
-        {
-            REAL phi = porosity_corrected_2D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-    }
-    
-    //	Porosity form poroelastic correction
-    if(var == 13)
-    {
-        if (m_Dim != 3)
-        {
-            Solout[0] = porosity_corrected_2D(datavec);
-            return;
-        }
-        else
-        {
-            Solout[0] = porosity_corrected_3D(datavec);
-            return;
-        }
-    }
-    
-    //	epsilon_xx
-    if(var == 14)
-    {
-        Solout[0] = e_e(0,0);
-        return;
-    }
-    
-    //	epsilon_yy
-    if(var == 15)
-    {
-        Solout[0] = e_e(1,1);
-        return;
-    }
-    
-    //	epsilon_zz
-    if(var == 16)
-    {
-        Solout[0] = e_e(2,2);
-        return;
-    }
-    
-    //	epsilon_xy
-    if(var == 17)
-    {
-        Solout[0] = e_e(0,1);
-        return;
-    }
-    
-    //	epsilon_xz
-    if(var == 18)
-    {
-        Solout[0] = e_e(0,2);
-        return;
-    }
-    
-    //	epsilon_yz
-    if(var == 19)
-    {
-        Solout[0] = e_e(1,2);
-        return;
-    }
-    
-    //	epsilon_p_xx
-    if(var == 20)
-    {
-        Solout[0] = e_p(0,0);
-        return;
-    }
-    
-    //	epsilon_p_yy
-    if(var == 21)
-    {
-        Solout[0] = e_p(1,1);
-        return;
-    }
-    
-    //	epsilon_p_zz
-    if(var == 22)
-    {
-        Solout[0] = e_p(2,2);
-        return;
-    }
-    
-    //	epsilon_p_xy
-    if(var == 23)
-    {
-        Solout[0] = e_p(0,1);
-        return;
-    }
-    
-    //	epsilon_p_xz
-    if(var == 24)
-    {
-        Solout[0] = e_p(0,2);
-        return;
-    }
-    
-    //	epsilon_p_yz
-    if(var == 25)
-    {
-        Solout[0] = e_p(1,2);
-        return;
-    }
-    
-    //	K_0
-    if(var == 26)
-    {
-        Solout[0] = S(0,0)/S(1,1);
-        return;
-    }
     
 }
 
@@ -2618,6 +2387,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Principal_Stress(TPZFMatrix<REAL> S, TPZFMat
     
 }
 
+// ****************************************************************** plasticity ***********************
+
+template<class T,class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
+{
+    m_SetRunPlasticity = IsPlasticity;
+}
 
 
 #include "TPZSandlerExtended.h"
@@ -2625,5 +2401,5 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Principal_Stress(TPZFMatrix<REAL> S, TPZFMat
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"
 
-//template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
-//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZCouplElasPlastMem>;
+template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
+template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;

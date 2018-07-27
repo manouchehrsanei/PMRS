@@ -34,16 +34,16 @@
         <PostProcessing vtk_file="elastoplastic2D.vtk" n_divisions="0" n_scalars="10" n_vectors="1"
         />
         <Scalars>
-            <Var name="s_x" />
-            <Var name="s_y" />
-            <Var name="t_xy" />
-            <Var name="p" />
             <Var name="e_x" />
             <Var name="e_y" />
             <Var name="e_xy" />
             <Var name="ep_x" />
             <Var name="ep_y" />
             <Var name="ep_xy" />
+             <Var name="p" />
+            <Var name="s_x" />
+            <Var name="s_y" />
+            <Var name="t_xy" />
         </Scalars>
         <Vectors>
             <Var name="u" />

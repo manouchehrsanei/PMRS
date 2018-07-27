@@ -34,9 +34,9 @@
         <PostProcessing vtk_file="Bradley_linear_elastic.vtk" n_divisions="0" n_scalars="3" n_vectors="1"
         />
         <Scalars>
+            <Var name="p" />
             <Var name="s_x" />
             <Var name="s_y" />
-            <Var name="p" />
         </Scalars>
         <Vectors>
             <Var name="u" />

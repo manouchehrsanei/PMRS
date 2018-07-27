@@ -209,6 +209,7 @@ void TPZPMRSAnalysis::PostProcessStep()
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
+//    const int dim = m_SimulationData->Dimension();
     int div = m_SimulationData->n_div();
  
     TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
@@ -233,10 +234,10 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
     {
         this->ExcecuteOneStep();
         this->PostProcessStep();
-        this->AppendStrain_Stress(x);
-        this->AppendStrain_Pososity(x);
-        this->AppendStrain_Permeability(x);
-        this->AppendStrain_Pressure(x);
+//        this->AppendStrain_Stress(x);
+//        this->AppendStrain_Pososity(x);
+//        this->AppendStrain_Permeability(x);
+//        this->AppendStrain_Pressure(x);
         time = (i+1)* dt;
         std::cout<< "PMRS:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
@@ -260,12 +261,12 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int sx_var = 2;
-    int sy_var = 3;
-//    int eex_var = 14;
-//    int epx_var = 20;
-    int eey_var = 15;
-    int epy_var = 21;
+    int sx_var = 29;
+    int sy_var = 30;
+//    int eex_var = 9;
+//    int epx_var = 16;
+    int eey_var = 10;
+    int epy_var = 17;
     TPZVec<STATE> sx;
     TPZVec<STATE> sy;
     TPZVec<STATE> eey;
@@ -323,11 +324,11 @@ void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int phi_var = 13;
-    int eex_var = 14;
-    int epx_var = 20;
-    int eey_var = 15;
-    int epy_var = 21;
+    int phi_var = 25;
+    int eex_var = 9;
+    int epx_var = 16;
+    int eey_var = 10;
+    int epy_var = 17;
     TPZVec<STATE> phi;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
@@ -389,11 +390,11 @@ void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int k_var   = 11;
-    int eex_var = 14;
-    int epx_var = 20;
-    int eey_var = 15;
-    int epy_var = 21;
+    int ky_var  = 27;
+    int eex_var = 9;
+    int epx_var = 16;
+    int eey_var = 10;
+    int epy_var = 17;
     TPZVec<STATE> k;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
@@ -424,7 +425,7 @@ void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
         
         if(IsTargetElementQ){
             TPZCompEl * cel = gel->Reference();
-            cel->Solution(parametric_space, k_var, k);
+            cel->Solution(parametric_space, ky_var, k);
             cel->Solution(parametric_space, eex_var, eex);
             cel->Solution(parametric_space, epx_var, epx);
             cel->Solution(parametric_space, eey_var, eey);
@@ -455,11 +456,11 @@ void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int p_var   = 8;
-    int eex_var = 14;
-    int epx_var = 20;
-    int eey_var = 15;
-    int epy_var = 21;
+    int p_var   = 23;
+    int eex_var = 9;
+    int epx_var = 16;
+    int eey_var = 10;
+    int epy_var = 17;
     TPZVec<STATE> p;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
