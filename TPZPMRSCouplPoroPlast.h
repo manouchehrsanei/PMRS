@@ -18,12 +18,15 @@
 #include "TPZMatElastoPlastic2D.h"
 #include "TPZMatWithMem.h"
 
+#include "TPZSandlerExtended.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZSandlerDimaggio.h"
 
 #include "TPZSimulationData.h"
-
 #include "TPZCouplElasPlastMem.h"
-
 #include "TPZElastoPlasticMem.h"
+
 
 // TPZElastoPlasticMem
 // TPZCouplElasPlastMem
@@ -96,6 +99,8 @@ protected:
     /** @brief new ************************************************ */
     bool m_SetRunPlasticity;
 
+    /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
+    bool m_UpdateToUseFullDiplacement;
     
 
     
@@ -164,7 +169,7 @@ public:
     
     TPZPMRSCouplPoroPlast(int matid, int dim);
     
-    ~TPZPMRSCouplPoroPlast();
+    virtual ~TPZPMRSCouplPoroPlast();
     
     /** @brief Copy constructor $ */
     TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast& other);
@@ -172,21 +177,23 @@ public:
     /** @brief Copy assignemnt operator $ */
     TPZPMRSCouplPoroPlast & operator = (const TPZPMRSCouplPoroPlast& other);
     
-    int ClassId() const;
+    virtual int ClassId() const;
     
     void Print(std::ostream & out);
     
-    std::string Name() { return "TPZPMRSCouplPoroPlast"; }
+    virtual std::string Name() { return "TPZPMRSCouplPoroPlast"; }
     
     virtual int NStateVariables();
     
     /** @brief some functions for plasticity */
-    void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
-    void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
-    void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
-    void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
-    void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
+    virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
+    virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+    virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
+    virtual void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
+    virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
     
+    /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
+    void SetUpdateToUseFullU(bool update = true);
     
     /** @brief permeability correction model */
     REAL k_permeability(REAL &phi, REAL &k);
@@ -206,55 +213,55 @@ public:
     /** @brief Principal Stress */
     void Principal_Stress(TPZFMatrix<REAL> S, TPZFMatrix<REAL> & PrinStres);
     
-    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
-    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
     /** @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation. */
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    void Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    void ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
-    void Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    void ContributePlastic_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributePlastic_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
     
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    void ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
-    int VariableIndex(const std::string &name);
-    int NSolutionVariables(int var);
-    void Solution(TPZVec<TPZMaterialData > &datavec, int var, TPZVec<STATE> &Solout);
+    virtual int VariableIndex(const std::string &name);
+    virtual int NSolutionVariables(int var);
+    virtual void Solution(TPZVec<TPZMaterialData > &datavec, int var, TPZVec<STATE> &Solout);
 
     void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
     {
         DebugStop();
     }
     
-    void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
                              REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
     {
         DebugStop();
     }
-    void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
                              REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
     {
         DebugStop();
     }
     
-    void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef)
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef)
     {
         DebugStop();
     }
     
-    void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         DebugStop();
     }
     
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
     {
         DebugStop();
     }
@@ -364,9 +371,6 @@ public:
     void SetRunPlasticity(bool IsPlasticity = true);
     
 
-    
-    
-    
     
     
 };
