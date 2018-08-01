@@ -379,8 +379,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6>  Stress(6,1);
     
     this->ComputeDeltaStrainVector(datavec[u_b], DeltaStrain);
-    this->ApplyDeltaStrainComputeDep(datavec[u_b], DeltaStrain, Stress, Dep);
-//    this->ComputeStressVector(datavec[u_b],Stress);
+    this->ComputeStressVector(datavec[u_b],Stress);
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
@@ -597,6 +596,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     }
 #endif
     
+    
+    //#define _XX_ 0
+    //#define _YY_ 1
+    //#define _XY_ 2
+    
+    
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -611,8 +616,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
         sout << Dep(_XY_, _XX_) << "\t" << Dep(_XY_, _YY_) << "\t" << Dep(_XY_, _XY_) << "\n";
         sout << "\nStress " <<endl;
         sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
-        sout << "\nDELTA STRAIN " <<endl;
-        sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
+        sout << "\nDeltaStrain " <<endl;
+        sout << DeltaStrain(_XX_, 0) << "\t" << DeltaStrain(_YY_, 0) << "\t" << DeltaStrain(_XY_, 0) << "\n";
         sout << "data.phi" << data.phi;
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
@@ -757,8 +762,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6>  Stress(6,1);
     
     this->ComputeDeltaStrainVector(datavec[u_b], DeltaStrain);
-    this->ApplyDeltaStrainComputeDep(datavec[u_b], DeltaStrain, Stress, Dep);
-    //    this->ComputeStressVector(datavec[u_b],Stress);
+    this->ComputeStressVector(datavec[u_b],Stress);
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
@@ -1032,6 +1036,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
     }
 #endif
     
+    //#define _XX_ 0
+    //#define _XY_ 1
+    //#define _XZ_ 2
+    //#define _YY_ 3
+    //#define _YZ_ 4
+    //#define _ZZ_ 5
+    
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
@@ -1041,24 +1052,21 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
         sout << "\nDep " <<endl;
-        sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
-        sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
-        sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
+        sout << Dep(_XX_,_XX_) << "\t" << Dep(_XX_,_XY_) << "\t" << Dep(_XX_,_XZ_)  << "\t" << Dep(_XX_,_YY_) << "\t" << Dep(_XX_,_YZ_) << "\t" << Dep(_XX_,_ZZ_) "\n";
+        sout << Dep(_XY_,_XX_) << "\t" << Dep(_XY_,_XY_) << "\t" << Dep(_XY_,_XZ_)  << "\t" << Dep(_XY_,_YY_) << "\t" << Dep(_XY_,_YZ_) << "\t" << Dep(_XY_,_ZZ_) "\n";
+        sout << Dep(_XZ_,_XX_) << "\t" << Dep(_XZ_,_XY_) << "\t" << Dep(_XZ_,_XZ_)  << "\t" << Dep(_XZ_,_YY_) << "\t" << Dep(_XZ_,_YZ_) << "\t" << Dep(_XZ_,_ZZ_) "\n";
+        sout << Dep(_YY_,_XX_) << "\t" << Dep(_YY_,_XY_) << "\t" << Dep(_YY_,_XZ_)  << "\t" << Dep(_YY_,_YY_) << "\t" << Dep(_YY_,_YZ_) << "\t" << Dep(_YY_,_ZZ_) "\n";
+        sout << Dep(_YZ_,_XX_) << "\t" << Dep(_YZ_,_XY_) << "\t" << Dep(_YZ_,_XZ_)  << "\t" << Dep(_YZ_,_YY_) << "\t" << Dep(_YZ_,_YZ_) << "\t" << Dep(_YZ_,_ZZ_) "\n";
+        sout << Dep(_ZZ_,_XX_) << "\t" << Dep(_ZZ_,_XY_) << "\t" << Dep(_ZZ_,_XZ_)  << "\t" << Dep(_ZZ_,_YY_) << "\t" << Dep(_ZZ_,_YZ_) << "\t" << Dep(_ZZ_,_ZZ_) "\n";
         sout << "\nStress " <<endl;
-        sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
-        sout << "\nDELTA STRAIN " <<endl;
-        sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
+        sout << Stress(_XX_,0) << "\t" << Stress(_XY_,0) << "\t" << Stress(_XZ_,0) << "\t" << Stress(_YY_,0) << "\t" << Stress(_YZ_,0) << "\t" << Stress(_ZZ_,0) <<"\n";
+        sout << "\nDeltaStrain " <<endl;
+        sout << DeltaStrain(_XX_,0)<<"\t"<<DeltaStrain(_XY_,0) <<"\t"<< DeltaStrain(_XZ_,0)<<"\t"<<DeltaStrain(_YY_,0)<<"\t"<<DeltaStrain(_YZ_,0)<<"\t"<<DeltaStrain(_ZZ_,0)<<"\n";
         sout << "data.phi" << data.phi;
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
     
-    //#define _XX_ 0
-    //#define _XY_ 1
-    //#define _XZ_ 2
-    //#define _YY_ 3
-    //#define _YZ_ 4
-    //#define _ZZ_ 5
     
     REAL val,val2,val3,val4,val5,val6,val7,val8,val9,val10;
     
