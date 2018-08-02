@@ -42,6 +42,7 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,T
     
     m_k_model = 0;
     
+    m_VariableYoung = false;
     m_SetRunPlasticity = false;
     m_UpdateToUseFullDiplacement = false;
     
@@ -60,7 +61,8 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(int matid, int dim):TPZMatE
 
     m_k_model = 0;
 
-    m_SetRunPlasticity = true;
+    m_VariableYoung = false;
+    m_SetRunPlasticity = false;
     m_UpdateToUseFullDiplacement = false;
 
 }
@@ -114,6 +116,22 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & d
 {
     TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(data, DeltaStrain);
 }
+
+
+template <class T, class TMEM>
+void TPZPMRSCouplPoroPlast<T,TMEM>::UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
+{
+    if (m_VariableYoung) {
+        TPZElasticResponse ER = plasticity.fER;
+        REAL poisson = ER.Poisson();
+        REAL young = ER.E();
+        ER.SetUp(young, poisson);
+        plasticity.SetElasticResponse(ER);
+    }
+    
+}
+
+
 
 /** @brief a computation of stress and tangent */
 template <class T, class TMEM>
@@ -373,13 +391,31 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
     
     
-    // Computing the pre stress
-    TPZFNMatrix<36> Dep(6,6,0.0);
-    TPZFNMatrix<6>  DeltaStrain(6,1);
-    TPZFNMatrix<6>  Stress(6,1);
+    // ElastoPlastic Strain Stress Parameters
+    int global_point_index =  datavec[u_b].intGlobPtIndex;
+    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
     
-    this->ComputeDeltaStrainVector(datavec[u_b], DeltaStrain);
-    this->ComputeStressVector(datavec[u_b],Stress);
+    
+    T plasticloc(this->fPlasticity);
+    plasticloc.SetState(point_memory.fPlasticState);
+    
+    UpdateMaterialCoeficients(datavec[u_b].x, plasticloc);
+    TPZTensor<STATE> Stress = point_memory.fSigma;
+//        Stress.Print(std::cout);
+
+    
+    TPZTensor<REAL> EpsT;
+    TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
+    ComputeDeltaStrainVector(datavec[u_b], deltastrain);
+    
+//    du.Print(std::cout);
+//    deltastrain.Print(std::cout);
+
+    EpsT.CopyFrom(deltastrain);
+    EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+    plasticloc.ApplyStrainComputeSigma(EpsT, Stress);
+
+//    Stress.Print(std::cout);
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
@@ -391,7 +427,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
     S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
     
-    
+//    S.Print(std::cout);
+
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -757,12 +794,18 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     REAL duzdx, duzdy, duzdz;
     
     // Computing the pre stress
-    TPZFNMatrix<36> Dep(6,6,0.0);
-    TPZFNMatrix<6>  DeltaStrain(6,1);
     TPZFNMatrix<6>  Stress(6,1);
-    
-    this->ComputeDeltaStrainVector(datavec[u_b], DeltaStrain);
     this->ComputeStressVector(datavec[u_b],Stress);
+    
+    
+    // ElastoPlastic Strain Stress Parameters
+    //    int global_point_index =  datavec[u_b].intGlobPtIndex;
+    //    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
+    //
+    //    T plasticloc(this->fPlasticity);
+    //    plasticloc.SetState(point_memory.fPlasticState);
+    //    TPZTensor<STATE> Stress = point_memory.fSigma;
+    
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
@@ -2634,13 +2677,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData > &datavec, 
 {
 //    
 //    // ElastoPlastic Strain Stress Parameters
-//    int intPt = datavec[0].intGlobPtIndex;
-//    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[intPt];
+//    int global_point_index = datavec[0].intGlobPtIndex;
+//    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
 //    
 //    T plasticloc(this->fPlasticity);
-//    plasticloc.SetState(Memory.fPlasticState);
+//    plasticloc.SetState(point_memory.fPlasticState);
 //    
-//    TPZTensor<STATE> Sigma = Memory.fSigma;
+//    TPZTensor<STATE> Sigma = point_memory.fSigma;
 //    STATE normdsol = Norm(datavec[0].dsol[0]);
 //    
 //    if (normdsol != 0.)
@@ -2663,7 +2706,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData > &datavec, 
 //    TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
 //    TPZTensor<REAL> totalStress = Sigma;
 //    
-//    TPZManVector<REAL,3> u = Memory.fDisplacement;
+//    TPZManVector<REAL,3> u = point_memory.fDisplacement;
 //    
 //    // Deffiusion Parameters
 //    TPZManVector<STATE,3> AlphagradP(3,0.);
@@ -3112,6 +3155,10 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 #include "TPZPlasticStepPV.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"
+#include "TPZElasticCriterion.h"
+
+template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZElastoPlasticMem>;
 
 template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
 template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+

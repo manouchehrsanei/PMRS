@@ -36,6 +36,13 @@ template <class T, class TMEM = TPZElastoPlasticMem>
 class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     
+private:
+
+    // boolean indicating whether the Young modulus needs to be computed at each point
+    int m_VariableYoung;
+    
+    
+    
 protected:
     
     /** @brief define the simulation data */
@@ -103,6 +110,8 @@ protected:
     bool m_UpdateToUseFullDiplacement;
     
 
+    
+    
     
 public:
     
@@ -188,9 +197,11 @@ public:
     /** @brief some functions for plasticity */
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+    virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity);
     virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
     virtual void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
     virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
+    
     
     /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
     void SetUpdateToUseFullU(bool update = true);

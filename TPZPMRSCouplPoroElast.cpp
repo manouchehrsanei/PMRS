@@ -17,17 +17,6 @@
 #include "pzfmatrix.h"
 #include "TPZTensor.h"
 
-// Elasticity
-#include "TPZElasticCriterion.h"
-
-// Plasticity
-#include "TPZPlasticStepPV.h"
-#include "TPZSandlerExtended.h"
-#include "TPZYCMohrCoulombPV.h"
-#include "TPZMatElastoPlastic.h"
-#include "TPZElasticCriterion.h"
-#include "TPZSandlerDimaggio.h"
-
 
 
 #ifdef LOG4CXX
@@ -2140,7 +2129,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    
+    S.Print(std::cout);
     // ************************************** The value of parameters ************************
     
     // ************************	Total Strain Variables ************************

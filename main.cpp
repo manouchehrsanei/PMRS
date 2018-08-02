@@ -174,6 +174,9 @@ int main(int argc, char *argv[])
     
     bool mustOptimizeBandwidth = true;
     int number_threads = sim_data->n_threads();
+
+    number_threads = 0;
+
     TPZPMRSAnalysis * time_analysis = new TPZPMRSAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -398,7 +401,10 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
        
 //        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
-        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
+//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<PZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
+        
+      TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem>(matid,dim);
+        
 
 
         int kmodel = 0;
