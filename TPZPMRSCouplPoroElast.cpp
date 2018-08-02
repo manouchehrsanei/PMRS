@@ -26,7 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
 
 
 /** @brief default costructor */
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZCouplElasPlastMem,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = 3;
     m_b.resize(3);
@@ -39,7 +39,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZCouplElasPlastMe
 }
 
 /** @brief costructor based on a material id */
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZCouplElasPlastMem,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = dim;
     m_b.resize(3);
@@ -287,7 +287,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZCouplElasPlastMem &memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &memory = GetMemory()[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -499,7 +499,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZCouplElasPlastMem &memory = GetMemory()[global_point_index];
+    TPZPMRSMemory &memory = GetMemory()[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -724,8 +724,6 @@ void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL w
     {
          this->ContributeBC_2D(datavec, weight, ek, ef, bc);
     }
-    
-
     
 }
 
@@ -2129,7 +2127,6 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     Compute_Sigma_n(Grad_u_n, Grad_u, e_e, e_p, S);
     
-    S.Print(std::cout);
     // ************************************** The value of parameters ************************
     
     // ************************	Total Strain Variables ************************

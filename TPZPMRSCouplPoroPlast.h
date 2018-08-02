@@ -24,7 +24,7 @@
 #include "TPZSandlerDimaggio.h"
 
 #include "TPZSimulationData.h"
-#include "TPZCouplElasPlastMem.h"
+#include "TPZPMRSMemory.h"
 #include "TPZElastoPlasticMem.h"
 
 
@@ -194,6 +194,9 @@ public:
     
     virtual int NStateVariables();
     
+    
+    
+    
     /** @brief some functions for plasticity */
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
@@ -214,15 +217,8 @@ public:
     
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
     
-    /// Transform a voight notation to a tensor
-    enum MVoight {Exx,Exy,Exz,Eyy,Eyz,Ezz};
-    void FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S);
     
-    /** @brief computation of effective sigma */
-    void Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
-    
-    /** @brief Principal Stress */
-    void Principal_Stress(TPZFMatrix<REAL> S, TPZFMatrix<REAL> & PrinStres);
+
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     

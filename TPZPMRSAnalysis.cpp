@@ -7,7 +7,6 @@
 //
 
 #include "TPZPMRSAnalysis.h"
-//#define PZDEBUG
 
 /** @brief default costructor */
 TPZPMRSAnalysis::TPZPMRSAnalysis() : TPZAnalysis()
@@ -145,9 +144,11 @@ void TPZPMRSAnalysis::QuasiNewtonIteration()
 #endif
     
     m_R_n += m_R; // total residue
+    
 #ifdef PZDEBUG
 //    m_R_n.Print("Rt = ", std::cout,EMathematicaInput);
 #endif
+    
     m_error =  Norm(m_R_n); // residue error
     
 }
