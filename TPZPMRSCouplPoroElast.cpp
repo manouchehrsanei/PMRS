@@ -81,7 +81,7 @@ TPZPMRSCouplPoroElast& TPZPMRSCouplPoroElast::operator = (const TPZPMRSCouplPoro
 /** @brief number of state variables */
 int TPZPMRSCouplPoroElast::NStateVariables()
 {
-    return 1;
+    return 2;
 }
 
 /** @brief permeability coupling models  */

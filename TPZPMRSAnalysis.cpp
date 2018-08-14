@@ -7,6 +7,10 @@
 //
 
 #include "TPZPMRSAnalysis.h"
+#include "pzpostprocanalysis.h"
+#include "pzfstrmatrix.h"
+#include "TPZPMRSCouplPoroPlast.h"
+#include "TPZElasticCriterion.h"
 
 /** @brief default costructor */
 TPZPMRSAnalysis::TPZPMRSAnalysis() : TPZAnalysis()
@@ -205,21 +209,80 @@ void TPZPMRSAnalysis::Update_at_n_State()
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
+
 void TPZPMRSAnalysis::PostProcessStep()
 {
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
-//    const int dim = m_SimulationData->Dimension();
     int div = m_SimulationData->n_div();
  
     TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
     TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
+  
+    TPZStack<std::string> scalnames_intPoints;
+    TPZStack<std::string> vecnames_intPoints;
+    TPZStack<std::string> scalnames_nodes;
+    TPZStack<std::string> vecnames_nodes;
+    
+    TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = dynamic_cast<TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem> *>(this->Mesh()->MaterialVec()[1]);
+    
+    TPZStack<std::string> vars;
+    for (auto varname : scalnames) {
+        //if (material->IsVarInMemory(material->VariableIndex(varname))){
+            scalnames_intPoints.push_back(varname);
+        //} else {
+        //    scalnames_nodes.push_back(varname);
+        //}
+    }
+    for (auto varname : vecnames) {
+        //if (material->IsVarInMemory(material->VariableIndex(varname))){
+            vecnames_intPoints.push_back(varname);
+        //} else {
+        //    vecnames_nodes.push_back(varname);
+        //}
+    }
+    
     
     std::string plotfile = m_SimulationData->name_vtk_file();
 
-    this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-    this->PostProcess(div,dim);
+    
+    TPZVec<int> PostProcMatIds(1);
+    {
+        PostProcMatIds[0] = 1;
+        
+        TPZPostProcAnalysis postProcessAnalysis;
+        
+        
+        m_meshvec[0]->MaterialVec()[1] = Mesh()->MaterialVec()[1];
+        
+//        std::ofstream file("h1_mesh.txt");
+//        m_meshvec[0]->Print(file);
+        
+        postProcessAnalysis.SetCompMesh(this->Mesh());
+        TPZVec<std::string> vars(scalnames_intPoints.size()+vecnames_intPoints.size());
+        for (unsigned int i = 0; i < scalnames_intPoints.size(); ++i) {
+            vars[i] = scalnames_intPoints[i];
+        }
+        for (unsigned int i = 0; i < vecnames_intPoints.size(); ++i) {
+            vars[scalnames_intPoints.size()+i] = vecnames_intPoints[i];
+        }
+        postProcessAnalysis.SetPostProcessVariables(PostProcMatIds, vars);
+        
+        std::ofstream file_disc("disc_mesh.txt");
+        postProcessAnalysis.Mesh()->Print(file_disc);
+        
+        TPZFStructMatrix structMatrix(postProcessAnalysis.Mesh());
+        structMatrix.SetNumThreads(0);
+        postProcessAnalysis.SetStructuralMatrix(structMatrix);
+        postProcessAnalysis.TransferSolution();        
+        //postProcessAnalysis.DefineGraphMesh(dim,scalnames_intPoints,vecnames_intPoints,plotfile);
+        
+        
+    }
+    
+    //this->DefineGraphMesh(dim,scalnames_nodes,vecnames_nodes,plotfile);
+    //this->PostProcess(div,dim);
     
 }
 
@@ -242,7 +305,6 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
         time = (i+1)* dt;
         std::cout<< "PMRS:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);
-
         
     }
     
@@ -251,7 +313,6 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 /** @brief Compute the strain and the stress at x euclidean point for each time */
 void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 {
-    
     
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;

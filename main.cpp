@@ -401,11 +401,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         
        
-        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
+//        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
         
-//      TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem>(matid,dim);
+      TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem>(matid,dim);
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();

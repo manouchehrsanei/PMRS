@@ -100,7 +100,7 @@ TPZPMRSCouplPoroPlast<T,TMEM> &TPZPMRSCouplPoroPlast<T,TMEM>::operator = (const 
 template<class T,class TMEM>
 int TPZPMRSCouplPoroPlast<T,TMEM>::NStateVariables()
 {
-    return 1;
+    return 2;
 }
 
 /** @brief a computation of strain */
@@ -381,6 +381,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     plasticloc.SetState(point_memory.fPlasticState);
     UpdateMaterialCoeficients(datavec[u_b].x, plasticloc);
     
+    // obtaining the total strain
     TPZTensor<STATE> Stress = point_memory.fSigma;
     TPZTensor<REAL> EpsT;
     TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
@@ -388,6 +389,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     EpsT.CopyFrom(deltastrain);
     EpsT.Add(plasticloc.GetState().fEpsT, 1.);
     
+    // read the elastic parameter
     TPZElasticResponse ER = plasticloc.fER;
     ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
     plasticloc.SetElasticResponse(ER);
@@ -2650,44 +2652,117 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
 
+
+template<class T,class TMEM>
+bool TPZPMRSCouplPoroPlast<T,TMEM>::IsVarInMemory(int var)
+{
+    //	Total Strain Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainVol)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXX)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYY)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainZZ)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXY)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainXZ)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStrainYZ)           return true;
+    
+    //	Elastic Strain Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainVol)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXX)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYY)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainZZ)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXY)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainXZ)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxElStrainYZ)            return true;
+    
+    //	Plastic Strain Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainVol)           return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXX)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYY)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainZZ)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXY)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainXZ)            return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPlStrainYZ)            return true;
+    
+    //	Displacement Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxDisplacement)		    return true;
+    
+    //	Diffusion Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPorePressure)		   return false;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxVelocity)			   return false;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPorosity)			   return false;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityXX)	   return false;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityYY)	   return false;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxPermeabilityZZ)	   return false;
+    
+    //	Total Stress Variables
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXX)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYY)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressZZ)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXY)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressXZ)          return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxTotStressYZ)          return true;
+    
+    //	Stress Ratio Variable
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxStressRatio)          return false;
+    
+    //	Yield Surface Variable
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface1)        return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface2)        return true;
+    if(TPZPMRSCouplPoroPlast<T,TMEM>::InxYieldSurface3)        return true;
+    
+    DebugStop();
+    return false;
+}
+
+
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     int u_b = 0;
     
-    // ElastoPlastic Strain Stress Parameters
-    int global_index = datavec[u_b].intGlobPtIndex;
-    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[global_index];
+    TPZTensor<REAL> totalStrain;
+    TPZTensor<REAL> elasticStrain;
+    TPZTensor<REAL> plasticStrain;
+    TPZManVector<REAL,3> u;
+    TPZTensor<REAL> totalStress;
+    TPZTensor<STATE> Sigma;
+    T plasticloc;
     
-    T plasticloc(this->fPlasticity);
-    plasticloc.SetState(Memory.fPlasticState);
-    UpdateMaterialCoeficients(datavec[u_b].x, plasticloc);
+    if (IsVarInMemory(var)){
+        // ElastoPlastic Strain Stress Parameters
+        int global_index = datavec[u_b].intGlobPtIndex;
+        TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[global_index];
+    
+        plasticloc = this->fPlasticity;
+        plasticloc.SetState(Memory.fPlasticState);
+        UpdateMaterialCoeficients(datavec[u_b].x, plasticloc);
 
-    TPZTensor<STATE> Sigma = Memory.fSigma;
-    STATE normdsol = Norm(datavec[0].dsol[0]);
+        Sigma = Memory.fSigma;
+        STATE normdsol = Norm(datavec[0].dsol[0]);
     
-    if (normdsol != 0.)
-    {
-        TPZTensor<REAL> EpsT;
-        TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
-        ComputeDeltaStrainVector(datavec[0], deltastrain);
+        if (normdsol != 0.)
+        {
+            TPZTensor<REAL> EpsT;
+            TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
+            ComputeDeltaStrainVector(datavec[0], deltastrain);
         
-        EpsT.CopyFrom(deltastrain);
-        EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+            EpsT.CopyFrom(deltastrain);
+            EpsT.Add(plasticloc.GetState().fEpsT, 1.);
         
-        plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
+            plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
+        }
+    
+        TPZPlasticState<STATE> PState = plasticloc.GetState();
+        totalStrain = PState.fEpsT;
+        plasticStrain = PState.fEpsP;
+    
+    
+        elasticStrain = totalStrain - plasticStrain;
+        totalStress = Sigma;
+    
+        u = Memory.fDisplacement;
     }
-    
-    TPZPlasticState<STATE> PState = plasticloc.GetState();
-    TPZTensor<REAL> totalStrain = PState.fEpsT;
-    TPZTensor<REAL> plasticStrain = PState.fEpsP;
-    
-    
-    TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
-    TPZTensor<REAL> totalStress = Sigma;
-    
-    TPZManVector<REAL,3> u = Memory.fDisplacement;
     
     // Deffiusion Parameters
     TPZManVector<STATE,3> AlphagradP(3,0.);
@@ -2698,7 +2773,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZVec<TPZMaterialData> &datavec, i
         totalStress.YY() -= AlphaP(0,0);
         totalStress.ZZ() -= AlphaP(0,0);
     }
-        
     // ************************************** The value of parameters ************************
     
     // ************************	Total Strain Variables ************************
