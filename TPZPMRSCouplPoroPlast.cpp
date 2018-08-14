@@ -1076,12 +1076,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
         sout << "\nDep " <<endl;
-        sout << Dep(_XX_,_XX_) << "\t" << Dep(_XX_,_XY_) << "\t" << Dep(_XX_,_XZ_)  << "\t" << Dep(_XX_,_YY_) << "\t" << Dep(_XX_,_YZ_) << "\t" << Dep(_XX_,_ZZ_) "\n";
-        sout << Dep(_XY_,_XX_) << "\t" << Dep(_XY_,_XY_) << "\t" << Dep(_XY_,_XZ_)  << "\t" << Dep(_XY_,_YY_) << "\t" << Dep(_XY_,_YZ_) << "\t" << Dep(_XY_,_ZZ_) "\n";
-        sout << Dep(_XZ_,_XX_) << "\t" << Dep(_XZ_,_XY_) << "\t" << Dep(_XZ_,_XZ_)  << "\t" << Dep(_XZ_,_YY_) << "\t" << Dep(_XZ_,_YZ_) << "\t" << Dep(_XZ_,_ZZ_) "\n";
-        sout << Dep(_YY_,_XX_) << "\t" << Dep(_YY_,_XY_) << "\t" << Dep(_YY_,_XZ_)  << "\t" << Dep(_YY_,_YY_) << "\t" << Dep(_YY_,_YZ_) << "\t" << Dep(_YY_,_ZZ_) "\n";
-        sout << Dep(_YZ_,_XX_) << "\t" << Dep(_YZ_,_XY_) << "\t" << Dep(_YZ_,_XZ_)  << "\t" << Dep(_YZ_,_YY_) << "\t" << Dep(_YZ_,_YZ_) << "\t" << Dep(_YZ_,_ZZ_) "\n";
-        sout << Dep(_ZZ_,_XX_) << "\t" << Dep(_ZZ_,_XY_) << "\t" << Dep(_ZZ_,_XZ_)  << "\t" << Dep(_ZZ_,_YY_) << "\t" << Dep(_ZZ_,_YZ_) << "\t" << Dep(_ZZ_,_ZZ_) "\n";
+        sout << Dep(_XX_,_XX_) << "\t" << Dep(_XX_,_XY_) << "\t" << Dep(_XX_,_XZ_)  << "\t" << Dep(_XX_,_YY_) << "\t" << Dep(_XX_,_YZ_) << "\t" << Dep(_XX_,_ZZ_) << "\n";
+        sout << Dep(_XY_,_XX_) << "\t" << Dep(_XY_,_XY_) << "\t" << Dep(_XY_,_XZ_)  << "\t" << Dep(_XY_,_YY_) << "\t" << Dep(_XY_,_YZ_) << "\t" << Dep(_XY_,_ZZ_) << "\n";
+        sout << Dep(_XZ_,_XX_) << "\t" << Dep(_XZ_,_XY_) << "\t" << Dep(_XZ_,_XZ_)  << "\t" << Dep(_XZ_,_YY_) << "\t" << Dep(_XZ_,_YZ_) << "\t" << Dep(_XZ_,_ZZ_) << "\n";
+        sout << Dep(_YY_,_XX_) << "\t" << Dep(_YY_,_XY_) << "\t" << Dep(_YY_,_XZ_)  << "\t" << Dep(_YY_,_YY_) << "\t" << Dep(_YY_,_YZ_) << "\t" << Dep(_YY_,_ZZ_) << "\n";
+        sout << Dep(_YZ_,_XX_) << "\t" << Dep(_YZ_,_XY_) << "\t" << Dep(_YZ_,_XZ_)  << "\t" << Dep(_YZ_,_YY_) << "\t" << Dep(_YZ_,_YZ_) << "\t" << Dep(_YZ_,_ZZ_) << "\n";
+        sout << Dep(_ZZ_,_XX_) << "\t" << Dep(_ZZ_,_XY_) << "\t" << Dep(_ZZ_,_XZ_)  << "\t" << Dep(_ZZ_,_YY_) << "\t" << Dep(_ZZ_,_YZ_) << "\t" << Dep(_ZZ_,_ZZ_) << "\n";
         sout << "\nStress " <<endl;
         sout << Stress(_XX_,0) << "\t" << Stress(_XY_,0) << "\t" << Stress(_XZ_,0) << "\t" << Stress(_YY_,0) << "\t" << Stress(_YZ_,0) << "\t" << Stress(_ZZ_,0) <<"\n";
         sout << "\nDeltaStrain " <<endl;
