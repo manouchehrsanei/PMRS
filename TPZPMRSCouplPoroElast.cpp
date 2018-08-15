@@ -1971,88 +1971,71 @@ void TPZPMRSCouplPoroElast::Print(std::ostream &out)
 int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
 {
     //	Total Strain Variables
-    if(!strcmp("et_v",name.c_str()))             return	1;
-    if(!strcmp("et_x",name.c_str()))             return	2;
-    if(!strcmp("et_y",name.c_str()))             return	3;
-    if(!strcmp("et_z",name.c_str()))             return	4;
-    if(!strcmp("et_xy",name.c_str()))            return	5;
-    if(!strcmp("et_xz",name.c_str()))            return	6;
-    if(!strcmp("et_yz",name.c_str()))            return	7;
+    if(!strcmp("et_v",name.c_str()))             return	18;
+    if(!strcmp("et_x",name.c_str()))             return	19;
+    if(!strcmp("et_y",name.c_str()))             return	20;
+    if(!strcmp("et_z",name.c_str()))             return	21;
+    if(!strcmp("et_xy",name.c_str()))            return	22;
+    if(!strcmp("et_xz",name.c_str()))            return	23;
+    if(!strcmp("et_yz",name.c_str()))            return	24;
     
     //	Elastic Strain Variables
-    if(!strcmp("e_v",name.c_str()))             return	8;
-    if(!strcmp("e_x",name.c_str()))             return	9;
-    if(!strcmp("e_y",name.c_str()))             return	10;
-    if(!strcmp("e_z",name.c_str()))             return	11;
-    if(!strcmp("e_xy",name.c_str()))            return	12;
-    if(!strcmp("e_xz",name.c_str()))            return	13;
-    if(!strcmp("e_yz",name.c_str()))            return	14;
+    if(!strcmp("e_v",name.c_str()))             return	25;
+    if(!strcmp("e_x",name.c_str()))             return	26;
+    if(!strcmp("e_y",name.c_str()))             return	27;
+    if(!strcmp("e_z",name.c_str()))             return	28;
+    if(!strcmp("e_xy",name.c_str()))            return	29;
+    if(!strcmp("e_xz",name.c_str()))            return	30;
+    if(!strcmp("e_yz",name.c_str()))            return	31;
     
     //	Plastic Strain Variables
-    if(!strcmp("ep_v",name.c_str()))            return	15;
-    if(!strcmp("ep_x",name.c_str()))            return	16;
-    if(!strcmp("ep_y",name.c_str()))            return	17;
-    if(!strcmp("ep_z",name.c_str()))            return	18;
-    if(!strcmp("ep_xy",name.c_str()))           return	19;
-    if(!strcmp("ep_xz",name.c_str()))           return	20;
-    if(!strcmp("ep_yz",name.c_str()))           return	21;
+    if(!strcmp("ep_v",name.c_str()))            return	32;
+    if(!strcmp("ep_x",name.c_str()))            return	33;
+    if(!strcmp("ep_y",name.c_str()))            return	34;
+    if(!strcmp("ep_z",name.c_str()))            return	35;
+    if(!strcmp("ep_xy",name.c_str()))           return	36;
+    if(!strcmp("ep_xz",name.c_str()))           return	37;
+    if(!strcmp("ep_yz",name.c_str()))           return	38;
     
     //	Displacement Variables
-    if(!strcmp("u",name.c_str()))				return	22;
+    if(!strcmp("u",name.c_str()))				return	39;
     
     //	Diffusion Variables
-    if(!strcmp("p",name.c_str()))				return	23;
-    if(!strcmp("v",name.c_str()))				return	24;
-    if(!strcmp("phi",name.c_str()))				return	25;
-    if(!strcmp("k_x",name.c_str()))				return	26;
-    if(!strcmp("k_y",name.c_str()))				return	27;
-    if(!strcmp("k_z",name.c_str()))				return	28;
+    if(!strcmp("p",name.c_str()))				return	40;
+    if(!strcmp("v",name.c_str()))				return	41;
+    if(!strcmp("phi",name.c_str()))				return	42;
+    if(!strcmp("k_x",name.c_str()))				return	43;
+    if(!strcmp("k_y",name.c_str()))				return	44;
+    if(!strcmp("k_z",name.c_str()))				return	45;
     
     //	Total Stress Variables
-    if(!strcmp("s_x",name.c_str()))             return	29;
-    if(!strcmp("s_y",name.c_str()))             return	30;
-    if(!strcmp("s_z",name.c_str()))             return	31;
-    if(!strcmp("t_xy",name.c_str()))            return	32;
-    if(!strcmp("t_xz",name.c_str()))            return	33;
-    if(!strcmp("t_yz",name.c_str()))            return	34;
+    if(!strcmp("s_x",name.c_str()))             return	46;
+    if(!strcmp("s_y",name.c_str()))             return	47;
+    if(!strcmp("s_z",name.c_str()))             return	48;
+    if(!strcmp("t_xy",name.c_str()))            return	49;
+    if(!strcmp("t_xz",name.c_str()))            return	50;
+    if(!strcmp("t_yz",name.c_str()))            return	51;
     
     //	Stress Ratio Variable
-    if(!strcmp("K_0",name.c_str()))             return	35;
+    if(!strcmp("K_0",name.c_str()))             return	52;
     
     //	Yield Surface Variable
-    if(!strcmp("YS_1",name.c_str()))             return	36;
-    if(!strcmp("YS_2",name.c_str()))             return	37;
-    if(!strcmp("YS_3",name.c_str()))             return	38;
+    if(!strcmp("YS_1",name.c_str()))             return	53;
+    if(!strcmp("YS_2",name.c_str()))             return	54;
+    if(!strcmp("YS_3",name.c_str()))             return	55;
     
     return TPZMaterial::VariableIndex(name);
 }
 
 int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
 {
-    if(var == 1)	return 1;
-    if(var == 2)	return 1;
-    if(var == 3)	return 1;
-    if(var == 4)	return 1;
-    if(var == 5)	return 1;
-    if(var == 6)	return 1;
-    if(var == 7)	return 1;
-    if(var == 8)	return 1;
-    if(var == 9)	return 1;
-    if(var == 10)	return 1;
-    if(var == 11)	return 1;
-    if(var == 12)	return 1;
-    if(var == 13)	return 1;
-    if(var == 14)	return 1;
-    if(var == 15)	return 1;
-    if(var == 16)	return 1;
-    if(var == 17)	return 1;
     if(var == 18)	return 1;
     if(var == 19)	return 1;
     if(var == 20)	return 1;
     if(var == 21)	return 1;
-    if(var == 22)	return m_Dim;
+    if(var == 22)	return 1;
     if(var == 23)	return 1;
-    if(var == 24)	return m_Dim;
+    if(var == 24)	return 1;
     if(var == 25)	return 1;
     if(var == 26)	return 1;
     if(var == 27)	return 1;
@@ -2067,6 +2050,23 @@ int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
     if(var == 36)	return 1;
     if(var == 37)	return 1;
     if(var == 38)	return 1;
+    if(var == 39)	return m_Dim;
+    if(var == 40)	return 1;
+    if(var == 41)	return m_Dim;
+    if(var == 42)	return 1;
+    if(var == 43)	return 1;
+    if(var == 44)	return 1;
+    if(var == 45)	return 1;
+    if(var == 46)	return 1;
+    if(var == 47)	return 1;
+    if(var == 48)	return 1;
+    if(var == 49)	return 1;
+    if(var == 50)	return 1;
+    if(var == 51)	return 1;
+    if(var == 52)	return 1;
+    if(var == 53)	return 1;
+    if(var == 54)	return 1;
+    if(var == 55)	return 1;
     
     return TPZMaterial::NSolutionVariables(var);
 }
@@ -2131,49 +2131,49 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Total Strain Variables ************************
     //	epsilon_t_v
-    if(var == 1)
+    if(var == 18)
     {
         Solout[0] = e_e(0,0) + e_e(1,1) + e_e(2,2);
         return;
     }
     
     //	epsilon_t_xx
-    if(var == 2)
+    if(var == 19)
     {
         Solout[0] = e_e(0,0);
         return;
     }
     
     //	epsilon_t_yy
-    if(var == 3)
+    if(var == 20)
     {
         Solout[0] = e_e(1,1);
         return;
     }
     
     //	epsilon_t_zz
-    if(var == 4)
+    if(var == 21)
     {
         Solout[0] = e_e(2,2);
         return;
     }
     
     //	epsilon_t_xy
-    if(var == 5)
+    if(var == 22)
     {
         Solout[0] = e_e(0,1);
         return;
     }
     
     //	epsilon_t_xz
-    if(var == 6)
+    if(var == 23)
     {
         Solout[0] = e_e(0,2);
         return;
     }
     
     //	epsilon_t_yz
-    if(var == 7)
+    if(var == 24)
     {
         Solout[0] = e_e(1,2);
         return;
@@ -2181,49 +2181,49 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Elastic Strain Variables ************************
     //	epsilon_e_v
-    if(var == 8)
+    if(var == 25)
     {
         Solout[0] = e_e(0,0) + e_e(1,1) + e_e(2,2);
         return;
     }
     
     //	epsilon_e_xx
-    if(var == 9)
+    if(var == 26)
     {
         Solout[0] = e_e(0,0);
         return;
     }
     
     //	epsilon_e_yy
-    if(var == 10)
+    if(var == 27)
     {
         Solout[0] = e_e(1,1);
         return;
     }
     
     //	epsilon_e_zz
-    if(var == 11)
+    if(var == 28)
     {
         Solout[0] = e_e(2,2);
         return;
     }
     
     //	epsilon_e_xy
-    if(var == 12)
+    if(var == 29)
     {
         Solout[0] = e_e(0,1);
         return;
     }
     
     //	epsilon_e_xz
-    if(var == 13)
+    if(var == 30)
     {
         Solout[0] = e_e(0,2);
         return;
     }
     
     //	epsilon_e_yz
-    if(var == 14)
+    if(var == 31)
     {
         Solout[0] = e_e(1,2);
         return;
@@ -2231,49 +2231,49 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Plastic Strain Variables ************************
     //	epsilon_p_v
-    if(var == 15)
+    if(var == 32)
     {
         Solout[0] = e_p(0,0) + e_p(1,1) + e_p(2,2);
         return;
     }
     
     //	epsilon_p_xx
-    if(var == 16)
+    if(var == 33)
     {
         Solout[0] = e_p(0,0);
         return;
     }
     
     //	epsilon_p_yy
-    if(var == 17)
+    if(var == 34)
     {
         Solout[0] = e_p(1,1);
         return;
     }
     
     //	epsilon_p_zz
-    if(var == 18)
+    if(var == 35)
     {
         Solout[0] = e_p(2,2);
         return;
     }
     
     //	epsilon_p_xy
-    if(var == 19)
+    if(var == 36)
     {
         Solout[0] = e_p(0,1);
         return;
     }
     
     //	epsilon_p_xz
-    if(var == 20)
+    if(var == 37)
     {
         Solout[0] = e_p(0,2);
         return;
     }
     
     //	epsilon_p_yz
-    if(var == 21)
+    if(var == 38)
     {
         Solout[0] = e_p(1,2);
         return;
@@ -2281,7 +2281,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Displacement Variables ************************
     //  Displacement Variable
-    if(var == 22)
+    if(var == 39)
     {
         Solout[0] = u[0];
         Solout[1] = u[1];
@@ -2295,14 +2295,14 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Diffusion Variables ************************
     //	pore pressure
-    if(var == 23)
+    if(var == 40)
     {
         Solout[0] = p[0]*to_Mpa;
         return;
     }
     
     //	Darcy's velocity
-    if(var == 24)
+    if(var == 41)
     {
         if (m_Dim != 3)
         {
@@ -2334,7 +2334,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     
     //	Porosity
-    if(var == 25)
+    if(var == 42)
     {
         if (m_Dim != 3)
         {
@@ -2350,7 +2350,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     
     //	k_x
-    if(var == 26)
+    if(var == 43)
     {
         if (m_Dim != 3)
         {
@@ -2372,7 +2372,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     //	k_y
-    if(var == 27)
+    if(var == 44)
     {
         if (m_Dim != 3)
         {
@@ -2393,7 +2393,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     }
     
     //	k_z
-    if(var == 28)
+    if(var == 45)
     {
         if (m_Dim != 3)
         {
@@ -2416,42 +2416,42 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Total Stress Variables ************************
     //	sigma_x
-    if(var == 29)
+    if(var == 46)
     {
         Solout[0] = S(0,0)*to_Mpa;
         return;
     }
     
     //	sigma_y
-    if(var == 30)
+    if(var == 47)
     {
         Solout[0] = S(1,1)*to_Mpa;
         return;
     }
     
     //	sigma_z
-    if(var == 31)
+    if(var == 48)
     {
         Solout[0] = S(2,2)*to_Mpa;
         return;
     }
     
     //	tau_xy
-    if(var == 32)
+    if(var == 49)
     {
         Solout[0] = S(0,1)*to_Mpa;
         return;
     }
     
     //	tau_xz
-    if(var == 33)
+    if(var == 50)
     {
         Solout[0] = S(0,2)*to_Mpa;
         return;
     }
     
     //	tau_yz
-    if(var == 34)
+    if(var == 51)
     {
         Solout[0] = S(1,2)*to_Mpa;
         return;
@@ -2459,7 +2459,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Stress Ratio Variable ************************
     //	K_0
-    if(var == 35)
+    if(var == 52)
     {
         Solout[0] = S(0,0)/S(1,1);
         return;
@@ -2467,21 +2467,21 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     // ************************	Yield Surface Variable ************************
     //  YS_1
-    if(var == 36)
+    if(var == 53)
     {
        Solout[0] = 0;
         return;
     }
     
     //  YS_2
-    if(var == 37)
+    if(var == 54)
     {
         Solout[0] = 0;
         return;
     }
     
     //  YS_3
-    if(var == 38)
+    if(var == 55)
     {
         Solout[0] = 0;
         return;

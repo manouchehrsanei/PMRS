@@ -85,7 +85,8 @@ TPZPMRSAnalysis & TPZPMRSAnalysis::operator=(const TPZPMRSAnalysis &other)
 }
 
 /** @brief Resize and fill residue and solution vectors */
-void TPZPMRSAnalysis::AdjustVectors(){
+void TPZPMRSAnalysis::AdjustVectors()
+{
     
     if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */)
     {
@@ -192,7 +193,6 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     
     std::cout << "PMRS:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
     
-    
 }
 
 /** @brief update last state (at n state) solution */
@@ -210,6 +210,7 @@ void TPZPMRSAnalysis::Update_at_n_State()
 }
 
 
+/** @brief the Post process function */
 void TPZPMRSAnalysis::PostProcessStep()
 {
     
@@ -219,70 +220,70 @@ void TPZPMRSAnalysis::PostProcessStep()
  
     TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
     TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
-  
-    TPZStack<std::string> scalnames_intPoints;
-    TPZStack<std::string> vecnames_intPoints;
-    TPZStack<std::string> scalnames_nodes;
-    TPZStack<std::string> vecnames_nodes;
-    
-    TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = dynamic_cast<TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem> *>(this->Mesh()->MaterialVec()[1]);
-    
-    TPZStack<std::string> vars;
-    for (auto varname : scalnames) {
-        //if (material->IsVarInMemory(material->VariableIndex(varname))){
-            scalnames_intPoints.push_back(varname);
-        //} else {
-        //    scalnames_nodes.push_back(varname);
-        //}
-    }
-    for (auto varname : vecnames) {
-        //if (material->IsVarInMemory(material->VariableIndex(varname))){
-            vecnames_intPoints.push_back(varname);
-        //} else {
-        //    vecnames_nodes.push_back(varname);
-        //}
-    }
-    
     
     std::string plotfile = m_SimulationData->name_vtk_file();
+    
+    // *************************************************************************************************************
+    // * Post Process when you want to use memory and integration point ********************************************
+    
+    TPZStack<std::string> scalnames_intPoints;
+    TPZStack<std::string> vecnames_intPoints;
 
+//    TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = dynamic_cast<TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem> *>(this->Mesh()->MaterialVec()[1]);
+    
+    TPZStack<std::string> vars;
+    for (auto varname : scalnames)
+    {
+            scalnames_intPoints.push_back(varname);
+    }
+    for (auto varname : vecnames)
+    {
+            vecnames_intPoints.push_back(varname);
+    }
     
     TPZVec<int> PostProcMatIds(1);
     {
         PostProcMatIds[0] = 1;
-        
         TPZPostProcAnalysis postProcessAnalysis;
-        
-        
         m_meshvec[0]->MaterialVec()[1] = Mesh()->MaterialVec()[1];
         
+#ifdef PZDEBUG
 //        std::ofstream file("h1_mesh.txt");
 //        m_meshvec[0]->Print(file);
+#endif
         
         postProcessAnalysis.SetCompMesh(this->Mesh());
         TPZVec<std::string> vars(scalnames_intPoints.size()+vecnames_intPoints.size());
-        for (unsigned int i = 0; i < scalnames_intPoints.size(); ++i) {
+        for (unsigned int i = 0; i < scalnames_intPoints.size(); ++i)
+        {
             vars[i] = scalnames_intPoints[i];
         }
-        for (unsigned int i = 0; i < vecnames_intPoints.size(); ++i) {
+        for (unsigned int i = 0; i < vecnames_intPoints.size(); ++i)
+        {
             vars[scalnames_intPoints.size()+i] = vecnames_intPoints[i];
         }
         postProcessAnalysis.SetPostProcessVariables(PostProcMatIds, vars);
         
-        std::ofstream file_disc("disc_mesh.txt");
-        postProcessAnalysis.Mesh()->Print(file_disc);
-        
+#ifdef PZDEBUG
+//       std::ofstream file_disc("disc_mesh.txt");
+//       postProcessAnalysis.Mesh()->Print(file_disc);
+#endif
+
         TPZFStructMatrix structMatrix(postProcessAnalysis.Mesh());
         structMatrix.SetNumThreads(0);
         postProcessAnalysis.SetStructuralMatrix(structMatrix);
-        postProcessAnalysis.TransferSolution();        
-        //postProcessAnalysis.DefineGraphMesh(dim,scalnames_intPoints,vecnames_intPoints,plotfile);
-        
-        
+        postProcessAnalysis.TransferSolution();
+        postProcessAnalysis.DefineGraphMesh(dim,scalnames_intPoints,vecnames_intPoints,plotfile);
+        postProcessAnalysis.PostProcess(div, dim);
     }
     
-    //this->DefineGraphMesh(dim,scalnames_nodes,vecnames_nodes,plotfile);
-    //this->PostProcess(div,dim);
+    // *************************************************************************************************************
+    // * Post Process when you want to use datavec in your solution or you don't use memory and integration point***
+    
+//    this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//    this->PostProcess(div,dim);
+    
+    std::cout << "Post-processing finished." << std::endl;
     
 }
 
@@ -307,7 +308,6 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
         this->SimulationData()->SetTime(time);
         
     }
-    
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
@@ -323,12 +323,12 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int sx_var = 29;
-    int sy_var = 30;
-//    int eex_var = 9;
-//    int epx_var = 16;
-    int eey_var = 10;
-    int epy_var = 17;
+    int sx_var = 46;
+    int sy_var = 47;
+//    int eex_var = 26;
+//    int epx_var = 33;
+    int eey_var = 27;
+    int epy_var = 34;
     TPZVec<STATE> sx;
     TPZVec<STATE> sy;
     TPZVec<STATE> eey;
@@ -386,11 +386,11 @@ void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int phi_var = 25;
-    int eex_var = 9;
-    int epx_var = 16;
-    int eey_var = 10;
-    int epy_var = 17;
+    int phi_var = 42;
+    int eex_var = 26;
+    int epx_var = 33;
+    int eey_var = 27;
+    int epy_var = 34;
     TPZVec<STATE> phi;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
@@ -432,11 +432,9 @@ void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
             duplet.first = fabs(duplet.first);
             duplet.second = fabs(duplet.second);
         }
-        
     }
     
     m_strain_porosity_duplets.Push(duplet);
-    
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
@@ -452,11 +450,11 @@ void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int ky_var  = 27;
-    int eex_var = 9;
-    int epx_var = 16;
-    int eey_var = 10;
-    int epy_var = 17;
+    int ky_var  = 44;
+    int eex_var = 26;
+    int epx_var = 33;
+    int eey_var = 27;
+    int epy_var = 34;
     TPZVec<STATE> k;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
@@ -498,11 +496,9 @@ void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
             duplet.first = fabs(duplet.first);
             duplet.second = fabs(duplet.second);
         }
-        
     }
     
    m_strain_permeability_duplets.Push(duplet);
-    
 }
 
 /** @brief Compute the strain and the Permeability at x euclidean point for each time */
@@ -518,11 +514,11 @@ void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int p_var   = 23;
-    int eex_var = 9;
-    int epx_var = 16;
-    int eey_var = 10;
-    int epy_var = 17;
+    int p_var   = 40;
+    int eex_var = 26;
+    int epx_var = 33;
+    int eey_var = 27;
+    int epy_var = 34;
     TPZVec<STATE> p;
     TPZVec<STATE> eex;
     TPZVec<STATE> epx;
@@ -564,11 +560,9 @@ void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
             duplet.first = fabs(duplet.first);
             duplet.second = fabs(duplet.second);
         }
-        
     }
     
     m_strain_pressure_duplets.Push(duplet);
-    
 }
 
 /** @brief Compute the strain and the stress at x euclidean point for each time */
