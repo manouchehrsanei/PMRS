@@ -26,14 +26,14 @@
 #include "TPZSimulationData.h"
 #include "TPZPMRSMemory.h"
 #include "TPZElastoPlasticMem.h"
-#include "TPZPMRSPoroPermMemory.h"
+#include "pzporoelastoplasticmem.h"
 
 
 // TPZElastoPlasticMem
 // TPZCouplElasPlastMem
 
 
-template <class T, class TMEM = TPZElastoPlasticMem>
+template <class T, class TMEM = TPZPoroElastoPlasticMem>
 class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     

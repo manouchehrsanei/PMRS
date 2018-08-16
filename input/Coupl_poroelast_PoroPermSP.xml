@@ -71,7 +71,7 @@
     </RegionsDefinition>
     <BoundaryConditions>
         <BoundaryCondition bc_id="2" type="Duy_Dp" uy="0.0" p="1.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0" p="1.0" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0" p="0.0" />
         <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>

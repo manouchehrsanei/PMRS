@@ -17,6 +17,7 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
 #include "TPZElastoPlasticMem.h"
+#include "pzporoelastoplasticmem.h"
 #include "pzadmchunk.h"
 
 class TPZPMRSAnalysis : public TPZAnalysis
@@ -40,13 +41,13 @@ private:
     TPZFMatrix<STATE> m_X_n;
     
     /** @brief memory at n+1 state */
-    TPZAdmChunkVector<TPZElastoPlasticMem> m_memory_n;
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory_n;
     
     /** @brief Solution at n (past) state */
     TPZFMatrix<STATE> m_X;
     
     /** @brief memory at n (past) state */
-    TPZAdmChunkVector<TPZElastoPlasticMem> m_memory;
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory;
     
     /** @brief Strain-Stress solution data */
     TPZStack< std::pair<REAL,REAL> > m_strain_stress_duplets;
@@ -101,13 +102,13 @@ public:
     }
     
     /** @brief Set memory at n+1 state */
-    void SetMemory_n(TPZAdmChunkVector<TPZElastoPlasticMem> &memory)
+    void SetMemory_n(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
     {
         m_memory_n = memory;
     }
     
     /** @brief Get memory at n+1 state */
-    TPZAdmChunkVector<TPZElastoPlasticMem> & GetMemory_n()
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory_n()
     {
         return m_memory_n;
     }
@@ -125,13 +126,13 @@ public:
     }
     
     /** @brief Set memory at n state */
-    void SetMemory(TPZAdmChunkVector<TPZElastoPlasticMem> &memory)
+    void SetMemory(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
     {
         m_memory = memory;
     }
     
     /** @brief Get memory at n state */
-    TPZAdmChunkVector<TPZElastoPlasticMem> & GetMemory()
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory()
     {
         return m_memory;
     }

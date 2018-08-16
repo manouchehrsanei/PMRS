@@ -537,6 +537,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         point_memory.fSigma = Stress;
         point_memory.fDisplacement = datavec[u_b].sol[0];
         point_memory.fPlasticState = elasto_plastic_integrator.GetState();
+        point_memory.fPorePressure = p[0];
+        point_memory.fv.resize(m_Dim);
+        for (int i = 0;  i < m_Dim; i++)
+        {
+            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
+        }
         memory_vec[global_point_index] = point_memory;
     }
     
@@ -2662,6 +2668,9 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     UpdateMaterialCoeficients(data.x, plasticloc);
     TPZTensor<STATE> Sigma = Memory.fSigma;
     
+    STATE p = Memory.fPorePressure;
+    TPZManVector<STATE,3> v = Memory.fv;
+    
     STATE normdsol = Norm(data.dsol[0]);
     
     if (normdsol != 0.)
@@ -2685,15 +2694,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     //Total Stress
     TPZTensor<REAL> totalStress = Sigma;
     
-    TPZManVector<STATE,3> AlphagradP(2,0.);
-    TPZFNMatrix<1,STATE> AlphaP(1,1,0.);
-    if (this->fForcingFunction)
-    {
-        this->fForcingFunction->Execute(data.x,AlphagradP,AlphaP);
-        totalStress.XX() -= AlphaP(0,0);
-        totalStress.YY() -= AlphaP(0,0);
-        totalStress.ZZ() -= AlphaP(0,0);
-    }
     
     TPZManVector<REAL,3> u;
     u = Memory.fDisplacement;
@@ -2868,18 +2868,18 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     //	Pore Pressure
     if(var == 40)
     {
-        Solout[0] = AlphaP(0,0)/m_alpha;;
+        Solout[0] = p;
         return;
     }
     
     //	Darcy's velocity
     if(var == 41)
     {
-        Solout[0] = AlphagradP[0];
-        Solout[1] = AlphagradP[1];
+        Solout[0] = v[0];
+        Solout[1] = v[1];
         if (m_Dim == 3)
         {
-            Solout[2] = AlphagradP[2];
+            Solout[2] = v[2];
         }
         return;
     }
@@ -2888,7 +2888,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     //	Porosity
     if(var == 42)
     {
-        Solout[0] = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * (AlphaP(0,0)/m_alpha));
+        Solout[0] = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * p);
         return;
     }
     
@@ -2897,7 +2897,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     if(var == 43)
     {
         REAL A = 2.0;
-        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * (AlphaP(0,0)/m_alpha));
+        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * p);
         Solout[0] = m_k_0*pow((porosity/m_porosity_0),A);
         return;
     }
@@ -2906,7 +2906,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     if(var == 44)
     {
         REAL A = 2.0;
-        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * (AlphaP(0,0)/m_alpha));
+        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * p);
         Solout[0] = m_k_0*pow((porosity/m_porosity_0),A);
         return;
     }
@@ -2915,7 +2915,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     if(var == 45)
     {
         REAL A = 2.0;
-        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * (AlphaP(0,0)/m_alpha));
+        REAL porosity = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * p);
         Solout[0] = m_k_0*pow((porosity/m_porosity_0),A);
         return;
     }
@@ -3010,14 +3010,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 }
 
 
-#include "TPZSandlerExtended.h"
-#include "TPZPlasticStepPV.h"
-#include "TPZYCMohrCoulombPV.h"
-#include "TPZSandlerDimaggio.h"
 #include "TPZElasticCriterion.h"
+//#include "TPZSandlerExtended.h"
+//#include "TPZPlasticStepPV.h"
+//#include "TPZYCMohrCoulombPV.h"
+//#include "TPZSandlerDimaggio.h"
 
-template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZElastoPlasticMem>;
-template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
-template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
+template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPoroElastoPlasticMem>;
+//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
+//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
 

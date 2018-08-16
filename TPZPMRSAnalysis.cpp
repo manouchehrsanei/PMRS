@@ -214,7 +214,7 @@ void TPZPMRSAnalysis::UpdateState()
     if (n_material == 1) {
         int material_id =  m_SimulationData->MaterialIds()[0].first;
         TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> *>(material);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
         
         if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
             DebugStop();
@@ -239,7 +239,7 @@ void TPZPMRSAnalysis::Update_at_n_State()
     if (n_material == 1) {
         int material_id =  m_SimulationData->MaterialIds()[0].first;
         TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> *>(material);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
         
         if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
             DebugStop();

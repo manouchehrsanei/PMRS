@@ -41,7 +41,7 @@
 #include "TPZYCMohrCoulombPV.h"
 
 #include "TPZPMRSMemory.h"
-#include "TPZPMRSPoroPermMemory.h"
+#include "pzporoelastoplasticmem.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerDimaggio.h"
 
@@ -408,7 +408,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         // *************** PMRSporoPlastic ***************************
 
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem>(matid,dim);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPoroElastoPlasticMem>(matid,dim);
         
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPMRSPoroPermMemory> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPMRSPoroPermMemory>(matid,dim);
