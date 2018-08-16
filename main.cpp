@@ -401,12 +401,12 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         
        
-        // *************** check the type of material ***************************
-        // *************** PMRSporoELastic ***************************
+        // *************** check the type of material ******************************************************************
+        // *************** PMRSporoELastic *****************************************************************************
 
 //        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
-        // *************** PMRSporoPlastic ***************************
+        // *************** PMRSporoPlastic *****************************************************************************
 
         TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPoroElastoPlasticMem>(matid,dim);
         
