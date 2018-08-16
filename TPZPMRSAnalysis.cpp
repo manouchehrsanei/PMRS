@@ -31,8 +31,14 @@ TPZPMRSAnalysis::TPZPMRSAnalysis() : TPZAnalysis()
     /** @brief Solution at n+1 (current) state */
     m_X_n.Resize(0,0);
     
+    /** @brief memory at n+1 state */
+    m_memory_n.Resize(0);
+    
     /** @brief Solution  at n (last) state */
     m_X.Resize(0,0);
+    
+    /** @brief memory at n (past) state */
+    m_memory.Resize(0);
     
     /** @brief Strain-Stress solution data */
     m_strain_stress_duplets.Resize(0);
@@ -189,6 +195,8 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
             return;
         }
         
+        
+        
     }
     
     std::cout << "PMRS:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
@@ -200,6 +208,24 @@ void TPZPMRSAnalysis::UpdateState()
 {
     this->LoadSolution(m_X);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
+    
+    int n_material = m_SimulationData->MaterialIds().size();
+    if (n_material == 1) {
+        int material_id =  m_SimulationData->MaterialIds()[0].first;
+        TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> *>(material);
+        
+        if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
+            DebugStop();
+        }
+        
+        SetMemory(rock_material->GetMemory());
+    }
+    else{
+        //        Implement for several material ids
+        DebugStop();
+    }
+    
 }
 
 /** @brief update current state (at n+1 state) solution */
@@ -207,6 +233,24 @@ void TPZPMRSAnalysis::Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
+    
+    int n_material = m_SimulationData->MaterialIds().size();
+    if (n_material == 1) {
+        int material_id =  m_SimulationData->MaterialIds()[0].first;
+        TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> *>(material);
+        
+        if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
+            DebugStop();
+        }
+        
+        SetMemory_n(rock_material->GetMemory());
+    }
+    else{
+        //        Implement for several material ids
+        DebugStop();
+    }
+    
 }
 
 
@@ -241,11 +285,16 @@ void TPZPMRSAnalysis::PostProcessStep()
             vecnames_intPoints.push_back(varname);
     }
     
+    this->Mesh()->Solution().Print(std::cout);
+    
     TPZVec<int> PostProcMatIds(1);
     {
         PostProcMatIds[0] = 1;
         TPZPostProcAnalysis postProcessAnalysis;
-        m_meshvec[0]->MaterialVec()[1] = Mesh()->MaterialVec()[1];
+//        m_meshvec[0]->MaterialVec()[0] = Mesh()->MaterialVec()[0];
+//        Mesh()->MaterialVec()[0]->Print();
+        
+        
         
 #ifdef PZDEBUG
 //        std::ofstream file("h1_mesh.txt");

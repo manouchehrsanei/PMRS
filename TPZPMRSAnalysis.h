@@ -16,6 +16,8 @@
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
+#include "TPZElastoPlasticMem.h"
+#include "pzadmchunk.h"
 
 class TPZPMRSAnalysis : public TPZAnalysis
 {
@@ -37,8 +39,14 @@ private:
     /** @brief Solution at n+1 state */
     TPZFMatrix<STATE> m_X_n;
     
+    /** @brief memory at n+1 state */
+    TPZAdmChunkVector<TPZElastoPlasticMem> m_memory_n;
+    
     /** @brief Solution at n (past) state */
     TPZFMatrix<STATE> m_X;
+    
+    /** @brief memory at n (past) state */
+    TPZAdmChunkVector<TPZElastoPlasticMem> m_memory;
     
     /** @brief Strain-Stress solution data */
     TPZStack< std::pair<REAL,REAL> > m_strain_stress_duplets;
@@ -76,10 +84,9 @@ public:
     TPZPMRSAnalysis &operator=(const TPZPMRSAnalysis &other);
     
     /**
-     * @defgroup Access Methods
      * @brief    Implements Access methods:
-     * @{
      */
+    
     
     /** @brief Set Solution at n+1 (current) state */
     void SetX_n(TPZFMatrix<STATE> &x)
@@ -93,6 +100,18 @@ public:
         return m_X_n;
     }
     
+    /** @brief Set memory at n+1 state */
+    void SetMemory_n(TPZAdmChunkVector<TPZElastoPlasticMem> &memory)
+    {
+        m_memory_n = memory;
+    }
+    
+    /** @brief Get memory at n+1 state */
+    TPZAdmChunkVector<TPZElastoPlasticMem> & GetMemory_n()
+    {
+        return m_memory_n;
+    }
+    
     /** @brief Set Solution at n (last) state */
     void SetX(TPZFMatrix<STATE> &x)
     {
@@ -103,6 +122,18 @@ public:
     TPZFMatrix<STATE> & X()
     {
         return m_X;
+    }
+    
+    /** @brief Set memory at n state */
+    void SetMemory(TPZAdmChunkVector<TPZElastoPlasticMem> &memory)
+    {
+        m_memory = memory;
+    }
+    
+    /** @brief Get memory at n state */
+    TPZAdmChunkVector<TPZElastoPlasticMem> & GetMemory()
+    {
+        return m_memory;
     }
     
     /** @brief Set the simulation data */

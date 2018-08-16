@@ -411,7 +411,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
-        
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();
@@ -426,12 +425,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         REAL MC_coh = sim_data->Get_mc_coh();
         REAL MC_phi = sim_data->Get_mc_phi();
         REAL MC_psi = sim_data->Get_mc_psi();
-        
-        
-//        TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-//        LEMC.SetElasticResponse(ER);
-//        LEMC.fYC.SetUp(MC_phi, MC_psi, MC_coh, ER);
-        
         
         material->SetSimulationData(sim_data);
         material->SetPorolasticParametersEngineer(Ey_r, nu_r);
@@ -513,7 +506,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         mfcel->PrepareIntPtIndices();
     }
     
-    
+
     
 #ifdef PZDEBUG
 //    std::ofstream out("PorePermCoupling.txt");

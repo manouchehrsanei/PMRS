@@ -128,7 +128,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::UpdateMaterialCoeficients(TPZVec<REAL> &x,T 
         ER.SetUp(young, poisson);
         plasticity.SetElasticResponse(ER);
     }
-    
 }
 
 /** @brief a computation of stress and tangent */
@@ -187,20 +186,17 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
         }
             break;
             
-            
         case 1: // Petunin et al. (2011), A = 2.0
         {
             k = m_k_0*pow((phi/m_porosity_0),2.0);
         }
             break;
             
-            
         case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
             k = m_k_0*pow((phi/m_porosity_0),2.44);
         }
             break;
-            
             
         case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
@@ -352,10 +348,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         // Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++)
         {
-            
             ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
         }
-        
         return;
     }
     
@@ -465,16 +459,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     //	Coupling matrix transpose
     for(int ip = 0; ip < nphi_p; ip++ )
     {
-        
         for(int ju = 0; ju < nphi_u; ju++)
         {
-            
             dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0);
             dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1);
             
             ek(first_p+ip,2*ju  ) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
             ek(first_p+ip,2*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
-            
         }
     }
     
@@ -527,6 +518,10 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
+    
+    if (m_SimulationData->Get_must_accept_solution_Q()) {
+//        point_memory.fPlasticState = 
+    }
     
      // @brief of checking whether the plasticity is necessary
     if (m_SetRunPlasticity)
@@ -2512,7 +2507,7 @@ template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Properties for TPZPMRSCouplPoroPlast: \n";
+    out << "Properties for this material: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;
@@ -2638,55 +2633,6 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
 }
 
 
-template<class T,class TMEM>
-bool TPZPMRSCouplPoroPlast<T,TMEM>::IsVarInMemory(int var)
-{
-    if(var == 18)	return true;
-    if(var == 19)	return true;
-    if(var == 20)	return true;
-    if(var == 21)	return true;
-    if(var == 22)	return true;
-    if(var == 23)	return true;
-    if(var == 24)	return true;
-    if(var == 25)	return true;
-    if(var == 26)	return true;
-    if(var == 27)	return true;
-    if(var == 28)	return true;
-    if(var == 29)	return true;
-    if(var == 30)	return true;
-    if(var == 31)	return true;
-    if(var == 32)	return true;
-    if(var == 33)	return true;
-    if(var == 34)	return true;
-    if(var == 35)	return true;
-    if(var == 36)	return true;
-    if(var == 37)	return true;
-    if(var == 38)	return true;
-    if(var == 39)	return true;
-    if(var == 40)	return false;
-    if(var == 41)	return false;
-    if(var == 42)	return false;
-    if(var == 43)	return false;
-    if(var == 44)	return false;
-    if(var == 45)	return false;
-    if(var == 46)	return true;
-    if(var == 47)	return true;
-    if(var == 48)	return true;
-    if(var == 49)	return true;
-    if(var == 50)	return true;
-    if(var == 51)	return true;
-    if(var == 52)	return false;
-    if(var == 53)	return true;
-    if(var == 54)	return true;
-    if(var == 55)	return true;
-    
-    return TPZMatWithMem<TMEM>::NSolutionVariables(var);
-    
-    DebugStop();
-    return false;
-}
-
-
 //	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -2694,10 +2640,11 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     int global_point = data.intGlobPtIndex;
     TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[global_point];
     T plasticloc(this->fPlasticity);
-    
     plasticloc.SetState(Memory.fPlasticState);
+    
     UpdateMaterialCoeficients(data.x, plasticloc);
     TPZTensor<STATE> Sigma = Memory.fSigma;
+    
     STATE normdsol = Norm(data.dsol[0]);
     
     if (normdsol != 0.)
@@ -2899,6 +2846,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
         return;
     }
     
+    
     // ************************	Diffusion Variables ************************
     //	Pore Pressure
     if(var == 40)
@@ -2926,7 +2874,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
         Solout[0] = m_porosity_0 + (m_alpha * (totalStrain.XX() + totalStrain.YY() + totalStrain.ZZ())) + (m_Se * (AlphaP(0,0)/m_alpha));
         return;
     }
-    
     
     
     //	Permeability in XX Direction
@@ -3034,9 +2981,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
         Solout[0] = yieldVal[2];
         return;
     }
-    
-    
-    
 }
 
 
@@ -3057,6 +3001,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 
 template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZElastoPlasticMem>;
 
-template class TPZPMRSCouplPoroPlast<TPZSandlerDimaggio<SANDLERDIMAGGIOSTEP2>, TPZElastoPlasticMem>;
 template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
+template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
+
 

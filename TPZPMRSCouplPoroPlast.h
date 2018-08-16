@@ -42,7 +42,6 @@ private:
     int m_VariableYoung;
     
     
-    
 protected:
     
     /** @brief define the simulation data */
@@ -136,9 +135,6 @@ public:
     
     virtual int NStateVariables();
     
-    
-    
-    
     /** @brief some functions for plasticity */
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
@@ -181,7 +177,6 @@ public:
     
     virtual int VariableIndex(const std::string &name);
     virtual int NSolutionVariables(int var);
-    bool IsVarInMemory(int var);
     
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 
