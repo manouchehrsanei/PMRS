@@ -1,6 +1,8 @@
 # @file PMRS/CMakeList.txt  -- First file to read for CMake
 project (PMRS)
 
+cmake_minimum_required(VERSION 3.11.0)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
