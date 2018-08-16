@@ -237,7 +237,9 @@ public:
     void SetTimeControls(int n_times, REAL dt);
     
     /** @brief Set the directive that states if the current solution must be accepted inside the memory  */
-    bool Set_must_accept_solution_Q(bool m_must_accept_solution_Q);
+    bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
+        m_must_accept_solution_Q = must_accept_solution_Q;
+    }
     
     /** @brief Setup for Newton method controls */
     void SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor);

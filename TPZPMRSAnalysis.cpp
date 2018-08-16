@@ -182,6 +182,7 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_iterations();
     
+    m_SimulationData->Set_must_accept_solution_Q(true); // For now acceting any solution in the party
     for (int k = 1; k <= n; k++)
     {
                 
@@ -272,8 +273,6 @@ void TPZPMRSAnalysis::PostProcessStep()
     
     TPZStack<std::string> scalnames_intPoints;
     TPZStack<std::string> vecnames_intPoints;
-
-//    TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = dynamic_cast<TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem> *>(this->Mesh()->MaterialVec()[1]);
     
     TPZStack<std::string> vars;
     for (auto varname : scalnames)
@@ -285,22 +284,10 @@ void TPZPMRSAnalysis::PostProcessStep()
             vecnames_intPoints.push_back(varname);
     }
     
-    this->Mesh()->Solution().Print(std::cout);
-    
     TPZVec<int> PostProcMatIds(1);
     {
         PostProcMatIds[0] = 1;
         TPZPostProcAnalysis postProcessAnalysis;
-//        m_meshvec[0]->MaterialVec()[0] = Mesh()->MaterialVec()[0];
-//        Mesh()->MaterialVec()[0]->Print();
-        
-        
-        
-#ifdef PZDEBUG
-//        std::ofstream file("h1_mesh.txt");
-//        m_meshvec[0]->Print(file);
-#endif
-        
         postProcessAnalysis.SetCompMesh(this->Mesh());
         TPZVec<std::string> vars(scalnames_intPoints.size()+vecnames_intPoints.size());
         for (unsigned int i = 0; i < scalnames_intPoints.size(); ++i)
@@ -312,12 +299,6 @@ void TPZPMRSAnalysis::PostProcessStep()
             vars[scalnames_intPoints.size()+i] = vecnames_intPoints[i];
         }
         postProcessAnalysis.SetPostProcessVariables(PostProcMatIds, vars);
-        
-#ifdef PZDEBUG
-//       std::ofstream file_disc("disc_mesh.txt");
-//       postProcessAnalysis.Mesh()->Print(file_disc);
-#endif
-
         TPZFStructMatrix structMatrix(postProcessAnalysis.Mesh());
         structMatrix.SetNumThreads(0);
         postProcessAnalysis.SetStructuralMatrix(structMatrix);

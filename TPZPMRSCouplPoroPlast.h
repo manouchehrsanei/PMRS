@@ -26,6 +26,7 @@
 #include "TPZSimulationData.h"
 #include "TPZPMRSMemory.h"
 #include "TPZElastoPlasticMem.h"
+#include "TPZPMRSPoroPermMemory.h"
 
 
 // TPZElastoPlasticMem
@@ -153,10 +154,11 @@ public:
     /** @brief porosity correction model */
     REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
     
+    /** @brief Poroelastic porosity correction from strains and pressure */
+    REAL porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
+    
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
     
-    
-
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     

@@ -41,6 +41,7 @@
 #include "TPZYCMohrCoulombPV.h"
 
 #include "TPZPMRSMemory.h"
+#include "TPZPMRSPoroPermMemory.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerDimaggio.h"
 
@@ -410,7 +411,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZElastoPlasticMem>(matid,dim);
         
         
-//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
+//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPMRSPoroPermMemory> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPMRSPoroPermMemory>(matid,dim);
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();

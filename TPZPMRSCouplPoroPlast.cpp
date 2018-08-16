@@ -247,6 +247,14 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZVec<TPZMaterialData
     return phi;
 }
 
+/** @brief Poroelastic porosity correction from strains and pressure */
+template<class T,class TMEM>
+REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
+    REAL eps_volumetric = eps_elastic.I1() + eps_plastic.I1();
+    REAL phi = m_porosity_0 + m_alpha * eps_volumetric + m_Se * pressure;
+    return phi;
+}
+
 
 /** @brief Poroelastic porosity correction */
 template<class T,class TMEM>
@@ -337,27 +345,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     int first_u = 0;
     int first_p = 2*nphi_u;
     
-    // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected_2D(datavec);
-    
-    
-    // @brief of checking whether the time of diffusion is in the current state or not
-    REAL dt = m_SimulationData->dt();
-    if (!m_SimulationData->IsCurrentStateQ())
-    {
-        // Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++)
-        {
-            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
-        }
-        return;
-    }
-    
-    // Computing the density and gravity
-    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
-    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
-    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
-
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
@@ -368,12 +355,19 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
     
     
-    // ElastoPlastic Strain Stress Parameters
+    // ElastoPlastic Strain Stress Parameters from material memory
     int global_point_index =  datavec[u_b].intGlobPtIndex;
-    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
-    T plasticloc(this->fPlasticity);
-    plasticloc.SetState(point_memory.fPlasticState);
-    UpdateMaterialCoeficients(datavec[u_b].x, plasticloc);
+    TPZAdmChunkVector<TMEM> & memory_vec = TPZMatWithMem<TMEM>::fMemory;
+    TMEM &point_memory = memory_vec[global_point_index];
+    
+    // Setting for the elastoplastic integrator
+    T elasto_plastic_integrator(this->fPlasticity);
+    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
+    TPZElasticResponse ER;
+    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
+    elasto_plastic_integrator.SetElasticResponse(ER);
+    
+    UpdateMaterialCoeficients(datavec[u_b].x, elasto_plastic_integrator);
     
     // obtaining the total strain
     TPZTensor<STATE> Stress = point_memory.fSigma;
@@ -381,14 +375,33 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
     ComputeDeltaStrainVector(datavec[u_b], deltastrain);
     EpsT.CopyFrom(deltastrain);
-    EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+    EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
     
-    // read the elastic parameter
-    TPZElasticResponse ER = plasticloc.fER;
-    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
-    plasticloc.SetElasticResponse(ER);
+    // Perform the return mapping algorithm
+    elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
     
-    plasticloc.ApplyStrainComputeSigma(EpsT, Stress);
+    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
+    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
+    TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
+    // Compute porosity poroelastic correction
+    REAL phi_poro = porosity_corrected_2D(eps_elastic_last_state,eps_plastic_last_state,p[0]);
+    
+    // Computing the density and gravity
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
+    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
+    
+    // @brief of checking whether the time of diffusion is in the current state or not
+    REAL dt = m_SimulationData->dt();
+    if (!m_SimulationData->IsCurrentStateQ())
+    {
+        // Darcy mono-phascis flow
+        for (int ip = 0; ip < nphi_p; ip++)
+        {
+            ef(ip + first_p, 0)        += - weight * (phi_poro/dt) * phip(ip,0);
+        }
+        return;
+    }
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
@@ -519,8 +532,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     }
 #endif
     
+    // When the residuals expression are solved the memory items are accepted and updated
     if (m_SimulationData->Get_must_accept_solution_Q()) {
-//        point_memory.fPlasticState = 
+        point_memory.fSigma = Stress;
+        point_memory.fDisplacement = datavec[u_b].sol[0];
+        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
+        memory_vec[global_point_index] = point_memory;
     }
     
      // @brief of checking whether the plasticity is necessary
@@ -3000,7 +3017,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 #include "TPZElasticCriterion.h"
 
 template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZElastoPlasticMem>;
-
 template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZElastoPlasticMem>;
 
