@@ -141,8 +141,16 @@ void TPZPMRSAnalysis::QuasiNewtonIteration()
 #endif
     
     m_X_n += this->Solution(); // update state
-
-    this->Update_at_n_State();
+    
+    
+    // Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
+    if(IsPoroElastic)
+    {
+        this->Standard_Update_at_n_State();
+    } else
+    {
+        this->Update_at_n_State();
+    }
     
     this->AssembleResidual();
     m_R_n = this->Rhs();
@@ -167,14 +175,30 @@ void TPZPMRSAnalysis::QuasiNewtonIteration()
 void TPZPMRSAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
-    this->UpdateState();
+    
+    // Check the update state at last state (n) for PMRS_PoroElastic and PMRS_PoroPlastic
+    if(IsPoroElastic)
+    {
+        this->Standard_UpdateState();
+    } else
+    {
+        this->UpdateState();
+    }
 
     this->AssembleResidual();
     m_R = this->Rhs();
     
     this->SimulationData()->SetCurrentStateQ(true);
     
-    this->Update_at_n_State();
+    
+    // Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
+    if(IsPoroElastic)
+    {
+        this->Standard_Update_at_n_State();
+    } else
+    {
+        this->Update_at_n_State();
+    }
     
     m_error = 1.0;
     
@@ -195,16 +219,27 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
             m_X = m_X_n;
             return;
         }
-        
-        
-        
     }
-    
     std::cout << "PMRS:: Exit max iterations with min dt:  " << m_SimulationData->dt() << "; (secs) " << "; error: " << m_error <<  "; dx: " << m_dx_norm << std::endl;
     
 }
 
-/** @brief update last state (at n state) solution */
+
+/** @brief update last state (at n state) solution for PMRS_PoroElastic */
+void TPZPMRSAnalysis::Standard_UpdateState()
+{
+    this->LoadSolution(m_X);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
+}
+
+/** @brief update current state (at n+1 state) solution for PMRS_PoroPlastic */
+void TPZPMRSAnalysis::Standard_Update_at_n_State()
+{
+    this->LoadSolution(m_X_n);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
+}
+
+/** @brief update last state (at n state) solution for PMRS_PoroPlastic */
 void TPZPMRSAnalysis::UpdateState()
 {
     this->LoadSolution(m_X);
@@ -229,7 +264,7 @@ void TPZPMRSAnalysis::UpdateState()
     
 }
 
-/** @brief update current state (at n+1 state) solution */
+/** @brief update current state (at n+1 state) solution for PMRS_PoroPlastic */
 void TPZPMRSAnalysis::Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
@@ -255,9 +290,31 @@ void TPZPMRSAnalysis::Update_at_n_State()
 }
 
 
+/** @brief the Standard Post process function */
+void TPZPMRSAnalysis::PostProcessStepStandard()
+{
+    // * Post Process when you want to use datavec in your solution or you don't use memory and integration point *
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
+    const int dim = this->Mesh()->Dimension();
+    int div = m_SimulationData->n_div();
+    
+    TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
+    TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
+    
+    std::string plotfile = m_SimulationData->name_vtk_file();
+    
+    this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+    this->PostProcess(div,dim);
+    
+    std::cout << "Standard post-processing finished." << std::endl;
+    
+}
+
+
 /** @brief the Post process function */
 void TPZPMRSAnalysis::PostProcessStep()
 {
+    // * Post Process when you want to use memory and integration point *
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
@@ -268,9 +325,7 @@ void TPZPMRSAnalysis::PostProcessStep()
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
-    // *************************************************************************************************************
-    // * Post Process when you want to use memory and integration point ********************************************
-    
+    // Scalars and vectors in the integration point
     TPZStack<std::string> scalnames_intPoints;
     TPZStack<std::string> vecnames_intPoints;
     
@@ -307,12 +362,6 @@ void TPZPMRSAnalysis::PostProcessStep()
         postProcessAnalysis.PostProcess(div, dim);
     }
     
-    // *************************************************************************************************************
-    // * Post Process when you want to use datavec in your solution or you don't use memory and integration point***
-    
-//    this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-//    this->PostProcess(div,dim);
-    
     std::cout << "Post-processing finished." << std::endl;
     
 }
@@ -328,11 +377,20 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
     for (int i = 0; i < n; i++)
     {
         this->ExcecuteOneStep();
+        
+        if(IsPoroElastic)
+        {
+            this->PostProcessStepStandard();
+        } else
+        {
         this->PostProcessStep();
+        }
+        
 //        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
 //        this->AppendStrain_Permeability(x);
 //        this->AppendStrain_Pressure(x);
+        
         time = (i+1)* dt;
         std::cout<< "PMRS:: Current time (s) = " << time << std::endl;
         this->SimulationData()->SetTime(time);

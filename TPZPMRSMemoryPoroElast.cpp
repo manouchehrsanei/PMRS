@@ -1,15 +1,15 @@
 //
-//  TPZPMRSMemory.cpp
+//  TPZPMRSMemoryPoroElast.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 //
 
-#include "TPZPMRSMemory.h"
+#include "TPZPMRSMemoryPoroElast.h"
 
 /** @brief Default constructor */
-TPZPMRSMemory::TPZPMRSMemory():  fSigma() {
+TPZPMRSMemoryPoroElast::TPZPMRSMemoryPoroElast():  fSigma() {
     
     /** @brief Gradient of deformation at n (last) state */
     m_grad_u_n.Resize(3, 3);
@@ -26,11 +26,11 @@ TPZPMRSMemory::TPZPMRSMemory():  fSigma() {
 }
 
 /** @brief Default destructor */
-TPZPMRSMemory::~TPZPMRSMemory(){
+TPZPMRSMemoryPoroElast::~TPZPMRSMemoryPoroElast(){
     
 }
 
-int TPZPMRSMemory::ClassId() const{
-    return Hash("TPZPMRSMemory");
+int TPZPMRSMemoryPoroElast::ClassId() const{
+    return Hash("TPZPMRSMemoryPoroElast");
 }
 

@@ -26,7 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
 
 
 /** @brief default costructor */
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = 3;
     m_b.resize(3);
@@ -39,7 +39,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemory,TPZDi
 }
 
 /** @brief costructor based on a material id */
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = dim;
     m_b.resize(3);
@@ -287,7 +287,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemory &memory = GetMemory()[global_point_index];
+    TPZPMRSMemoryPoroElast &memory = GetMemory()[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -499,7 +499,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemory &memory = GetMemory()[global_point_index];
+    TPZPMRSMemoryPoroElast &memory = GetMemory()[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -2092,8 +2092,8 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
     
     
-    REAL to_Mpa     = 1.0e-6;
-    REAL to_Darcy   = 1.01327e+12; // 1.013249966e+12;
+    REAL to_Mpa     = 1; // 1.0e-6;
+    REAL to_Darcy   = 1; // 1.01327e+12; // 1.013249966e+12;
     
     
     // Computing Gradient of the Solution

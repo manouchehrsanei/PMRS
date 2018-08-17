@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
-#include "TPZPMRSMemory.h"
+#include "TPZPMRSMemoryPoroElast.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -23,7 +23,7 @@
 #include "pzlog.h"
 
 
-class TPZPMRSCouplPoroElast : public TPZMatWithMem<TPZPMRSMemory,TPZDiscontinuousGalerkin>
+class TPZPMRSCouplPoroElast : public TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>
 {
     
 protected:

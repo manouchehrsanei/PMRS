@@ -1,13 +1,13 @@
 //
-//  TPZPMRSMemory.h
+//  TPZPMRSMemoryPoroElast.h
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 //
 
-#ifndef TPZPMRSMemory_h
-#define TPZPMRSMemory_h
+#ifndef TPZPMRSMemoryPoroElast_h
+#define TPZPMRSMemoryPoroElast_h
 
 #include <stdio.h>
 #include "pzreal.h"
@@ -15,11 +15,11 @@
 #include "TPZElastoPlasticMem.h"
 
 
-class TPZPMRSMemory
+class TPZPMRSMemoryPoroElast
 {
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
+    //  Memory : It is written for TPZPMRSMemoryPoroElast
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     // Basis functions
@@ -35,19 +35,17 @@ class TPZPMRSMemory
    /** @brief plastic strain at n (last) state */
     TPZFMatrix<REAL> m_epsilon_p_n;
     
-
-    
     
     
 public:
     
     /** @brief Default constructor */
-    TPZPMRSMemory();
+    TPZPMRSMemoryPoroElast();
     
     /** @brief Default destructor */
-    ~TPZPMRSMemory();
+    ~TPZPMRSMemoryPoroElast();
     
-    TPZPMRSMemory(const TPZPMRSMemory &copy)
+    TPZPMRSMemoryPoroElast(const TPZPMRSMemoryPoroElast &copy)
     {
         
         m_grad_u_n    = copy.m_grad_u_n;
@@ -56,7 +54,7 @@ public:
 
     }
     
-    TPZPMRSMemory &operator=(const TPZPMRSMemory &other)
+    TPZPMRSMemoryPoroElast &operator=(const TPZPMRSMemoryPoroElast &other)
     {
         
         m_grad_u_n    = other.m_grad_u_n;
@@ -164,11 +162,11 @@ public:
     
 };
 
-inline std::ostream &operator<<(std::ostream &out,const TPZPMRSMemory &mem)
+inline std::ostream &operator<<(std::ostream &out,const TPZPMRSMemoryPoroElast &mem)
 {
     mem.Print(out);
     return out;
 }
 
 
-#endif /* TPZPMRSMemory_h */
+#endif /* TPZPMRSMemoryPoroElast_h */

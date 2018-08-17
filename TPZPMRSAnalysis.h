@@ -25,6 +25,9 @@ class TPZPMRSAnalysis : public TPZAnalysis
     
 private:
     
+    /** @brief whether it is PoroElastic */
+    bool IsPoroElastic = false;
+    
     /** @brief define the simulation data */
     TPZSimulationData * m_SimulationData;
     
@@ -69,6 +72,7 @@ private:
     
     /** @brief number of newton corrections */
     int m_k_iterations;
+    
     
 public:
     
@@ -183,8 +187,17 @@ public:
     /** @brief Execute a Quasi Newton iteration  */
     void QuasiNewtonIteration();
     
+    /** @brief PostProcessStandard results */
+    void PostProcessStepStandard();
+    
     /** @brief PostProcess results */
     void PostProcessStep();
+    
+    /** @brief update last (n) state solution for PMRS_PoroElastic*/
+    void Standard_UpdateState();
+    
+    /** @brief update current (n+1) state solution for PMRS_PoroElastic */
+    void Standard_Update_at_n_State();
     
     /** @brief update last (n) state solution */
     void UpdateState();

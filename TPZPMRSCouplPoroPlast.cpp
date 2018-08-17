@@ -19,7 +19,6 @@
 #include "pzfmatrix.h"
 #include "TPZTensor.h"
 
-#include "TPZPMRSMemory.h"
 #include "TPZMatElastoPlastic.h"
 
 

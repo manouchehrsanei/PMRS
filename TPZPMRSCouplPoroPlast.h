@@ -24,7 +24,6 @@
 #include "TPZSandlerDimaggio.h"
 
 #include "TPZSimulationData.h"
-#include "TPZPMRSMemory.h"
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 
