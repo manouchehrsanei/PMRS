@@ -18,7 +18,7 @@
     </NewtonControls> 
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="4" />
+        <Numthreads n_threads="0" />
     </ParallelControls> 
     <!-- Finite element controls  -->
     <FEM>

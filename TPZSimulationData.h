@@ -116,6 +116,9 @@ protected:
     /** @brief Map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> m_bc_id_to_type;
     
+    /** @brief Directive that states if the current solution must be accepted inside the memory  */
+    bool m_must_accept_solution_Q;
+    
     // Begin::  Block that define the material parameters
     /** @brief the property of material  */
     REAL m_young;
@@ -233,6 +236,11 @@ public:
     /** @brief Setup for reporting times and time step size */
     void SetTimeControls(int n_times, REAL dt);
     
+    /** @brief Set the directive that states if the current solution must be accepted inside the memory  */
+    bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
+        m_must_accept_solution_Q = must_accept_solution_Q;
+    }
+    
     /** @brief Setup for Newton method controls */
     void SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor);
     
@@ -335,6 +343,8 @@ public:
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
     std::map<int, std::string> & BCIdToConditionType() { return m_bc_id_to_type; }
     
+    /** @brief Get the directive that states if the current solution must be accepted inside the memory  */
+    bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
     // Begin::  Block that define the material parameters
     /** @brief Get the young modulus */

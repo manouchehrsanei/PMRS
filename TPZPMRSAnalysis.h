@@ -16,11 +16,17 @@
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSimulationData.h"
+#include "TPZElastoPlasticMem.h"
+#include "pzporoelastoplasticmem.h"
+#include "pzadmchunk.h"
 
 class TPZPMRSAnalysis : public TPZAnalysis
 {
     
 private:
+    
+    /** @brief whether it is PoroElastic */
+    bool IsPoroElastic = false;
     
     /** @brief define the simulation data */
     TPZSimulationData * m_SimulationData;
@@ -37,8 +43,14 @@ private:
     /** @brief Solution at n+1 state */
     TPZFMatrix<STATE> m_X_n;
     
+    /** @brief memory at n+1 state */
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory_n;
+    
     /** @brief Solution at n (past) state */
     TPZFMatrix<STATE> m_X;
+    
+    /** @brief memory at n (past) state */
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory;
     
     /** @brief Strain-Stress solution data */
     TPZStack< std::pair<REAL,REAL> > m_strain_stress_duplets;
@@ -61,6 +73,7 @@ private:
     /** @brief number of newton corrections */
     int m_k_iterations;
     
+    
 public:
     
     /** @brief default Constructor  */
@@ -76,10 +89,9 @@ public:
     TPZPMRSAnalysis &operator=(const TPZPMRSAnalysis &other);
     
     /**
-     * @defgroup Access Methods
      * @brief    Implements Access methods:
-     * @{
      */
+    
     
     /** @brief Set Solution at n+1 (current) state */
     void SetX_n(TPZFMatrix<STATE> &x)
@@ -93,6 +105,18 @@ public:
         return m_X_n;
     }
     
+    /** @brief Set memory at n+1 state */
+    void SetMemory_n(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
+    {
+        m_memory_n = memory;
+    }
+    
+    /** @brief Get memory at n+1 state */
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory_n()
+    {
+        return m_memory_n;
+    }
+    
     /** @brief Set Solution at n (last) state */
     void SetX(TPZFMatrix<STATE> &x)
     {
@@ -103,6 +127,18 @@ public:
     TPZFMatrix<STATE> & X()
     {
         return m_X;
+    }
+    
+    /** @brief Set memory at n state */
+    void SetMemory(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
+    {
+        m_memory = memory;
+    }
+    
+    /** @brief Get memory at n state */
+    TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory()
+    {
+        return m_memory;
     }
     
     /** @brief Set the simulation data */
@@ -151,8 +187,17 @@ public:
     /** @brief Execute a Quasi Newton iteration  */
     void QuasiNewtonIteration();
     
+    /** @brief PostProcessStandard results */
+    void PostProcessStepStandard();
+    
     /** @brief PostProcess results */
     void PostProcessStep();
+    
+    /** @brief update last (n) state solution for PMRS_PoroElastic*/
+    void Standard_UpdateState();
+    
+    /** @brief update current (n+1) state solution for PMRS_PoroElastic */
+    void Standard_Update_at_n_State();
     
     /** @brief update last (n) state solution */
     void UpdateState();

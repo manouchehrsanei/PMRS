@@ -24,17 +24,23 @@
 #include "TPZSandlerDimaggio.h"
 
 #include "TPZSimulationData.h"
-#include "TPZCouplElasPlastMem.h"
 #include "TPZElastoPlasticMem.h"
+#include "pzporoelastoplasticmem.h"
 
 
 // TPZElastoPlasticMem
 // TPZCouplElasPlastMem
 
 
-template <class T, class TMEM = TPZElastoPlasticMem>
+template <class T, class TMEM = TPZPoroElastoPlasticMem>
 class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
+    
+private:
+
+    // boolean indicating whether the Young modulus needs to be computed at each point
+    int m_VariableYoung;
+    
     
 protected:
     
@@ -102,66 +108,10 @@ protected:
     /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
     bool m_UpdateToUseFullDiplacement;
     
-
+    
     
 public:
-    
-    enum VariableIndex
-    
-        {// Total Strain
-        InxTotStrainVol   = 0,
-        InxTotStrainXX    = 1,
-        InxTotStrainYY    = 2,
-        InxTotStrainZZ    = 3,
-        InxTotStrainXY    = 4,
-        InxTotStrainXZ    = 5,
-        InxTotStrainYZ    = 6,
-            
-        // Elastic Strain
-        InxElStrainVol    = 7,
-        InxElStrainXX     = 8,
-        InxElStrainYY     = 9,
-        InxElStrainZZ     = 10,
-        InxElStrainXY     = 11,
-        InxElStrainXZ     = 12,
-        InxElStrainYZ     = 13,
-            
-        // Plastic Strain
-        InxPlStrainVol    = 14,
-        InxPlStrainXX     = 15,
-        InxPlStrainYY     = 16,
-        InxPlStrainZZ     = 17,
-        InxPlStrainXY     = 18,
-        InxPlStrainXZ     = 19,
-        InxPlStrainYZ     = 20,
 
-        // Displacement
-        InxDisplacement   = 21,
-        InxPorePressure   = 22,
-        InxVelocity       = 23,
-        InxPorosity       = 24,
-        InxPermeabilityXX = 25,
-        InxPermeabilityYY = 26,
-        InxPermeabilityZZ = 27,
-
-        // Total Stress
-        InxTotStressXX    = 28,
-        InxTotStressYY    = 29,
-        InxTotStressZZ    = 30,
-        InxTotStressXY    = 31,
-        InxTotStressXZ    = 32,
-        InxTotStressYZ    = 33,
-        
-        // Stress Ratio
-        InxStressRatio    = 34,
-
-        // Yield Surface
-        InxYieldSurface1  = 35,
-        InxYieldSurface2  = 36,
-        InxYieldSurface3  = 37,
-    };
-
-    
     
     // Default constructor
     
@@ -188,9 +138,11 @@ public:
     /** @brief some functions for plasticity */
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
+    virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity);
     virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
     virtual void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
     virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
+    
     
     /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
     void SetUpdateToUseFullU(bool update = true);
@@ -201,17 +153,11 @@ public:
     /** @brief porosity correction model */
     REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
     
+    /** @brief Poroelastic porosity correction from strains and pressure */
+    REAL porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
+    
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
     
-    /// Transform a voight notation to a tensor
-    enum MVoight {Exx,Exy,Exz,Eyy,Eyz,Ezz};
-    void FromVoight(TPZVec<STATE> &Svoight, TPZFMatrix<STATE> &S);
-    
-    /** @brief computation of effective sigma */
-    void Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
-    
-    /** @brief Principal Stress */
-    void Principal_Stress(TPZFMatrix<REAL> S, TPZFMatrix<REAL> & PrinStres);
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
@@ -232,7 +178,8 @@ public:
     
     virtual int VariableIndex(const std::string &name);
     virtual int NSolutionVariables(int var);
-    virtual void Solution(TPZVec<TPZMaterialData > &datavec, int var, TPZVec<STATE> &Solout);
+    
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 
     void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
     {

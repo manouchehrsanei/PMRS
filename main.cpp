@@ -40,7 +40,8 @@
 #include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
 
-#include "TPZCouplElasPlastMem.h"
+#include "TPZPMRSMemoryPoroElast.h"
+#include "pzporoelastoplasticmem.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerDimaggio.h"
 
@@ -66,7 +67,7 @@
 
 
 // Methods declarations
-#define USING_Pardiso
+//#define USING_Pardiso
 
 
 #ifdef LOG4CXX
@@ -161,7 +162,7 @@ int main(int argc, char *argv[])
     sim_data->ReadSimulationFile(simulation_file);
     
 #ifdef PZDEBUG
-    sim_data->PrintGeometry();
+//    sim_data->PrintGeometry();
 #endif
     
     // Create multiphysisc mesh
@@ -174,6 +175,11 @@ int main(int argc, char *argv[])
     
     bool mustOptimizeBandwidth = true;
     int number_threads = sim_data->n_threads();
+    
+#ifdef PZDEBUG
+    number_threads = 0;
+#endif
+    
     TPZPMRSAnalysis * time_analysis = new TPZPMRSAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
@@ -212,7 +218,7 @@ int main(int argc, char *argv[])
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-    time_analysis->PlotStrainStress(file_ss_name);
+//    time_analysis->PlotStrainStress(file_ss_name);
 //    time_analysis->PlotStrainPorosity(file_sp_name);
 //    time_analysis->PlotStrainPermeability(file_sk_name);
 //    time_analysis->PlotStrainPressure(file_spex_name);
@@ -287,7 +293,6 @@ void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REA
 }
 
 
-
 // Create a computational mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     
@@ -322,8 +327,8 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     cmesh->AutoBuild();
     
 #ifdef PZDEBUG
-    std::ofstream out("CmeshDeformation.txt");
-    cmesh->Print(out);
+//    std::ofstream out("CmeshDeformation.txt");
+//    cmesh->Print(out);
 #endif
 
     return cmesh;
@@ -366,8 +371,8 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
     cmesh->AutoBuild();
     
 #ifdef PZDEBUG
-    std::ofstream out("CmeshPorePressure.txt");
-    cmesh->Print(out);
+//    std::ofstream out("CmeshPorePressure.txt");
+//    cmesh->Print(out);
 #endif
     
     return cmesh;
@@ -396,10 +401,17 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         
        
+        // *************** check the type of material ******************************************************************
+        // *************** PMRSporoELastic *****************************************************************************
+
 //        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
         
-        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem>(matid,dim);
+        // *************** PMRSporoPlastic *****************************************************************************
 
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPoroElastoPlasticMem>(matid,dim);
+        
+        
+//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>(matid,dim);
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();
@@ -495,11 +507,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         mfcel->PrepareIntPtIndices();
     }
     
-    
+
     
 #ifdef PZDEBUG
-    std::ofstream out("PorePermCoupling.txt");
-    cmesh->Print(out);
+//    std::ofstream out("PorePermCoupling.txt");
+//    cmesh->Print(out);
 #endif
     cmesh->InitializeBlock();
 
