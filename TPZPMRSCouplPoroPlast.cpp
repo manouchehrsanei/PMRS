@@ -2667,9 +2667,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     UpdateMaterialCoeficients(data.x, plasticloc);
     TPZTensor<STATE> Sigma = Memory.fSigma;
     
-    STATE p = Memory.fPorePressure;
-    TPZManVector<STATE,3> v = Memory.fv;
-    
     STATE normdsol = Norm(data.dsol[0]);
     
     if (normdsol != 0.)
@@ -2686,16 +2683,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     TPZPlasticState<STATE> PState = plasticloc.GetState();
     TPZTensor<REAL> totalStrain = PState.fEpsT;
     TPZTensor<REAL> plasticStrain = PState.fEpsP;
-    
-    
     TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
     
-    //Total Stress
     TPZTensor<REAL> totalStress = Sigma;
-    
-    
-    TPZManVector<REAL,3> u;
-    u = Memory.fDisplacement;
+    STATE p = Memory.fPorePressure;
+    TPZManVector<STATE,3> v = Memory.fv;
+    TPZManVector<REAL,3>  u = Memory.fDisplacement;
+
     
     // ************************************** The value of parameters ************************
     

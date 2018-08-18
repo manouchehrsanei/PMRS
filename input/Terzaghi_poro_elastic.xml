@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.01" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -24,8 +24,8 @@
     <FEM>
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="3" />
-        <Diffusion p_order="2" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
