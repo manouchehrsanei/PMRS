@@ -201,40 +201,7 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
     return k;
 }
 
-/** @brief Poroelastic porosity correction */
-template<class T,class TMEM>
-REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
-{
-    int u_b = 0;
-    int p_b = 1;
-    
-    // Getting the space functions
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
-    
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    
-    TPZFNMatrix <6,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
-    
-    
-    TPZFNMatrix<6,REAL> Grad_u(2,2,0.0);
-    
-    // Computing Gradient of the Solution
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
-    Grad_u(1,0) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
-    
-    Grad_u(0,1) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
-    
-    REAL div_u = Grad_u(0,0) + Grad_u(1,1);
-    REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
-    
-    return phi;
-}
-
-/** @brief Poroelastic porosity correction from strains and pressure */
+/** @brief the 2D Poroelastic porosity correction from strains and pressure */
 template<class T,class TMEM>
 REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
     REAL eps_volumetric = eps_elastic.I1() + eps_plastic.I1();
@@ -243,41 +210,11 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps
 }
 
 
-/** @brief Poroelastic porosity correction */
+/** @brief the 3D Poroelastic porosity correction from strains and pressure */
 template<class T,class TMEM>
-REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
-{
-    int u_b = 0;
-    int p_b = 1;
-    
-    // Getting the space functions
-    TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
-    
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,3> u = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p = datavec[p_b].sol[0];
-    
-    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <6,REAL> dp = datavec[p_b].dsol[0];
-    
-    TPZFNMatrix<9,REAL> Grad_u(3,3,0.0);
-    
-    // Computing Gradient of the Solution
-    Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
-    Grad_u(1,0) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
-    Grad_u(2,0) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
-    
-    Grad_u(0,1) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0)+du(2,1)*axes_u(2,0); // duy/dx
-    Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1)+du(2,1)*axes_u(2,1); // duy/dy
-    Grad_u(2,1) = du(0,1)*axes_u(0,2)+du(1,1)*axes_u(1,2)+du(2,1)*axes_u(2,2); // duy/dz
-    
-    Grad_u(0,2) = du(0,2)*axes_u(0,0)+du(1,2)*axes_u(1,0)+du(2,2)*axes_u(2,0); // duz/dx
-    Grad_u(1,2) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
-    Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
-    
-    REAL div_u = Grad_u(0,0) + Grad_u(1,1) + Grad_u(2,2);
-    REAL phi = m_porosity_0 + m_alpha * div_u + m_Se * p[0];
-    
+REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
+    REAL eps_volumetric = eps_elastic.I1() + eps_plastic.I1();
+    REAL phi = m_porosity_0 + m_alpha * eps_volumetric + m_Se * pressure;
     return phi;
 }
 
@@ -325,13 +262,11 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0);
     Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1);
     
-    
     int nphi_u = phiu.Rows();
     int nphi_p = phip.Rows();
     
     int first_u = 0;
     int first_p = 2*nphi_u;
-    
     
     // Computing Gradient of the Solution
     TPZFNMatrix<6,REAL> Grad_vx_i(2,1,0.0);
@@ -369,6 +304,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
     TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
     TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
+    
     // Compute porosity poroelastic correction
     REAL phi_poro = porosity_corrected_2D(eps_elastic_last_state,eps_plastic_last_state,p[0]);
     
@@ -399,8 +335,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
     S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
     
-//    S.Print(std::cout);
-
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -583,7 +517,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     }
     
     
-    
     if (TPZMatWithMem<TMEM>::fUpdateMem && data.sol.size() > 1)
     {
         // Loop over the solutions if update memory is true
@@ -736,29 +669,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     int first_u = 0;
     int first_p = 3*nphi_u;
     
-    // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected_3D(datavec);
     
-    REAL dt = m_SimulationData->dt();
-    if (!m_SimulationData->IsCurrentStateQ()) {
-        
-        
-        // Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++) {
-            
-            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
-        }
-        
-        return;
-    }
-    
-    
-    // Computing the density and gravity
-    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
-    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
-    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
-    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
-
     // Computing Gradient of the Solution
     TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
     TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
@@ -777,19 +688,57 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
     REAL duydx, duydy, duydz;
     REAL duzdx, duzdy, duzdz;
     
-    // Computing the pre stress
-    TPZFNMatrix<6>  Stress(6,1);
-    this->ComputeStressVector(datavec[u_b],Stress);
+    
+    // ElastoPlastic Strain Stress Parameters from material memory
+    int global_point_index =  datavec[u_b].intGlobPtIndex;
+    TPZAdmChunkVector<TMEM> & memory_vec = TPZMatWithMem<TMEM>::fMemory;
+    TMEM &point_memory = memory_vec[global_point_index];
+    
+    // Setting for the elastoplastic integrator
+    T elasto_plastic_integrator(this->fPlasticity);
+    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
+    TPZElasticResponse ER;
+    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
+    elasto_plastic_integrator.SetElasticResponse(ER);
     
     
-    // ElastoPlastic Strain Stress Parameters
-    //    int global_point_index =  datavec[u_b].intGlobPtIndex;
-    //    TMEM &point_memory = TPZMatWithMem<TMEM>::fMemory[global_point_index];
-    //
-    //    T plasticloc(this->fPlasticity);
-    //    plasticloc.SetState(point_memory.fPlasticState);
-    //    TPZTensor<STATE> Stress = point_memory.fSigma;
+    // obtaining the total strain
+    TPZTensor<STATE> Stress = point_memory.fSigma;
+    TPZTensor<REAL> EpsT;
+    TPZFNMatrix<9,STATE> deltastrain(9,1,0.);
+    ComputeDeltaStrainVector(datavec[u_b], deltastrain);
+    EpsT.CopyFrom(deltastrain);
+    EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
     
+    // Perform the return mapping algorithm
+    elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
+    
+    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
+    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
+    TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
+    
+    // Compute porosity poroelastic correction
+    REAL phi_poro = porosity_corrected_3D(eps_elastic_last_state,eps_plastic_last_state,p[0]);
+    
+    // Computing the density and gravity
+    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
+    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
+    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
+
+    
+    REAL dt = m_SimulationData->dt();
+    if (!m_SimulationData->IsCurrentStateQ()) {
+        
+        
+        // Darcy mono-phascis flow
+        for (int ip = 0; ip < nphi_p; ip++) {
+            
+            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
+        }
+        
+        return;
+    }
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();

@@ -632,7 +632,6 @@ void LEDSPorosityReductionPlot()
         LEDS_epsilon_stress(id,0) = epsilon_t.XX()+epsilon_t.YY()+epsilon_t.ZZ();
         LEDS_epsilon_stress(id,1) = (1/3.)*(sigma_target.XX()+sigma_target.YY()+sigma_target.ZZ());
     
-
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);

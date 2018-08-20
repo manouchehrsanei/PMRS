@@ -149,14 +149,9 @@ public:
     /** @brief permeability correction model */
     REAL k_permeability(REAL &phi, REAL &k);
     
-    /** @brief porosity correction model */
-    REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
-    
     /** @brief Poroelastic porosity correction from strains and pressure */
     REAL porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
-    
-    REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
-    
+    REAL porosity_corrected_3D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
