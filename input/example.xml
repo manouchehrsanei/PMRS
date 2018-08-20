@@ -31,7 +31,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug.vtk" n_divisions="0" n_scalars="35" n_vectors="2"
+        <PostProcessing vtk_file="plug.vtk" n_divisions="0" n_scalars="36" n_vectors="2"
         />
         <Scalars>
             <Var name="et_v" />

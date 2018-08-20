@@ -117,18 +117,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & d
 }
 
 
-template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity)
-{
-    if (m_VariableYoung) {
-        TPZElasticResponse ER = plasticity.fER;
-        REAL poisson = ER.Poisson();
-        REAL young = ER.E();
-        ER.SetUp(young, poisson);
-        plasticity.SetElasticResponse(ER);
-    }
-}
-
 /** @brief a computation of stress and tangent */
 template <class T, class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
@@ -366,7 +354,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
     elasto_plastic_integrator.SetElasticResponse(ER);
     
-    UpdateMaterialCoeficients(datavec[u_b].x, elasto_plastic_integrator);
     
     // obtaining the total strain
     TPZTensor<STATE> Stress = point_memory.fSigma;
@@ -488,7 +475,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     k_permeability(phi_poro,k);
     m_lambdau = 1.1 * m_lambda;
     
-    REAL c = 1; // (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+    REAL c = (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
 
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -2664,9 +2651,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     T plasticloc(this->fPlasticity);
     plasticloc.SetState(Memory.fPlasticState);
     
-    UpdateMaterialCoeficients(data.x, plasticloc);
     TPZTensor<STATE> Sigma = Memory.fSigma;
-    
     STATE normdsol = Norm(data.dsol[0]);
     
     if (normdsol != 0.)
@@ -2677,18 +2662,21 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
         
         EpsT.CopyFrom(deltastrain);
         EpsT.Add(plasticloc.GetState().fEpsT, 1.);
-        
         plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
     }
+    
     TPZPlasticState<STATE> PState = plasticloc.GetState();
     TPZTensor<REAL> totalStrain = PState.fEpsT;
     TPZTensor<REAL> plasticStrain = PState.fEpsP;
     TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
     
+    // The values of displacement and total stress
+    TPZManVector<REAL,3>  u = Memory.fDisplacement;
     TPZTensor<REAL> totalStress = Sigma;
+    
+    // The values of pore pressure and darcy velocity
     STATE p = Memory.fPorePressure;
     TPZManVector<STATE,3> v = Memory.fv;
-    TPZManVector<REAL,3>  u = Memory.fDisplacement;
 
     
     // ************************************** The value of parameters ************************

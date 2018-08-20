@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e-6" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="10e-6" />
+        <StepNumber n_time_steps="20" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -31,19 +31,20 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="elastoplastic2D.vtk" n_divisions="0" n_scalars="10" n_vectors="1"
+        <PostProcessing vtk_file="elastoplastic2D.vtk" n_divisions="0" n_scalars="11" n_vectors="1"
         />
         <Scalars>
-            <Var name="e_x" />
+            <Var name="et_v" />
+            <Var name="et_y" />
+            <Var name="e_v" />
             <Var name="e_y" />
-            <Var name="e_xy" />
-            <Var name="ep_x" />
+            <Var name="ep_v" />
             <Var name="ep_y" />
-            <Var name="ep_xy" />
-             <Var name="p" />
+            <Var name="p" />
+            <Var name="phi" />
+            <Var name="k_y" />
             <Var name="s_x" />
             <Var name="s_y" />
-            <Var name="t_xy" />
         </Scalars>
         <Vectors>
             <Var name="u" />
@@ -61,7 +62,7 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries="3" n_parameters="12" >
-            <Parameters eyoung="4.36e9" nu="0.2" phi="0.25" kappa="1.0e-14" alpha="0.7" m="1.0e-7" mu="0.001" rhof="1000.0" rhos="2700.0"
+            <Parameters eyoung="4.36" nu="0.2" phi="0.25" kappa="1.0e-14" alpha="0.7" m="1.0e-7" mu="0.001" rhof="1000.0" rhos="2700.0"
             MCcoh="0.0" MCphi="0.0" MCpsi="0.0"/>
             <Boundaries>
                 <Boundary bc_id="2"/>
@@ -72,7 +73,7 @@
     </RegionsDefinition>
     <BoundaryConditions>
         <BoundaryCondition bc_id="2" type="Duy_Nq" uy="0.0" qn="0.0" />
-        <BoundaryCondition bc_id="3" type="Ntn_time_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
+        <BoundaryCondition bc_id="3" type="Ntn_time_Dp" tx="0.0" ty="0.0" p="0.0" />
         <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>

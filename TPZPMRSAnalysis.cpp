@@ -401,7 +401,6 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 /** @brief Compute the strain and the stress at x euclidean point for each time */
 void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 {
-    
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
     TPZGeoMesh * geometry = this->Mesh()->Reference();
@@ -425,6 +424,8 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     std::pair<REAL,REAL> duplet;
     
     TPZVec<REAL> parametric_space(dim,0.0);
+    
+    
     for (long iel = 0; iel < n_elemenst; iel++)
     {
         TPZGeoEl * gel = geometry->Element(iel);
@@ -440,7 +441,6 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
             continue;
         }
         
-
         IsTargetElementQ = gel->ComputeXInverse(x, parametric_space, Tol);
         
         if(IsTargetElementQ){

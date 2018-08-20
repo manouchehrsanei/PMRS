@@ -269,10 +269,9 @@ void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id)
 void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
 {
     
-    REAL MPa = 1.0e6;
-    REAL scale = 2.0e4;
-    REAL s_n = 18.0*(scale*time)*MPa;
-//    REAL s_n = 25.0*(scale*time)*MPa;
+    REAL MPa = 1; // 1.0e6;
+    REAL scale = 100000;
+    REAL s_n = -1.0*(scale*time)*MPa;
     
     f[0] = 0.0;
     f[1] = -s_n;
@@ -282,7 +281,7 @@ void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< R
 
 void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
 {
-    REAL scale = 1.0e5;//2.0e4;
+    REAL scale = 1.0e5;
     REAL uy = (2.0*(0.00028)*time*scale) + 0.0002;
     
     

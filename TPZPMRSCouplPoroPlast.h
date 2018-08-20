@@ -138,7 +138,6 @@ public:
     /** @brief some functions for plasticity */
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
-    virtual void UpdateMaterialCoeficients(TPZVec<REAL> &x,T & plasticity);
     virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
     virtual void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
     virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
