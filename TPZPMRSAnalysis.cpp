@@ -209,7 +209,6 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     m_SimulationData->Set_must_accept_solution_Q(true); // For now acceting any solution in the party
     for (int k = 1; k <= n; k++)
     {
-                
         this->Set_k_ietrarions(k);
         this->QuasiNewtonIteration();
         
@@ -369,7 +368,6 @@ void TPZPMRSAnalysis::PostProcessStep()
 /** @brief execute the evolutionary problem */
 void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 {
-    
     int n = m_SimulationData->n_steps();
     REAL time = 0.0;
     REAL dt = this->SimulationData()->dt();
@@ -455,16 +453,13 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
             duplet.first = -duplet.first;
             duplet.second = fabs(duplet.second);
         }
-        
     }
-
     m_strain_stress_duplets.Push(duplet);
 }
 
 /** @brief Compute the strain and the Pososity at x euclidean point for each time */
 void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 {
-    
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
     TPZGeoMesh * geometry = this->Mesh()->Reference();
@@ -632,7 +627,6 @@ void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
             continue;
         }
         
-        
         IsTargetElementQ = gel->ComputeXInverse(x, parametric_space, Tol);
         
         if(IsTargetElementQ){
@@ -700,7 +694,6 @@ void TPZPMRSAnalysis::PlotStrainPorosity(std::string file_name)
         std::ofstream out(file_name.c_str());
         points.Print("phi = ",out,EMathematicaInput);
     }
-    
 }
 
 /** @brief Compute the strain and the Porosity at x euclidean point for each time */

@@ -190,6 +190,12 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
             k = m_k_0*pow((phi/m_porosity_0),4.62);
         }
             break;
+            
+        case 4: // Davies and Davies (2001): Exponential function: C = 1;
+        {
+            k = m_k_0*exp((phi/m_porosity_0)-1);
+        }
+            break;
         
         default:
         {
@@ -298,6 +304,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     EpsT.CopyFrom(deltastrain);
     EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
     
+    
     // Perform the return mapping algorithm
     elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
     
@@ -334,7 +341,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     
     S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
     S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
-    
+       
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
@@ -372,7 +379,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     //	Coupling matrix
     for(int iu = 0; iu < nphi_u; iu++ )
     {
-        
         // Computing Gradient of the test function for each component
         Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvx/dx
         Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvx/dy
@@ -382,7 +388,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         for(int jp = 0; jp < nphi_p; jp++)
         {
-            
             ek(2*iu,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vx_i(0,0);
             ek(2*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vy_i(1,0);
         }
@@ -427,7 +432,6 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            
             Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0);
             Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1);
             
@@ -465,6 +469,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         }
         memory_vec[global_point_index] = point_memory;
     }
+    
     
      // @brief of checking whether the plasticity is necessary
     if (m_SetRunPlasticity)
@@ -928,6 +933,21 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
+    
+    // When the residuals expression are solved the memory items are accepted and updated
+    if (m_SimulationData->Get_must_accept_solution_Q()) {
+        point_memory.fSigma = Stress;
+        point_memory.fDisplacement = datavec[u_b].sol[0];
+        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
+        point_memory.fPorePressure = p[0];
+        point_memory.fv.resize(m_Dim);
+        for (int i = 0;  i < m_Dim; i++)
+        {
+            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
+        }
+        memory_vec[global_point_index] = point_memory;
+    }
+    
     
     // @brief of checking whether the plasticity is necessary
     if (m_SetRunPlasticity)
@@ -2601,6 +2621,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     plasticloc.SetState(Memory.fPlasticState);
     
     TPZTensor<STATE> Sigma = Memory.fSigma;
+    
     STATE normdsol = Norm(data.dsol[0]);
     
     if (normdsol != 0.)
@@ -2627,7 +2648,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     STATE p = Memory.fPorePressure;
     TPZManVector<STATE,3> v = Memory.fv;
 
-    
+
     // ************************************** The value of parameters ************************
     
     // ************************	Total Strain Variables ************************

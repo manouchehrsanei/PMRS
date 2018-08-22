@@ -95,13 +95,11 @@ REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
         }
             break;
             
-            
         case 1: // Petunin et al. (2011), A = 2.0
         {
             k = m_k_0*pow((phi/m_porosity_0),2.0);
         }
             break;
-            
             
         case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
@@ -109,10 +107,15 @@ REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
         }
             break;
             
-            
         case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
             k = m_k_0*pow((phi/m_porosity_0),4.62);
+        }
+            break;
+            
+        case 4: // Davies and Davies (2001): Exponential function: C = 1;
+        {
+            k = m_k_0*exp((phi/m_porosity_0)-1);
         }
             break;
         
@@ -386,7 +389,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     k_permeability(phi_poro,k);
     m_lambdau = 1.1 * m_lambda;
     
-    REAL c = 1; // (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+    REAL c = (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
 
     // Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)

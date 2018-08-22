@@ -270,7 +270,7 @@ void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< R
 {
     
     REAL MPa = 1; // 1.0e6;
-    REAL scale = 100000;
+    REAL scale = 5*1.0e5;
     REAL s_n = -1.0*(scale*time)*MPa;
     
     f[0] = 0.0;
@@ -457,9 +457,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
                 val2(i,0) = value;
             }
             
-            
             TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
-            
             
             // selecting the boundary that is time dependent
             
