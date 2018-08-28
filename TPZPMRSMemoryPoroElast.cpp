@@ -9,7 +9,8 @@
 #include "TPZPMRSMemoryPoroElast.h"
 
 /** @brief Default constructor */
-TPZPMRSMemoryPoroElast::TPZPMRSMemoryPoroElast():  fSigma() {
+TPZPMRSMemoryPoroElast::TPZPMRSMemoryPoroElast()
+{
     
     /** @brief Gradient of deformation at n (last) state */
     m_grad_u_n.Resize(3, 3);

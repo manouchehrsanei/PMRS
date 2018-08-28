@@ -22,9 +22,7 @@ class TPZPMRSMemoryPoroElast
     //  Memory : It is written for TPZPMRSMemoryPoroElast
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    // Basis functions
-    TPZElastoPlasticMem m_Mem;
-    
+    // Basis function
     
     /** @brief Gradient of deformation at at n (last) state */
     TPZFNMatrix<9,REAL> m_grad_u_n;
@@ -103,14 +101,6 @@ public:
     TPZFMatrix<REAL> epsilon_p_n(){
         return m_epsilon_p_n;
     }
-    
-    
-
-    
-    /**
-     * Total (elastic+plastic) stress
-     */
-    TPZTensor<REAL> fSigma;
     
     
     

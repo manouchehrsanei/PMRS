@@ -400,7 +400,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         int matid = material_ids[iregion].first;
         
        
-        // *************** check the type of material ******************************************************************
+        /** @{
+         * @brief of creating material that implements the weak formulation of the model problem
+         */
+        
+        // *************** Begin of checking the type of material ******************************************************
         // *************** PMRSporoELastic *****************************************************************************
 
 //        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
@@ -411,6 +415,11 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>(matid,dim);
+        
+        
+        // *************** End of checking the type of material ********************************************************
+
+        
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();
