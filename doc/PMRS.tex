@@ -9,13 +9,23 @@
 \bibliography{references/references.bib} 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% C++ code
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset { %
+    language=C++,
+    backgroundcolor=\color{black!5}, % set backgroundcolor
+    basicstyle=\footnotesize,% basic font setting
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Commands
 \newcommand{\PMRS}{\textit{PMRS }}
 \newcommand{\neopz}{\textit{neopz }}
 
 \title{Permeability Multiplier Reservoir Simulator \PMRS project}
 
-\author{Sanei M. and Duran O. and Devloo P.}
+\author{M. Sanei and O.  Duran and P.  Devloo}
 
 \date{\today}
 
@@ -43,8 +53,90 @@ This document contains details about the implementation and formulations for a n
 
 \subsection{About the custom memory materials}
 
+This subsection is dedicated for the approach used when is required a  template instantiation of a class. This is the case of the materials that use a memory for store some quantities related to the physics being studied. For instance the multiphysics simulation for a nonlinear poromechanics process that considered plasticity and flow through porous media. 
 
-The word impl here is an abbreviation for implementation
+In terms of template instantiation there are two categories:
+
+\begin{itemize}
+	\item Implicit
+	\item Explicit	
+\end{itemize}
+
+The implicit instantiation  consider the definition for all of types that can be instantiated, and the implementation is given defining inside the header file the class's methods with the advantage of providing custom templates of different types as the user requires.
+
+The explicit instantiation  consider the definition for the a small set of concrete types that are ever instantiated. The implementation is given by moving out of from header file the class's methods with the advantage of better compile times.
+
+Thus, for the implementation of the explicit instantiation a two-file approach is adopted as a traditional way. In C++ normally the use of \textit{*.h} files are reserved for the definitions and  \textit{*.cpp} are reserved for the method implementations and the definitions of the instantiations at the end of the file. The two-file approach is well-know and straightforward to use, so is recommended when the small set of types to be instantiated is well know and predefined.
+
+In the case of the iterative approximations performed by \PMRS the two-file approach is not suitable, and it is required the implicit instantiation, mainly because the implementation of the plastic materials inside \neopz is given by the two-file approach there is not a mechanism to instantiated another kind of memory types. To over come this difficulty a three-file approach is adopted and implemented inside \neopz.
+
+The three-file approach is given by following a pattern with third file with the suffix \textit{*\_ impl.h}. The word \textit{impl} here is an abbreviation for implementation. The files \textit{*impl.h} are reserved for the implementation of the class's methods and the \textit{*.cpp} is reserved just for the explicit instantiation for the well-known set of types. Thus the difficulty with the instantiation of custom memory materials is solved by including the  \textit{*impl.h} instead \textit{*.h}. For the use of the standard types of templates the implementation should include just the \textit{*.h} maintaining the advantage of the explicit instantiation.
+
+As a final remark the three-file approach is an alternative solution that incorporates the explicit and the implicit instantiation.
+
+An example of the thee-file approach is give as follows:
+
+Example of a  \textit{*.h} the class  \textit{TPZMyMatElastoPlastic2D.h} :
+
+\begin{lstlisting}
+#include "Tensor.h''
+template <class T, class TMEM = TPZElastoPlasticMem>
+class  TMatElastoPlastic2D : public TPZMatElastoPlastic<T,TMEM>
+{
+ public:
+  T compute_sigma(Tensor epsilon) const;
+};
+\end{lstlisting}
+
+Example of a  \textit{*\_ impl.h} :
+
+\begin{lstlisting}
+#include "TMatElastoPlastic2D.h''
+template <class T, class TMEM>
+T TMatElastoPlastic2D<T,TMEM>::compute_sigma(Tensor epsilon){
+  T sigma =  ConsitutiveLaw(epsilon);
+  return sigma;
+}
+\end{lstlisting}
+
+Example of a  \textit{*.cpp} :
+
+\begin{lstlisting}
+#include "TMatElastoPlastic2D_impl.h''
+template class TMatElastoPlastic2D<LinearLaw, ElasticMem>;
+template class TMatElastoPlastic2D<PlasticLaw, ElastoPlasticMem>;
+\end{lstlisting}
+
+For a stantandar use of \textit{TMatElastoPlastic2D.h} class, the main should 
+looks like this:
+
+\begin{lstlisting}
+#include "TMatElastoPlastic2D.h"
+#include "LinearLaw.h"
+#include "ElasticMem.h"
+int main() {
+Tensor epsilon;
+ TMatElastoPlastic2D<LinearLaw,ElasticMem> material;
+ LinearLaw sigma material.compute_sigma(epsilon);
+ std::cout << "sigma'' << sigma << std::endl;
+}
+\end{lstlisting}
+
+
+For a non-stantandar use of \textit{TMatElastoPlastic2D.h} class with another memory type \textit{MultiphysicsMem}, the main should 
+looks like this:
+
+\begin{lstlisting}
+#include "TMatElastoPlastic2D_impl.h"
+#include "LinearLaw.h"
+#include "MultiphysicsMem.h"
+int main() {
+Tensor epsilon;
+ TMatElastoPlastic2D<LinearLaw,MultiphysicsMem> material;
+ LinearLaw sigma material.compute_sigma(epsilon);
+ std::cout << "sigma'' << sigma << std::endl;
+}
+\end{lstlisting}
 
 \section{Verifications}
 
