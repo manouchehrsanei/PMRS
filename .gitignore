@@ -1,0 +1,12 @@
+
+*.xml
+*.DS_Store
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.gz
+doc/PMRS-blx.bib
+.DS_Store
+.DS_Store

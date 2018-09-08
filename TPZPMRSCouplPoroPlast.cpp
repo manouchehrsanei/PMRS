@@ -285,19 +285,19 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     
     // ElastoPlastic Strain Stress Parameters from material memory
     int global_point_index =  datavec[u_b].intGlobPtIndex;
-    TPZAdmChunkVector<TMEM> & memory_vec = TPZMatWithMem<TMEM>::fMemory;
+    TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
     TMEM &point_memory = memory_vec[global_point_index];
     
     // Setting for the elastoplastic integrator
     T elasto_plastic_integrator(this->fPlasticity);
-    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
+//    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
     TPZElasticResponse ER;
     ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
     elasto_plastic_integrator.SetElasticResponse(ER);
     
     
     // obtaining the total strain
-    TPZTensor<STATE> Stress = point_memory.fSigma;
+    TPZTensor<STATE> Stress ;//= point_memory.fSigma;
     TPZTensor<REAL> EpsT;
     TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
     ComputeDeltaStrainVector(datavec[u_b], deltastrain);
@@ -458,14 +458,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     
     // When the residuals expression are solved the memory items are accepted and updated
     if (m_SimulationData->Get_must_accept_solution_Q()) {
-        point_memory.fSigma = Stress;
-        point_memory.fDisplacement = datavec[u_b].sol[0];
-        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
-        point_memory.fPorePressure = p[0];
-        point_memory.fv.resize(m_Dim);
+//        point_memory.fSigma = Stress;
+//        point_memory.fDisplacement = datavec[u_b].sol[0];
+//        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
+//        point_memory.fPorePressure = p[0];
+//        point_memory.fv.resize(m_Dim);
         for (int i = 0;  i < m_Dim; i++)
         {
-            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
+//            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
         }
         memory_vec[global_point_index] = point_memory;
     }
@@ -512,11 +512,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     
     if (m_UpdateToUseFullDiplacement)
     {
-        TPZMatWithMem<TMEM>::fMemory[ptindex].fPlasticState.fEpsT.Zero();
+        TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
+        TMEM &point_memory = memory_vec[ptindex];
+//        point_memory.fPlasticState.fEpsT.Zero();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
         {
-            TPZMatWithMem<TMEM>::fMemory[ptindex].fDisplacement[i] = 0.;
+//            point_memory.fDisplacement[i] = 0.;
         }
         return;
     }
@@ -643,329 +645,329 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
 template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    int u_b = 0;
-    int p_b = 1;
-    
-    // Getting the space functions
-    TPZFMatrix<REAL>     &phiu     =   datavec[u_b].phi;
-    TPZFMatrix<REAL>     &phip     =   datavec[p_b].phi;
-    
-    TPZFMatrix<REAL> &grad_phi_u   =   datavec[u_b].dphix;
-    TPZFMatrix<REAL> &grad_phi_p   =   datavec[p_b].dphix;
-    
-    TPZFNMatrix <9,REAL> &axes_u   =	datavec[u_b].axes;
-    TPZFNMatrix <9,REAL> &axes_p   =	datavec[p_b].axes;
-    
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,3> u  = datavec[u_b].sol[0];
-    TPZManVector<REAL,1> p  = datavec[p_b].sol[0];
-    
-    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
-    TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
-    
-    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_phi_i(3,1,0.0),Grad_phi_j(3,1,0.0);
-    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0);
-    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1)+dp(2,0)*axes_p(2,1);
-    Grad_p(2,0) = dp(0,0)*axes_p(0,2)+dp(1,0)*axes_p(1,2)+dp(2,0)*axes_p(2,2);
-    
-    int nphi_u = phiu.Rows();
-    int nphi_p = phip.Rows();
-    
-    int first_u = 0;
-    int first_p = 3*nphi_u;
-    
-    
-    // Computing Gradient of the Solution
-    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0);
-    
-    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0);
-    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0);
-    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0);
-    
-    REAL dvxdx, dvxdy, dvxdz;
-    REAL dvydx, dvydy, dvydz;
-    REAL dvzdx, dvzdy, dvzdz;
-    
-    REAL duxdx, duxdy, duxdz;
-    REAL duydx, duydy, duydz;
-    REAL duzdx, duzdy, duzdz;
-    
-    
-    // ElastoPlastic Strain Stress Parameters from material memory
-    int global_point_index =  datavec[u_b].intGlobPtIndex;
-    TPZAdmChunkVector<TMEM> & memory_vec = TPZMatWithMem<TMEM>::fMemory;
-    TMEM &point_memory = memory_vec[global_point_index];
-    
-    // Setting for the elastoplastic integrator
-    T elasto_plastic_integrator(this->fPlasticity);
-    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
-    TPZElasticResponse ER;
-    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
-    elasto_plastic_integrator.SetElasticResponse(ER);
-    
-    
-    // obtaining the total strain
-    TPZTensor<STATE> Stress = point_memory.fSigma;
-    TPZTensor<REAL> EpsT;
-    TPZFNMatrix<9,STATE> deltastrain(9,1,0.);
-    ComputeDeltaStrainVector(datavec[u_b], deltastrain);
-    EpsT.CopyFrom(deltastrain);
-    EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
-    
-    // Perform the return mapping algorithm
-    elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
-    
-    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
-    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
-    TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
-    
-    // Compute porosity poroelastic correction
-    REAL phi_poro = porosity_corrected_3D(eps_elastic_last_state,eps_plastic_last_state,p[0]);
-    
-    // Computing the density and gravity
-    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
-    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
-    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
-    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
-
-    
-    REAL dt = m_SimulationData->dt();
-    if (!m_SimulationData->IsCurrentStateQ()) {
-        
-        
-        // Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++) {
-            
-            ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
-        }
-        
-        return;
-    }
-    
-    TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
-    Sigma_0.Zero();
-    TPZFNMatrix<9,REAL> S(3,3,0.0);
-    
-    S(0,0) = ((Stress(_XX_,0))-(Sigma_0(0,0)));
-    S(0,1) = ((Stress(_XY_,0))-(Sigma_0(0,1)));
-    S(0,2) = ((Stress(_XZ_,0))-(Sigma_0(0,2)));
-    
-    S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
-    S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
-    S(1,2) = ((Stress(_YZ_,0))-(Sigma_0(1,2)));
-    
-    S(2,0) = ((Stress(_XZ_,0))-(Sigma_0(2,0)));
-    S(2,1) = ((Stress(_YZ_,0))-(Sigma_0(2,1)));
-    S(2,2) = ((Stress(_ZZ_,0))-(Sigma_0(2,2)));
-    
-    
-    for (int iu = 0; iu < nphi_u; iu++)
-    {
-        // Computing Gradient of the test function for each component
-        for (int d = 0; d < m_Dim; d++)
-        {
-            Grad_vx_i(d,0) = grad_phi_u(d,iu);
-            Grad_vy_i(d,0) = grad_phi_u(d,iu);
-            Grad_vz_i(d,0) = grad_phi_u(d,iu);
-        }
-        
-        ef(3*iu   + first_u, 0)    += weight * ((S(0,0) - m_alpha*p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + S(0,2) * Grad_vx_i(2,0) - m_b[0] * phiu(iu,0));
-        ef(3*iu+1 + first_u, 0)    += weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - m_alpha*p[0]) * Grad_vy_i(1,0) + S(1,2) * Grad_vy_i(2,0) - m_b[1] * phiu(iu,0));
-        ef(3*iu+2 + first_u, 0)    += weight * (S(2,0) * Grad_vz_i(0,0) + S(2,1) * Grad_vz_i(1,0) + (S(2,2) - m_alpha*p[0]) * Grad_vz_i(2,0) - m_b[2] * phiu(iu,0));
-        
-        //x
-        dvxdx = Grad_vx_i(0,0);
-        dvxdy = Grad_vx_i(1,0);
-        dvxdz = Grad_vx_i(2,0);
-        
-        //y
-        dvydx = Grad_vy_i(0,0);
-        dvydy = Grad_vy_i(1,0);
-        dvydz = Grad_vy_i(2,0);
-        
-        //z
-        dvzdx = Grad_vz_i(0,0);
-        dvzdy = Grad_vz_i(1,0);
-        dvzdz = Grad_vz_i(2,0);
-        
-        
-        for (int ju = 0; ju < nphi_u; ju++)
-        {
-            
-            // Computing Gradient of the test function for each component
-            for (int d = 0; d < m_Dim; d++)
-            {
-                Grad_vx_j(d,0) = grad_phi_u(d,ju);
-                Grad_vy_j(d,0) = grad_phi_u(d,ju);
-                Grad_vz_j(d,0) = grad_phi_u(d,ju);
-            }
-            
-            //x
-            duxdx = Grad_vx_j(0,0);
-            duxdy = Grad_vx_j(1,0);
-            duxdz = Grad_vx_j(2,0);
-            
-            //y
-            duydx = Grad_vy_j(0,0);
-            duydy = Grad_vy_j(1,0);
-            duydz = Grad_vy_j(2,0);
-            
-            //z
-            duzdx = Grad_vz_j(0,0);
-            duzdy = Grad_vz_j(1,0);
-            duzdz = Grad_vz_j(2,0);
-            
-            // Gradient 1
-            ek(3*iu   + first_u, 3*ju    + first_u) += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
-            ek(3*iu   + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
-            ek(3*iu   + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
-            
-            // Gradient 2
-            ek(3*iu+1 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
-            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((m_lambda + 2.*m_mu)*duydy*dvydy + m_mu*duydx*dvydx + m_mu*duydz*dvydz);
-            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvydy + m_mu*duzdy*dvydz);
-            
-            // Gradient 3
-            ek(3*iu+2 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
-            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
-            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
-        }
-    }
-    
-    TPZFNMatrix<9,REAL> dv(3,1,0.0);
-    
-    //    Matrix -Qc
-    //    Coupling matrix
-    for(int iu = 0; iu < nphi_u; iu++ )
-    {
-        
-        // Computing Gradient of the test function for each component
-        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvx/dx
-        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvx/dy
-        Grad_vx_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvx/dz
-        
-        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvy/dx
-        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvy/dy
-        Grad_vy_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvy/dz
-        
-        Grad_vz_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvz/dx
-        Grad_vz_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvz/dy
-        Grad_vz_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvz/dz
-        
-        for(int jp = 0; jp < nphi_p; jp++)
-        {
-            
-            ek(3*iu+0,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vx_i(0,0);
-            ek(3*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vy_i(1,0);
-            ek(3*iu+2,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vz_i(2,0);
-        }
-    }
-    
-    //    Matrix QcˆT
-    //    Coupling matrix transpose
-    for(int ip = 0; ip < nphi_p; ip++ )
-    {
-        
-        for(int ju = 0; ju < nphi_u; ju++)
-        {
-            dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0);
-            dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1);
-            dv(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2);
-            
-            ek(first_p+ip,3*ju+0) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
-            ek(first_p+ip,3*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
-            ek(first_p+ip,3*ju+2) += (1./dt) * weight * m_alpha * dv(2,0) * phip(ip,0);
-        }
-    }
-    
-    
-    /** @brief Rudnicki diffusion coefficient */
-    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
-    REAL k = 0.0;
-    m_k_model = 1;
-    k_permeability(phi_poro,k);
-    m_lambdau = 1.1 * m_lambda;
-    REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
-    
-    // Darcy mono-phascis flow
-    for (int ip = 0; ip < nphi_p; ip++)
-    {
-        
-        Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0)+grad_phi_p(2,ip)*axes_p(2,0);
-        Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1)+grad_phi_p(2,ip)*axes_p(2,1);
-        Grad_phi_i(2,0) = grad_phi_p(0,ip)*axes_p(0,2)+grad_phi_p(1,ip)*axes_p(1,2)+grad_phi_p(2,ip)*axes_p(2,2);
-        
-        REAL dot = 0.0;
-        for (int i = 0;  i < m_Dim; i++)
-        {
-            dot += Grad_p(i,0) * Grad_phi_i(i,0);
-        }
-        
-        ef(ip + first_p, 0)		+=  weight * ( c * dot + (phi_poro/dt) * phip(ip,0));
-        
-        for (int jp = 0; jp < nphi_p; jp++)
-        {
-            
-            Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0)+grad_phi_p(2,jp)*axes_p(2,0);
-            Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1)+grad_phi_p(2,jp)*axes_p(2,1);
-            Grad_phi_j(2,0) = grad_phi_p(0,jp)*axes_p(0,2)+grad_phi_p(1,jp)*axes_p(1,2)+grad_phi_p(2,jp)*axes_p(2,2);
-            
-            REAL dot = 0.0;
-            for (int i = 0;  i < m_Dim; i++)
-            {
-                dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
-            }
-            
-            ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
-        }
-    }
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
-        sout << " Resultant rhs vector:\n" << ef;
-        sout << " Resultant stiff vector:\n" << ek;
-        LOGPZ_DEBUG(logger,sout.str().c_str());
-    }
-#endif
-    
-    // When the residuals expression are solved the memory items are accepted and updated
-    if (m_SimulationData->Get_must_accept_solution_Q()) {
-        point_memory.fSigma = Stress;
-        point_memory.fDisplacement = datavec[u_b].sol[0];
-        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
-        point_memory.fPorePressure = p[0];
-        point_memory.fv.resize(m_Dim);
-        for (int i = 0;  i < m_Dim; i++)
-        {
-            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
-        }
-        memory_vec[global_point_index] = point_memory;
-    }
-    
-    
-    // @brief of checking whether the plasticity is necessary
-    if (m_SetRunPlasticity)
-    {
-        ContributePlastic_3D(datavec[0],weight,ek,ef);
-        
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
-            sout << " Resultant rhs vector:\n" << ef;
-            sout << " Resultant stiff vector:\n" << ek;
-            LOGPZ_DEBUG(logger,sout.str().c_str());
-        }
-#endif
-        return;
-    }
+//    int u_b = 0;
+//    int p_b = 1;
+//    
+//    // Getting the space functions
+//    TPZFMatrix<REAL>     &phiu     =   datavec[u_b].phi;
+//    TPZFMatrix<REAL>     &phip     =   datavec[p_b].phi;
+//    
+//    TPZFMatrix<REAL> &grad_phi_u   =   datavec[u_b].dphix;
+//    TPZFMatrix<REAL> &grad_phi_p   =   datavec[p_b].dphix;
+//    
+//    TPZFNMatrix <9,REAL> &axes_u   =    datavec[u_b].axes;
+//    TPZFNMatrix <9,REAL> &axes_p   =    datavec[p_b].axes;
+//    
+//    // Getting the solutions and derivatives
+//    TPZManVector<REAL,3> u  = datavec[u_b].sol[0];
+//    TPZManVector<REAL,1> p  = datavec[p_b].sol[0];
+//    
+//    TPZFNMatrix <9,REAL> du = datavec[u_b].dsol[0];
+//    TPZFNMatrix <9,REAL> dp = datavec[p_b].dsol[0];
+//    
+//    TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_phi_i(3,1,0.0),Grad_phi_j(3,1,0.0);
+//    Grad_p(0,0) = dp(0,0)*axes_p(0,0)+dp(1,0)*axes_p(1,0)+dp(2,0)*axes_p(2,0);
+//    Grad_p(1,0) = dp(0,0)*axes_p(0,1)+dp(1,0)*axes_p(1,1)+dp(2,0)*axes_p(2,1);
+//    Grad_p(2,0) = dp(0,0)*axes_p(0,2)+dp(1,0)*axes_p(1,2)+dp(2,0)*axes_p(2,2);
+//    
+//    int nphi_u = phiu.Rows();
+//    int nphi_p = phip.Rows();
+//    
+//    int first_u = 0;
+//    int first_p = 3*nphi_u;
+//    
+//    
+//    // Computing Gradient of the Solution
+//    TPZFNMatrix<9,REAL> Grad_vx_i(3,1,0.0);
+//    TPZFNMatrix<9,REAL> Grad_vy_i(3,1,0.0);
+//    TPZFNMatrix<9,REAL> Grad_vz_i(3,1,0.0);
+//    
+//    TPZFNMatrix<9,REAL> Grad_v(3,3,0.0);
+//    TPZFNMatrix<9,REAL> Grad_vx_j(3,1,0.0);
+//    TPZFNMatrix<9,REAL> Grad_vy_j(3,1,0.0);
+//    TPZFNMatrix<9,REAL> Grad_vz_j(3,1,0.0);
+//    
+//    REAL dvxdx, dvxdy, dvxdz;
+//    REAL dvydx, dvydy, dvydz;
+//    REAL dvzdx, dvzdy, dvzdz;
+//    
+//    REAL duxdx, duxdy, duxdz;
+//    REAL duydx, duydy, duydz;
+//    REAL duzdx, duzdy, duzdz;
+//    
+//    
+//    // ElastoPlastic Strain Stress Parameters from material memory
+//    int global_point_index =  datavec[u_b].intGlobPtIndex;
+//    TPZAdmChunkVector<TMEM> & memory_vec = TPZMatWithMem<TMEM>::fMemory;
+//    TMEM &point_memory = memory_vec[global_point_index];
+//    
+//    // Setting for the elastoplastic integrator
+//    T elasto_plastic_integrator(this->fPlasticity);
+//    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
+//    TPZElasticResponse ER;
+//    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
+//    elasto_plastic_integrator.SetElasticResponse(ER);
+//    
+//    
+//    // obtaining the total strain
+//    TPZTensor<STATE> Stress = point_memory.fSigma;
+//    TPZTensor<REAL> EpsT;
+//    TPZFNMatrix<9,STATE> deltastrain(9,1,0.);
+//    ComputeDeltaStrainVector(datavec[u_b], deltastrain);
+//    EpsT.CopyFrom(deltastrain);
+//    EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
+//    
+//    // Perform the return mapping algorithm
+//    elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
+//    
+//    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
+//    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
+//    TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
+//    
+//    // Compute porosity poroelastic correction
+//    REAL phi_poro = porosity_corrected_3D(eps_elastic_last_state,eps_plastic_last_state,p[0]);
+//    
+//    // Computing the density and gravity
+//    REAL rho_avg = (1.0-phi_poro)*m_rho_s+phi_poro*m_rho_f;
+//    m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
+//    m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
+//    m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
+//
+//    
+//    REAL dt = m_SimulationData->dt();
+//    if (!m_SimulationData->IsCurrentStateQ()) {
+//        
+//        
+//        // Darcy mono-phascis flow
+//        for (int ip = 0; ip < nphi_p; ip++) {
+//            
+//            ef(ip + first_p, 0)        += - weight * (phi_poro/dt) * phip(ip,0);
+//        }
+//        
+//        return;
+//    }
+//    
+//    TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
+//    Sigma_0.Zero();
+//    TPZFNMatrix<9,REAL> S(3,3,0.0);
+//    
+//    S(0,0) = ((Stress(_XX_,0))-(Sigma_0(0,0)));
+//    S(0,1) = ((Stress(_XY_,0))-(Sigma_0(0,1)));
+//    S(0,2) = ((Stress(_XZ_,0))-(Sigma_0(0,2)));
+//    
+//    S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
+//    S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
+//    S(1,2) = ((Stress(_YZ_,0))-(Sigma_0(1,2)));
+//    
+//    S(2,0) = ((Stress(_XZ_,0))-(Sigma_0(2,0)));
+//    S(2,1) = ((Stress(_YZ_,0))-(Sigma_0(2,1)));
+//    S(2,2) = ((Stress(_ZZ_,0))-(Sigma_0(2,2)));
+//    
+//    
+//    for (int iu = 0; iu < nphi_u; iu++)
+//    {
+//        // Computing Gradient of the test function for each component
+//        for (int d = 0; d < m_Dim; d++)
+//        {
+//            Grad_vx_i(d,0) = grad_phi_u(d,iu);
+//            Grad_vy_i(d,0) = grad_phi_u(d,iu);
+//            Grad_vz_i(d,0) = grad_phi_u(d,iu);
+//        }
+//        
+//        ef(3*iu   + first_u, 0)    += weight * ((S(0,0) - m_alpha*p[0]) * Grad_vx_i(0,0) + S(0,1) * Grad_vx_i(1,0) + S(0,2) * Grad_vx_i(2,0) - m_b[0] * phiu(iu,0));
+//        ef(3*iu+1 + first_u, 0)    += weight * (S(1,0) * Grad_vy_i(0,0) + (S(1,1) - m_alpha*p[0]) * Grad_vy_i(1,0) + S(1,2) * Grad_vy_i(2,0) - m_b[1] * phiu(iu,0));
+//        ef(3*iu+2 + first_u, 0)    += weight * (S(2,0) * Grad_vz_i(0,0) + S(2,1) * Grad_vz_i(1,0) + (S(2,2) - m_alpha*p[0]) * Grad_vz_i(2,0) - m_b[2] * phiu(iu,0));
+//        
+//        //x
+//        dvxdx = Grad_vx_i(0,0);
+//        dvxdy = Grad_vx_i(1,0);
+//        dvxdz = Grad_vx_i(2,0);
+//        
+//        //y
+//        dvydx = Grad_vy_i(0,0);
+//        dvydy = Grad_vy_i(1,0);
+//        dvydz = Grad_vy_i(2,0);
+//        
+//        //z
+//        dvzdx = Grad_vz_i(0,0);
+//        dvzdy = Grad_vz_i(1,0);
+//        dvzdz = Grad_vz_i(2,0);
+//        
+//        
+//        for (int ju = 0; ju < nphi_u; ju++)
+//        {
+//            
+//            // Computing Gradient of the test function for each component
+//            for (int d = 0; d < m_Dim; d++)
+//            {
+//                Grad_vx_j(d,0) = grad_phi_u(d,ju);
+//                Grad_vy_j(d,0) = grad_phi_u(d,ju);
+//                Grad_vz_j(d,0) = grad_phi_u(d,ju);
+//            }
+//            
+//            //x
+//            duxdx = Grad_vx_j(0,0);
+//            duxdy = Grad_vx_j(1,0);
+//            duxdz = Grad_vx_j(2,0);
+//            
+//            //y
+//            duydx = Grad_vy_j(0,0);
+//            duydy = Grad_vy_j(1,0);
+//            duydz = Grad_vy_j(2,0);
+//            
+//            //z
+//            duzdx = Grad_vz_j(0,0);
+//            duzdy = Grad_vz_j(1,0);
+//            duzdz = Grad_vz_j(2,0);
+//            
+//            // Gradient 1
+//            ek(3*iu   + first_u, 3*ju    + first_u) += weight * ((m_lambda + 2.*m_mu)*duxdx*dvxdx + m_mu*duxdy*dvxdy + m_mu*duxdz*dvxdz);
+//            ek(3*iu   + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvxdx + m_mu*duydx*dvxdy);
+//            ek(3*iu   + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvxdx + m_mu*duzdx*dvxdz);
+//            
+//            // Gradient 2
+//            ek(3*iu+1 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvydy + m_mu*duxdy*dvydx);
+//            ek(3*iu+1 + first_u, 3*ju+1  + first_u) += weight * ((m_lambda + 2.*m_mu)*duydy*dvydy + m_mu*duydx*dvydx + m_mu*duydz*dvydz);
+//            ek(3*iu+1 + first_u, 3*ju+2  + first_u) += weight * (m_lambda*duzdz*dvydy + m_mu*duzdy*dvydz);
+//            
+//            // Gradient 3
+//            ek(3*iu+2 + first_u, 3*ju    + first_u) += weight * (m_lambda*duxdx*dvzdz + m_mu*duxdz*dvzdx);
+//            ek(3*iu+2 + first_u, 3*ju+1  + first_u) += weight * (m_lambda*duydy*dvzdz + m_mu*duydz*dvzdy);
+//            ek(3*iu+2 + first_u, 3*ju+2  + first_u) += weight * ((m_lambda + 2.*m_mu)*duzdz*dvzdz + m_mu*duzdx*dvzdx + m_mu*duzdy*dvzdy);
+//        }
+//    }
+//    
+//    TPZFNMatrix<9,REAL> dv(3,1,0.0);
+//    
+//    //    Matrix -Qc
+//    //    Coupling matrix
+//    for(int iu = 0; iu < nphi_u; iu++ )
+//    {
+//        
+//        // Computing Gradient of the test function for each component
+//        Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvx/dx
+//        Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvx/dy
+//        Grad_vx_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvx/dz
+//        
+//        Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvy/dx
+//        Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvy/dy
+//        Grad_vy_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvy/dz
+//        
+//        Grad_vz_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0)+grad_phi_u(2,iu)*axes_u(2,0); // dvz/dx
+//        Grad_vz_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1)+grad_phi_u(2,iu)*axes_u(2,1); // dvz/dy
+//        Grad_vz_i(2,0) = grad_phi_u(0,iu)*axes_u(0,2)+grad_phi_u(1,iu)*axes_u(1,2)+grad_phi_u(2,iu)*axes_u(2,2); // dvz/dz
+//        
+//        for(int jp = 0; jp < nphi_p; jp++)
+//        {
+//            
+//            ek(3*iu+0,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vx_i(0,0);
+//            ek(3*iu+1,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vy_i(1,0);
+//            ek(3*iu+2,first_p+jp) += (-1.)* weight * m_alpha * phip(jp,0) * Grad_vz_i(2,0);
+//        }
+//    }
+//    
+//    //    Matrix QcˆT
+//    //    Coupling matrix transpose
+//    for(int ip = 0; ip < nphi_p; ip++ )
+//    {
+//        
+//        for(int ju = 0; ju < nphi_u; ju++)
+//        {
+//            dv(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0)+grad_phi_u(2,ju)*axes_u(2,0);
+//            dv(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1)+grad_phi_u(2,ju)*axes_u(2,1);
+//            dv(2,0) = grad_phi_u(0,ju)*axes_u(0,2)+grad_phi_u(1,ju)*axes_u(1,2)+grad_phi_u(2,ju)*axes_u(2,2);
+//            
+//            ek(first_p+ip,3*ju+0) += (1./dt) * weight * m_alpha * dv(0,0) * phip(ip,0);
+//            ek(first_p+ip,3*ju+1) += (1./dt) * weight * m_alpha * dv(1,0) * phip(ip,0);
+//            ek(first_p+ip,3*ju+2) += (1./dt) * weight * m_alpha * dv(2,0) * phip(ip,0);
+//        }
+//    }
+//    
+//    
+//    /** @brief Rudnicki diffusion coefficient */
+//    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+//    REAL k = 0.0;
+//    m_k_model = 1;
+//    k_permeability(phi_poro,k);
+//    m_lambdau = 1.1 * m_lambda;
+//    REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+//    
+//    // Darcy mono-phascis flow
+//    for (int ip = 0; ip < nphi_p; ip++)
+//    {
+//        
+//        Grad_phi_i(0,0) = grad_phi_p(0,ip)*axes_p(0,0)+grad_phi_p(1,ip)*axes_p(1,0)+grad_phi_p(2,ip)*axes_p(2,0);
+//        Grad_phi_i(1,0) = grad_phi_p(0,ip)*axes_p(0,1)+grad_phi_p(1,ip)*axes_p(1,1)+grad_phi_p(2,ip)*axes_p(2,1);
+//        Grad_phi_i(2,0) = grad_phi_p(0,ip)*axes_p(0,2)+grad_phi_p(1,ip)*axes_p(1,2)+grad_phi_p(2,ip)*axes_p(2,2);
+//        
+//        REAL dot = 0.0;
+//        for (int i = 0;  i < m_Dim; i++)
+//        {
+//            dot += Grad_p(i,0) * Grad_phi_i(i,0);
+//        }
+//        
+//        ef(ip + first_p, 0)        +=  weight * ( c * dot + (phi_poro/dt) * phip(ip,0));
+//        
+//        for (int jp = 0; jp < nphi_p; jp++)
+//        {
+//            
+//            Grad_phi_j(0,0) = grad_phi_p(0,jp)*axes_p(0,0)+grad_phi_p(1,jp)*axes_p(1,0)+grad_phi_p(2,jp)*axes_p(2,0);
+//            Grad_phi_j(1,0) = grad_phi_p(0,jp)*axes_p(0,1)+grad_phi_p(1,jp)*axes_p(1,1)+grad_phi_p(2,jp)*axes_p(2,1);
+//            Grad_phi_j(2,0) = grad_phi_p(0,jp)*axes_p(0,2)+grad_phi_p(1,jp)*axes_p(1,2)+grad_phi_p(2,jp)*axes_p(2,2);
+//            
+//            REAL dot = 0.0;
+//            for (int i = 0;  i < m_Dim; i++)
+//            {
+//                dot += Grad_phi_j(i,0) * Grad_phi_i(i,0);
+//            }
+//            
+//            ek(ip + first_p, jp + first_p)        += weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
+//        }
+//    }
+//    
+//#ifdef LOG4CXX
+//    if(logger->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
+//        sout << " Resultant rhs vector:\n" << ef;
+//        sout << " Resultant stiff vector:\n" << ek;
+//        LOGPZ_DEBUG(logger,sout.str().c_str());
+//    }
+//#endif
+//    
+//    // When the residuals expression are solved the memory items are accepted and updated
+//    if (m_SimulationData->Get_must_accept_solution_Q()) {
+//        point_memory.fSigma = Stress;
+//        point_memory.fDisplacement = datavec[u_b].sol[0];
+//        point_memory.fPlasticState = elasto_plastic_integrator.GetState();
+//        point_memory.fPorePressure = p[0];
+//        point_memory.fv.resize(m_Dim);
+//        for (int i = 0;  i < m_Dim; i++)
+//        {
+//            point_memory.fv[i] = - (k/m_eta) * Grad_p(i,0);
+//        }
+//        memory_vec[global_point_index] = point_memory;
+//    }
+//    
+//    
+//    // @brief of checking whether the plasticity is necessary
+//    if (m_SetRunPlasticity)
+//    {
+//        ContributePlastic_3D(datavec[0],weight,ek,ef);
+//        
+//#ifdef LOG4CXX
+//        if(logger->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
+//            sout << " Resultant rhs vector:\n" << ef;
+//            sout << " Resultant stiff vector:\n" << ek;
+//            LOGPZ_DEBUG(logger,sout.str().c_str());
+//        }
+//#endif
+//        return;
+//    }
 }
 
 
@@ -990,11 +992,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
     
     if (m_UpdateToUseFullDiplacement)
     {
-        TPZMatWithMem<TMEM>::fMemory[ptindex].fPlasticState.fEpsT.Zero();
+        TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
+        TMEM &point_memory = memory_vec[ptindex];
+//        point_memory.fPlasticState.fEpsT.Zero();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
         {
-            TPZMatWithMem<TMEM>::fMemory[ptindex].fDisplacement[i] = 0.;
+//           point_memory.fDisplacement[i] = 0.;
         }
         return;
     }
@@ -2616,11 +2620,13 @@ template<class T,class TMEM>
 void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
     int global_point = data.intGlobPtIndex;
-    TMEM &Memory = TPZMatWithMem<TMEM>::fMemory[global_point];
-    T plasticloc(this->fPlasticity);
-    plasticloc.SetState(Memory.fPlasticState);
+    TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
+    TMEM &Memory = memory_vec[global_point];
     
-    TPZTensor<STATE> Sigma = Memory.fSigma;
+    T plasticloc(this->fPlasticity);
+//    plasticloc.SetState(Memory.fPlasticState);
+    
+    TPZTensor<STATE> Sigma ;//= Memory.fSigma;
     
     STATE normdsol = Norm(data.dsol[0]);
     
@@ -2641,12 +2647,12 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
     
     // The values of displacement and total stress
-    TPZManVector<REAL,3>  u = Memory.fDisplacement;
+    TPZManVector<REAL,3>  u ;//= Memory.fDisplacement;
     TPZTensor<REAL> totalStress = Sigma;
     
     // The values of pore pressure and darcy velocity
-    STATE p = Memory.fPorePressure;
-    TPZManVector<STATE,3> v = Memory.fv;
+    STATE p ;//= Memory.fPorePressure;
+    TPZManVector<STATE,3> v ;//= Memory.fv;
 
 
     // ************************************** The value of parameters ************************
@@ -2967,7 +2973,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 //#include "TPZYCMohrCoulombPV.h"
 //#include "TPZSandlerDimaggio.h"
 
-template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPoroElastoPlasticMem>;
+template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPMRSMemoryPoroElast>;
 //template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 //template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 

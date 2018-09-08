@@ -254,7 +254,7 @@ void TPZPMRSAnalysis::UpdateState()
             DebugStop();
         }
         
-        SetMemory(rock_material->GetMemory());
+//        SetMemory(rock_material->GetMemory());
     }
     else{
         //        Implement for several material ids
@@ -279,7 +279,7 @@ void TPZPMRSAnalysis::Update_at_n_State()
             DebugStop();
         }
         
-        SetMemory_n(rock_material->GetMemory());
+//        SetMemory_n(rock_material->GetMemory());
     }
     else{
         //        Implement for several material ids

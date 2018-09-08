@@ -290,7 +290,8 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemoryPoroElast &memory = GetMemory()[global_point_index];
+    TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
+    TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -502,7 +503,8 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     // Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZPMRSMemoryPoroElast &memory = GetMemory()[global_point_index];
+    TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
+    TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();

@@ -1,0 +1,61 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[backend=biber,style=authoryear,autocite=inline]{biblatex}
+\bibliography{references/references.bib} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Commands
+\newcommand{\PMRS}{\textit{PMRS }}
+\newcommand{\neopz}{\textit{neopz }}
+
+\title{Permeability Multiplier Reservoir Simulator \PMRS project}
+
+\author{Sanei M. and Duran O. and Devloo P.}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document contains details about the implementation and formulations for a novel upscaling approach to consider permeability variations in conventional reservoir simulations.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+\section{Fundamentals}
+\subsection{sec:fundamentals}
+
+\section{Upscaling process for permeability considering geomechanic effects}
+\subsection{sec:upscaling}
+
+\section{Programming and neopz implementation}
+\label{sec:programmaing}
+
+\PMRS uses plastic materials already implemented inside \neopz library.  
+\cite{SouzaNeto2008}.
+
+\subsection{About the custom memory materials}
+
+
+The word impl here is an abbreviation for implementation
+
+\section{Verifications}
+
+\subsection{2D simulations}
+
+\subsection{3D simulations}
+
+\section{Results}
+
+\section{References}
+\printbibliography
+
+
+\end{document}

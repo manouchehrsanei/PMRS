@@ -411,7 +411,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         // *************** PMRSporoPlastic *****************************************************************************
 
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPoroElastoPlasticMem>(matid,dim);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPMRSMemoryPoroElast> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPMRSMemoryPoroElast>(matid,dim);
         
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>(matid,dim);

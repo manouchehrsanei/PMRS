@@ -21,6 +21,7 @@
 #include "TPZGmshReader.h"
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
+#include "pzcheckgeom.h"
 
 class TPZSimulationData
 {
