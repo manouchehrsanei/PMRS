@@ -258,7 +258,7 @@ void RuningMonophasic(TPZSimulationData * sim_data){
     bool mustOptimizeBandwidth = false;
     TPMRSMonoPhasicAnalysis * analysis = new TPMRSMonoPhasicAnalysis;
     analysis->SetCompMesh(cmesh_mixed,mustOptimizeBandwidth);
-    analysis->ConfigurateAnalysis(ELU, mesh_vector, sim_data);
+    analysis->ConfigurateAnalysis(ELDLt, mesh_vector, sim_data);
     
     int n_time_steps = sim_data->ReportingTimes().size();
     std::string file_name("Monophasic.vtk");
