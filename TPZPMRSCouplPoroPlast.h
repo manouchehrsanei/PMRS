@@ -15,7 +15,7 @@
 #include "pzdiscgal.h"
 #include "pzvec.h"
 #include "pzfmatrix.h"
-#include "TPZMatElastoPlastic2D.h"
+#include "TPZMatElastoPlastic2D_impl.h"
 #include "TPZMatWithMem.h"
 
 #include "TPZSandlerExtended.h"
@@ -27,13 +27,13 @@
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 
-#include "TPZPMRSMemoryPoroElast.h"
+#include "TPZPMRSMemoryPoroPlast.h"
 
 // TPZElastoPlasticMem
 // TPZCouplElasPlastMem
 
 
-template <class T, class TMEM = TPZPMRSMemoryPoroElast>
+template <class T, class TMEM = TPZPMRSMemoryPoroPlast>
 class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     

@@ -32,6 +32,9 @@
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 
+// Monophasic
+#include "TPMRSMonophasic.h"
+
 // Elasticity
 #include "TPZElasticCriterion.h"
 
@@ -46,8 +49,10 @@
 #include "TPZSandlerDimaggio.h"
 
 // Analysis
+#include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
 #include "TPZPMRSAnalysis.h"
+#include "TPMRSMonoPhasicAnalysis.h"
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -93,6 +98,14 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
 // Create a computational mesh for PorePerm Coupling
 TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
 
+/// Monophasic
+// Hdiv mesh
+TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
+// L2 mesh
+TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
+// Mixed mesh
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+
 
 // Shear-enhanced compaction and strain localization:
 // Inelastic deformation and constitutive modeling of four porous sandstones
@@ -117,6 +130,8 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 
 // Restructuring implementation
 
+// Method that makes use of TPMRSMonophasic for parabolic solutions
+void RuningMonophasic(TPZSimulationData * sim_data);
 
 
 int main(int argc, char *argv[])
@@ -160,6 +175,9 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
+
+    RuningMonophasic(sim_data);
+    return 0;
     
 #ifdef PZDEBUG
 //    sim_data->PrintGeometry();
@@ -228,6 +246,27 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+void RuningMonophasic(TPZSimulationData * sim_data){
+    
+#ifdef PZDEBUG
+    sim_data->PrintGeometry();
+#endif
+    
+    TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
+    TPZCompMesh * cmesh_mixed = CMesh_Mixed(mesh_vector,sim_data);
+    
+    bool mustOptimizeBandwidth = false;
+    TPMRSMonoPhasicAnalysis * analysis = new TPMRSMonoPhasicAnalysis;
+    analysis->SetCompMesh(cmesh_mixed,mustOptimizeBandwidth);
+    analysis->ConfigurateAnalysis(ELU, mesh_vector, sim_data);
+    
+    int n_time_steps = sim_data->ReportingTimes().size();
+    std::string file_name("Monophasic.vtk");
+    for (int it = 0; it < n_time_steps; it++) {
+        analysis->ExecuteOneTimeStep();
+        analysis->PostProcessTimeStep(file_name);
+    }    
+}
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh)
@@ -335,7 +374,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
 }
 
 
-// Create a computational mesh for Pore Pressure
+// Create a computational mesh for continuous Pore Pressure
 TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
 {
     
@@ -378,6 +417,172 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
 }
 
 
+// Create a computational mesh for Hdiv flux vector
+TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
+{
+    
+    // Getting mesh dimension
+    int dim = sim_data->Dimension();
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+        cmesh->InsertMaterialObject(material);
+        
+        // Inserting boundary conditions
+        int dirichlet = 0;
+        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
+        int n_bc = material_ids[iregion].second.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second [ibc];
+            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
+            cmesh->InsertMaterialObject(bc);
+        }
+    }
+    // Setting Hdiv approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(sim_data->DiffusionOrder());
+    cmesh->SetAllCreateFunctionsHDiv();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshFlux.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
+// Create a computational mesh for discontinuous Pore Pressure
+TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
+{
+    
+    // Getting mesh dimension
+    int dim = sim_data->Dimension();
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+        cmesh->InsertMaterialObject(material);
+    
+    }
+    
+    // Setting Discontinuous approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(sim_data->DiffusionOrder());
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->AutoBuild();
+    
+    int ncon = cmesh->NConnects();
+    for(int i=0; i<ncon; i++)
+    {
+        TPZConnect &newnod = cmesh->ConnectVec()[i];
+        newnod.SetLagrangeMultiplier(1);
+    }
+    
+#ifdef PZDEBUG
+        std::ofstream out("CmeshPorePressure_Disc.txt");
+        cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+    
+    /// Constant fluid properties
+    STATE eta = sim_data->Get_eta();
+    STATE rho_0 = sim_data->Get_rho_f();
+    STATE c = 0.0*0.0000145038;
+    STATE s = 1.0e-6;
+    
+    
+    mesh_vector[0] = CMesh_Flux(sim_data);
+    mesh_vector[1] = CMesh_PorePressure_disc(sim_data);
+    
+    int dim = sim_data->Dimension();
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    
+    std::map<int, std::string>::iterator it_bc_id_to_type;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
+    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPMRSMonophasic * material = new TPMRSMonophasic(matid,dim);
+        material->SetSimulationData(sim_data);
+        material->SetFluidProperties(rho_0, eta, c);
+        material->SetScaleFactor(s);
+        cmesh->InsertMaterialObject(material);
+        
+        // Inserting boundary conditions
+        int n_bc = material_ids[iregion].second.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second [ibc];
+            
+            it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
+            
+            int bc_index = it_condition_type_to_index_value_names->second.first;
+            int n_bc_values = it_bc_id_to_values->second.size();
+            TPZFMatrix<STATE> val1(0,0,0.), val2(1,1,0.);
+            REAL value = it_bc_id_to_values->second[n_bc_values-1];
+            val2(0,0) = value;
+            
+            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+            cmesh->InsertMaterialObject(bc);
+        }
+    }
+    
+    cmesh->SetDimModel(dim);
+    cmesh->SetAllCreateFunctionsMultiphysicElemWithMem();
+    cmesh->ApproxSpace().CreateWithMemory(true);
+    cmesh->AutoBuild();
+    
+    
+    TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
+    TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->InitializeIntegrationRule();
+        mfcel->PrepareIntPtIndices();
+    }
+    
+    cmesh->CleanUpUnconnectedNodes();
+    
+#ifdef PZDEBUG
+    std::ofstream out("CmeshMixed.txt");
+    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
 // Create a computational mesh for PorePerm Coupling
 TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
     
@@ -411,7 +616,7 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         
         // *************** PMRSporoPlastic *****************************************************************************
 
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPMRSMemoryPoroElast> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPMRSMemoryPoroElast>(matid,dim);
+        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPMRSMemoryPoroPlast> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPMRSMemoryPoroPlast>(matid,dim);
         
         
 //        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>(matid,dim);

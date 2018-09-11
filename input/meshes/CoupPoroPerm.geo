@@ -12,7 +12,7 @@
 lc =1.0e1;
 r =0.1;
 h =1.0;
-nh = 11;
+nh = 4;
 nr = 2;
 Is3DQ = 0;
 
@@ -101,3 +101,5 @@ Physical Line("lateral") = {lateral[]};
 
 
 EndIf
+
+Coherence;

@@ -514,6 +514,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     {
         TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
         TMEM &point_memory = memory_vec[ptindex];
+        point_memory.fPlasticState.fEpsT.Zero();
 //        point_memory.fPlasticState.fEpsT.Zero();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
@@ -2973,7 +2974,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 //#include "TPZYCMohrCoulombPV.h"
 //#include "TPZSandlerDimaggio.h"
 
-template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPMRSMemoryPoroElast>;
+template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPMRSMemoryPoroPlast>;
 //template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 //template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 

@@ -61,6 +61,22 @@ public:
     
     virtual int ClassId() const;
     
+    /**
+     * Total (elastic+plastic) stress
+     */
+    TPZTensor<REAL> fSigma;
+    
+    /**
+     * Plastic state vars
+     */
+    TPZPlasticState<REAL> fPlasticState;
+    
+    int fPlasticSteps;
+    
+    REAL fPhi;
+    
+    TPZManVector<REAL,3> fDisplacement;
+    
 };
 
 #endif /* TPZPMRSMemoryPoroPlast_h */

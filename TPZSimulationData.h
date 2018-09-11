@@ -23,6 +23,8 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckgeom.h"
 
+
+//@TODO: Rename TPZSimulationData to TPMRSSimulationData
 class TPZSimulationData
 {
     
