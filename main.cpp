@@ -35,6 +35,9 @@
 // Monophasic
 #include "TPMRSMonophasic.h"
 
+// Geomechanics
+#include "TPMRSElastoPlastic_impl.h"
+
 // Elasticity
 #include "TPZElasticCriterion.h"
 
@@ -71,6 +74,10 @@
 #include "TPZPMRSCouplPoroPlast.h"
 
 
+// Memory Remains
+#include "TPMRSMonoPhasicMemory.h"
+#include "TPMRSElastoPlasticMemory.h"
+
 // Methods declarations
 //#define USING_Pardiso
 
@@ -78,8 +85,6 @@
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 #endif
-
-
 
 // Apply the mesh refinement
 void UniformRefinement(TPZGeoMesh *gmesh, int nh);
@@ -105,6 +110,10 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
 TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
 // Mixed mesh
 TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+
+// Geomechanics
+// H1 mesh for displacements
+TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data);
 
 
 // Shear-enhanced compaction and strain localization:
@@ -132,6 +141,9 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 
 // Method that makes use of TPMRSMonophasic for parabolic solutions
 void RuningMonophasic(TPZSimulationData * sim_data);
+
+// Method that makes use of
+void RuningGeomechanics(TPZSimulationData * sim_data);
 
 
 int main(int argc, char *argv[])
@@ -176,7 +188,8 @@ int main(int argc, char *argv[])
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
 
-    RuningMonophasic(sim_data);
+    RuningGeomechanics(sim_data);
+//    RuningMonophasic(sim_data);
     return 0;
     
 #ifdef PZDEBUG
@@ -244,6 +257,119 @@ int main(int argc, char *argv[])
 
     
 	return EXIT_SUCCESS;
+}
+
+// Method that makes use of
+void RuningGeomechanics(TPZSimulationData * sim_data){
+    
+    TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
+    int n_threads = sim_data->n_threads();
+    bool mustOptimizeBandwidth = false;
+    TPZAnalysis * analysis = new TPZAnalysis;
+    analysis->SetCompMesh(cmesh_geomechanic,mustOptimizeBandwidth);
+    
+    TPZStepSolver<STATE> step;
+    TPZSkylineNSymStructMatrix struct_mat(analysis->Mesh());
+    struct_mat.SetNumThreads(n_threads);
+    analysis->SetStructuralMatrix(struct_mat);
+    step.SetDirect(ELU);
+    analysis->SetSolver(step);
+    
+    
+    analysis->Assemble();
+    analysis->Rhs() *= -1.0;
+    analysis->Solve();
+    
+    /// Accept the solution
+    {
+        
+    }
+    
+    /// Post-process from memory
+    
+    TPZPostProcAnalysis * post_processor = new TPZPostProcAnalysis;
+    post_processor->SetCompMesh(analysis->Mesh());
+    
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<int,10> post_mat_id(n_regions);
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        post_mat_id[iregion] = matid;
+    }
+    
+    TPZStack<std::string> var_names;
+    var_names.Push("ux");
+    var_names.Push("uy");
+    post_processor->SetPostProcessVariables(post_mat_id, var_names);
+    
+    TPZFStructMatrix structmatrix(post_processor->Mesh());
+    structmatrix.SetNumThreads(n_threads);
+    post_processor->SetStructuralMatrix(structmatrix);
+    
+    std::string file("geomechanic.vtk");
+    int dim = analysis->Mesh()->Dimension();
+    int div = 0;
+    TPZStack< std::string> vecnames;
+    post_processor->TransferSolution();
+    post_processor->DefineGraphMesh(dim,var_names,vecnames,file);
+    post_processor->PostProcess(div,dim);
+    
+    
+}
+
+TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
+    
+    // Getting mesh dimension
+    int dim = sim_data->Dimension();
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory>(matid);
+        material->SetDimension(dim);
+        cmesh->InsertMaterialObject(material);
+        
+        // Inserting boundary conditions
+        int dirichlet = 0;
+        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
+        int n_bc = material_ids[iregion].second.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second [ibc];
+            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
+            cmesh->InsertMaterialObject(bc);
+        }
+    }
+    
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(sim_data->ElasticityOrder());
+    cmesh->SetAllCreateFunctionsContinuousWithMem();
+    cmesh->AutoBuild();
+    
+//    long nel = cmesh->NElements();
+//    TPZVec<long> indices;
+//    for (long el = 0; el<nel; el++) {
+//        TPZCompEl *cel = cmesh->Element(el);
+//        if (!cel) {
+//            continue;
+//        }
+//        cel->PrepareIntPtIndices();
+//    }
+    
+#ifdef PZDEBUG
+        std::ofstream out("Cmesh_Geomechanics.txt");
+        cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
 }
 
 void RuningMonophasic(TPZSimulationData * sim_data){

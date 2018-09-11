@@ -334,13 +334,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     
     TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
     Sigma_0.Zero();
-    TPZFNMatrix<9,REAL> S(2,2,0.0);
+    TPZFNMatrix<9,REAL> delta_S(2,2,0.0);
     
-    S(0,0) = ((Stress(_XX_,0))-(Sigma_0(0,0)));
-    S(0,1) = ((Stress(_XY_,0))-(Sigma_0(0,1)));
+    delta_S(0,0) = ((Stress(_XX_,0))-(Sigma_0(0,0)));
+    delta_S(0,1) = ((Stress(_XY_,0))-(Sigma_0(0,1)));
     
-    S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
-    S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
+    delta_S(1,0) = ((Stress(_XY_,0))-(Sigma_0(1,0)));
+    delta_S(1,1) = ((Stress(_YY_,0))-(Sigma_0(1,1)));
        
 
     for (int iu = 0; iu < nphi_u; iu++) {
@@ -352,8 +352,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         Grad_vy_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvy/dx
         Grad_vy_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvy/dy
         
-        ef(2*iu   + first_u, 0) += weight * ((S(0,0)-m_alpha * p[0])*Grad_vx_i(0,0)+S(0,1)*Grad_vx_i(1,0)-(m_b[0])*phiu(iu,0));
-        ef(2*iu+1 + first_u, 0)	+= weight * (S(1,0)*Grad_vy_i(0,0)+(S(1,1)-m_alpha*p[0])*Grad_vy_i(1,0)-(m_b[1])*phiu(iu,0));
+        ef(2*iu   + first_u, 0) += weight * ((delta_S(0,0)-m_alpha * p[0])*Grad_vx_i(0,0)+delta_S(0,1)*Grad_vx_i(1,0)-(m_b[0])*phiu(iu,0));
+        ef(2*iu+1 + first_u, 0)	+= weight * (delta_S(1,0)*Grad_vy_i(0,0)+(delta_S(1,1)-m_alpha*p[0])*Grad_vy_i(1,0)-(m_b[1])*phiu(iu,0));
         
         
         for (int ju = 0; ju < nphi_u; ju++) {

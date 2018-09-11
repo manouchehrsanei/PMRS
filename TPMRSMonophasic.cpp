@@ -303,13 +303,13 @@ void TPMRSMonophasic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         STATE p                  = datavec[p_b].sol[0][0];
         
         if (m_simulation_data->IsInitialStateQ()) {
-            this->GetMemory()->operator[](gp_index).Setp_0(p);
+            this->GetMemory().get()->operator[](gp_index).Setp_0(p);
         }
         
         if (m_simulation_data->IsCurrentStateQ()) {
-            this->GetMemory()->operator[](gp_index).Setp_n(p);
+            this->GetMemory().get()->operator[](gp_index).Setp_n(p);
         }else{
-            this->GetMemory()->operator[](gp_index).Setp(p);
+            this->GetMemory().get()->operator[](gp_index).Setp(p);
         }
         
     }else{

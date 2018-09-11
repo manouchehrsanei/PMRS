@@ -45,10 +45,10 @@ public:
     /// Constructor based on a material id
     TPMRSMonophasic(int mat_id, int dimension);
     
-    /// Constructor based on a TRMMultiphase object
+    /// Constructor based on a TPMRSMonophasic object
     TPMRSMonophasic(const TPMRSMonophasic & other);
     
-    /// Constructor based on a TRMMultiphase object
+    /// Constructor based on a TPMRSMonophasic object
     TPMRSMonophasic &operator=(const TPMRSMonophasic & other);
     
     /// Default destructor
@@ -91,7 +91,6 @@ public:
     /// Returns the solution associated with the var index based on a finite element approximation (Used for TPZPostProcAnalysis)
     void Solution(TPZMaterialData &datavec, int var, TPZVec<REAL> &Solout);
     
-
     
     /// Set the pointer of Simulation data object
     void SetSimulationData(TPZSimulationData * simulation_data){
