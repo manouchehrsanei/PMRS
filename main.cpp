@@ -143,9 +143,11 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 // Method that makes use of TPMRSMonophasic for parabolic solutions
 void RuningMonophasic(TPZSimulationData * sim_data);
 
-// Method that makes use of
+// Method that makes use of TPMRSElastoPlastic
 void RuningGeomechanics(TPZSimulationData * sim_data);
 
+// Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
+void RuningSegregatedSolver(TPZSimulationData * sim_data);
 
 int main(int argc, char *argv[])
 {
@@ -189,7 +191,7 @@ int main(int argc, char *argv[])
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
 
-    RuningGeomechanics(sim_data);
+//    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);
     return 0;
     
@@ -258,6 +260,10 @@ int main(int argc, char *argv[])
 
     
 	return EXIT_SUCCESS;
+}
+
+void RuningSegregatedSolver(TPZSimulationData * sim_data){
+    
 }
 
 // Method that makes use of
