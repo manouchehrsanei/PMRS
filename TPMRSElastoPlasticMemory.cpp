@@ -11,9 +11,9 @@
 TPMRSElastoPlasticMemory::TPMRSElastoPlasticMemory(){
     
     m_sigma_n.Zero();
-    m_u_n.resize(0);
+    m_u_n.resize(3);
     m_sigma.Zero();
-    m_u.resize(0);
+    m_u.resize(3);
 }
 
 TPMRSElastoPlasticMemory::TPMRSElastoPlasticMemory(const TPMRSElastoPlasticMemory & other){

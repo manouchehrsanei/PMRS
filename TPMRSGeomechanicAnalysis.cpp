@@ -1,18 +1,17 @@
 //
-//  TPMRSMonoPhasicAnalysis.cpp
+//  TPMRSGeomechanicAnalysis.cpp
 //  PMRS
 //
-//  Created by Omar Durán on 9/9/18.
+//  Created by Omar Durán on 9/11/18.
 //
 
-#include "TPMRSMonoPhasicAnalysis.h"
+#include "TPMRSGeomechanicAnalysis.h"
 
-TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
+TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis() : TPZAnalysis(){
     
     m_simulation_data = NULL;
     m_X_n.Resize(0, 0);
     m_X.Resize(0, 0);
-    m_mesh_vec.Resize(0);
     m_error = 0;
     m_dx_norm = 0;
     m_k_iterations = 0;
@@ -21,16 +20,15 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
     
 }
 
-TPMRSMonoPhasicAnalysis::~TPMRSMonoPhasicAnalysis(){
-
+TPMRSGeomechanicAnalysis::~TPMRSGeomechanicAnalysis(){
+    
 }
 
-TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis & other){
+TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysis & other){
     
     m_simulation_data   = other.m_simulation_data;
     m_X_n               = other.m_X_n;
     m_X                 = other.m_X;
-    m_mesh_vec          = other.m_mesh_vec;
     m_error             = other.m_error;
     m_dx_norm           = other.m_dx_norm;
     m_k_iterations      = other.m_k_iterations;
@@ -39,7 +37,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis &
     
 }
 
-void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPZManVector<TPZCompMesh * , 2> & mesh_vec,TPZSimulationData * simulation_data){
+void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPZSimulationData * simulation_data){
     SetSimulationData(simulation_data);
     TPZStepSolver<STATE> step;
     unsigned int number_threads = m_simulation_data->n_threads();
@@ -48,19 +46,17 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         std::cout << "Call SetCompMesh method." << std::endl;
         DebugStop();
     }
-    m_mesh_vec = mesh_vec;
-
     
     switch (decomposition) {
-        case ELU:
+        case ECholesky:
         {
-            TPZSkylineNSymStructMatrix struct_mat(Mesh());
+            TPZSkylineStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
         }
             break;
         case ELDLt:
-        {            
+        {
             TPZSymetricSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -82,8 +78,6 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     m_post_processor = new TPZPostProcAnalysis;
     m_post_processor->SetCompMesh(Mesh());
     
-    
-    
     int n_regions = m_simulation_data->NumberOfRegions();
     TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = m_simulation_data->MaterialIds();
     TPZManVector<int,10> post_mat_id(n_regions);
@@ -93,7 +87,17 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         post_mat_id[iregion] = matid;
     }
     
-    m_var_names.Push("p");
+    m_var_names.Push("ux");
+    m_var_names.Push("uy");
+    m_var_names.Push("sxx");
+    m_var_names.Push("syy");
+    m_var_names.Push("szz");
+    m_var_names.Push("exx");
+    m_var_names.Push("eyy");
+    m_var_names.Push("ezz");
+    m_var_names.Push("epxx");
+    m_var_names.Push("epyy");
+    m_var_names.Push("epzz");
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
     
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
@@ -102,29 +106,25 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     
 }
 
-void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
+void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     this->Assemble();
     this->Rhs() *= -1.0;
     this->Solve();
 }
 
-void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
+void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
     }
-    
-    m_simulation_data->SetCurrentStateQ(false);
-    AcceptTimeStepSolution();
-    
-    // Initial guess
-    m_X_n = m_X;
-    LoadCurrentState();
-    
+
     m_simulation_data->SetCurrentStateQ(true);
-    this->AcceptTimeStepSolution();
     
-    TPZFMatrix<STATE> dx;
+    // Reset du to zero
+    Solution().Zero();
+    LoadSolution(Solution());
+    
+    TPZFMatrix<STATE> dx(Solution());
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
@@ -134,9 +134,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     for (int i = 1; i <= n_it; i++) {
         this->ExecuteNewtonInteration();
-        dx = Solution();
-        m_X_n += dx;
-        LoadCurrentState();
+        dx += Solution();
+        LoadSolution(dx);
         this->AssembleResidual();
         norm_res = Norm(Rhs());
         norm_dx  = Norm(dx);
@@ -146,9 +145,13 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i << std::endl;
             std::cout << "Correction norm = " << norm_dx << std::endl;
-            LoadCurrentState();
-            this->AcceptTimeStepSolution();
-            m_X = m_X_n;
+            this->AcceptPseudoTimeStepSolution();
+            
+            {// Update last state just for fun
+                m_simulation_data->SetTransferCurrentToLastQ(true);
+                AcceptPseudoTimeStepSolution();
+                m_simulation_data->SetTransferCurrentToLastQ(false);
+            }
             break;
         }
     }
@@ -158,7 +161,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     }
 }
 
-void TPMRSMonoPhasicAnalysis::PostProcessTimeStep(std::string & file){
+void TPMRSGeomechanicAnalysis::PostProcessTimeStep(std::string & file){
     
     int dim = Mesh()->Dimension();
     int div = 0;
@@ -168,31 +171,29 @@ void TPMRSMonoPhasicAnalysis::PostProcessTimeStep(std::string & file){
     m_post_processor->PostProcess(div,dim);
 }
 
-void TPMRSMonoPhasicAnalysis::AcceptTimeStepSolution(){
-
+void TPMRSGeomechanicAnalysis::AcceptPseudoTimeStepSolution(){
+    
     bool state = m_simulation_data->IsCurrentStateQ();
     if (state) {
         m_simulation_data->Set_must_accept_solution_Q(true);
-        LoadSolution(m_X_n);
         AssembleResidual();
         m_simulation_data->Set_must_accept_solution_Q(false);
     }else{
         m_simulation_data->Set_must_accept_solution_Q(true);
-        LoadSolution(m_X);
         AssembleResidual();
         m_simulation_data->Set_must_accept_solution_Q(false);
     }
 }
 
 
-void TPMRSMonoPhasicAnalysis::LoadCurrentState(){
+void TPMRSGeomechanicAnalysis::LoadCurrentState(){
     LoadSolution(m_X_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    DebugStop();
 }
 
-void TPMRSMonoPhasicAnalysis::LoadLastState(){
+void TPMRSGeomechanicAnalysis::LoadLastState(){
     LoadSolution(m_X);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    DebugStop();
 }
 
 

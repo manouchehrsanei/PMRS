@@ -30,8 +30,8 @@ class TPZSimulationData
     
 protected:
     
-    /** @brief Flag that states is the poroperm coupling is mixed */
-    bool m_is_mixed_formulation_Q;
+    /** @brief Directive that states if the last memory solution is being transferred to the current memory solution */
+    bool m_transfer_current_to_last_solution_Q;
     
     /** @brief Spatial refinemenet level */
     int m_h_level;
@@ -152,7 +152,7 @@ public:
     /** @brief default constructor */
     TPZSimulationData(const TPZSimulationData & other)
     {
-        m_is_mixed_formulation_Q            = other.m_is_mixed_formulation_Q;
+        m_transfer_current_to_last_solution_Q            = other.m_transfer_current_to_last_solution_Q;
         m_h_level                           = other.m_h_level;
         m_elasticity_order                  = other.m_elasticity_order;
         m_diffusion_order                   = other.m_diffusion_order;
@@ -185,7 +185,7 @@ public:
     {
         if (this != & other) // prevent self-assignment
         {
-            m_is_mixed_formulation_Q            = other.m_is_mixed_formulation_Q;
+            m_transfer_current_to_last_solution_Q = other.m_transfer_current_to_last_solution_Q;
             m_h_level                           = other.m_h_level;
             m_elasticity_order                  = other.m_elasticity_order;
             m_diffusion_order                   = other.m_diffusion_order;
@@ -221,8 +221,11 @@ public:
     /** @brief Read the xml input file */
     void ReadSimulationFile(char *simulation_file);
     
-    /** @brief Set the flag that states is the poroperm coupling is mixed */
-    void SetMixedFormulationQ(bool flag) { m_is_mixed_formulation_Q = flag; }
+    /** @brief Set the directive that states if the current memory solution is being transferred to the last memory solution */
+    void SetTransferCurrentToLastQ(bool transfer_current_to_last_solution_Q) { m_transfer_current_to_last_solution_Q = transfer_current_to_last_solution_Q; }
+
+    /** @brief Get the directive that states if the current memory solution is being transferred to the last memory solution */
+    bool GetTransferCurrentToLastQ() { return m_transfer_current_to_last_solution_Q; }
     
     /** @brief Set initial state */
     void SetInitialStateQ(bool state) { m_is_initial_state_Q = state; }

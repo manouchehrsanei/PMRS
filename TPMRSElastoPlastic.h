@@ -28,6 +28,9 @@ private:
     /// Material dimension
     int m_dimension;
     
+    /// Plastic integrator object composed by a yield function and a elastic predictor
+    T m_plastic_integrator;
+    
 public:
     
     /// Default constructor
@@ -80,12 +83,23 @@ public:
     
     void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
     
+    /// Set the pointer of Simulation data object
+    void SetSimulationData(TPZSimulationData * simulation_data);
+    
     void SetDimension(int dimension){
         m_dimension = dimension;
     }
     
     int GetDimension(){
         return m_dimension;
+    }
+    
+    void SetPlasticIntegrator(T & plastic_integrator){
+        m_plastic_integrator = plastic_integrator;
+    }
+    
+    T & GetPlasticIntegrator(){
+        return m_plastic_integrator;
     }
     
     void Epsilon(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t);

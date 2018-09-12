@@ -12,7 +12,7 @@
 TPZSimulationData::TPZSimulationData()
 {
     
-    m_is_mixed_formulation_Q = false;
+    m_transfer_current_to_last_solution_Q = false;
     m_h_level = 0;
     m_elasticity_order = 0;
     m_diffusion_order = 0;
@@ -136,7 +136,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("p_order");
     int diffusion_order = std::atoi(char_container);
     
-    m_is_mixed_formulation_Q    = is_mixed_formulation_Q;
+    m_transfer_current_to_last_solution_Q    = is_mixed_formulation_Q;
     m_h_level                   = h_level;
     m_elasticity_order          = elasticity_order;
     m_diffusion_order           = diffusion_order;
@@ -446,7 +446,7 @@ void TPZSimulationData::Print()
     
     std::cout << " TPZSimulationData class members : " << std::endl;
     std::cout << std::endl;
-    std::cout << " m_is_mixed_formulation_Q = " << m_is_mixed_formulation_Q << std::endl;
+    std::cout << " m_transfer_current_to_last_solution_Q = " << m_transfer_current_to_last_solution_Q << std::endl;
     std::cout << " m_h_level = " << m_h_level << std::endl;
     std::cout << " m_elasticity_order = " << m_elasticity_order << std::endl;
     std::cout << " m_diffusion_order = " << m_diffusion_order << std::endl;

@@ -8,7 +8,7 @@
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.001" />
-        <StepNumber n_time_steps="1" />
+        <StepNumber n_time_steps="10" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -71,7 +71,7 @@
     </RegionsDefinition>
     <BoundaryConditions>
         <BoundaryCondition bc_id="2" type="Duy_Dp" uy="0.0" p="20.0e6" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-3.0e6" tz="-3.0e6" p="0.0e6" />
+        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-500.0" tz="-3.0e6" p="0.0e6" />
         <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
     </BoundaryConditions>           
 </CaseData>

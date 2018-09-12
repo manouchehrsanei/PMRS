@@ -463,7 +463,7 @@ int TPMRSMonophasic::NSolutionVariables(int var) {
 void TPMRSMonophasic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
     
     long gp_index = data.intGlobPtIndex;
-    TPMRSMonoPhasicMemory & memory = this->GetMemory()->operator[](gp_index);
+    TPMRSMonoPhasicMemory & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
     switch (var) {
