@@ -12,7 +12,7 @@
 #include "TPMRSMonoPhasicMemory.h"
 #include "TPMRSElastoPlasticMemory.h"
 
-class TPMRSMemory : public TPMRSMonoPhasicMemory, TPMRSElastoPlasticMemory {
+class TPMRSMemory : public TPMRSMonoPhasicMemory, public TPMRSElastoPlasticMemory {
     
 public:
     

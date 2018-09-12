@@ -1,23 +1,23 @@
 //
-//  TPMRSMonophasic.h
+//  TPMRSMonoPhasic.h
 //  PMRS
 //
 //  Created by Omar Durán on 9/9/18.
 //
 
-#ifndef TPMRSMonophasic_h
-#define TPMRSMonophasic_h
+#ifndef TPMRSMonoPhasic_h
+#define TPMRSMonoPhasic_h
 
 #include <stdio.h>
 #include "TPZMatWithMem.h"
-#include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 #include "TPZSimulationData.h"
 #include "TPMRSMonoPhasicMemory.h"
 
-class TPMRSMonophasic : public TPZMatWithMem<TPMRSMonoPhasicMemory,TPZDiscontinuousGalerkin> {
+template <class TMEM>
+class TPMRSMonoPhasic : public TPZMatWithMem<TMEM> {
     
     /// Pointer of Simulation data
     TPZSimulationData * m_simulation_data;
@@ -40,19 +40,19 @@ class TPMRSMonophasic : public TPZMatWithMem<TPMRSMonoPhasicMemory,TPZDiscontinu
 public:
     
     /// Default constructor
-    TPMRSMonophasic();
+    TPMRSMonoPhasic();
     
     /// Constructor based on a material id
-    TPMRSMonophasic(int mat_id, int dimension);
+    TPMRSMonoPhasic(int mat_id, int dimension);
     
-    /// Constructor based on a TPMRSMonophasic object
-    TPMRSMonophasic(const TPMRSMonophasic & other);
+    /// Constructor based on a TPMRSMonoPhasic object
+    TPMRSMonoPhasic(const TPMRSMonoPhasic & other);
     
-    /// Constructor based on a TPMRSMonophasic object
-    TPMRSMonophasic &operator=(const TPMRSMonophasic & other);
+    /// Constructor based on a TPMRSMonoPhasic object
+    TPMRSMonoPhasic &operator=(const TPMRSMonoPhasic & other);
     
     /// Default destructor
-    ~TPMRSMonophasic();
+    ~TPMRSMonoPhasic();
     
     /// Set the required data at each integration point
     void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
@@ -62,7 +62,7 @@ public:
     
     /// Returns the name of the material
     std::string Name() {
-        return "TPMRSMonophasic";
+        return "TPMRSMonoPhasic";
     }
     
     /// Returns the integrable dimension of the material */
@@ -73,7 +73,7 @@ public:
     
     virtual TPZMaterial *NewMaterial()
     {
-        return new TPMRSMonophasic(*this);
+        return new TPMRSMonoPhasic(*this);
     }
     
     /// Print out the data associated with the material
@@ -200,4 +200,4 @@ public:
 };
 
 
-#endif /* TPMRSMonophasic_h */
+#endif /* TPMRSMonoPhasic_h */

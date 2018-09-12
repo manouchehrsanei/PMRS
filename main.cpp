@@ -33,10 +33,20 @@
 #include "pzbndcond.h"
 
 // Monophasic
-#include "TPMRSMonophasic.h"
+#include "TPMRSMonoPhasic_impl.h"
+#include "TPMRSMonoPhasicAnalysis.h"
+#include "TPMRSMonoPhasicMemory.h"
+
 
 // Geomechanics
 #include "TPMRSElastoPlastic_impl.h"
+#include "TPMRSGeomechanicAnalysis.h"
+#include "TPZPMRSMemoryPoroElast.h"
+#include "TPMRSElastoPlasticMemory.h"
+
+// Segregated solver
+#include "TPMRSMemory.h"
+
 
 // Elasticity
 #include "TPZElasticCriterion.h"
@@ -46,7 +56,7 @@
 #include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
 
-#include "TPZPMRSMemoryPoroElast.h"
+
 #include "pzporoelastoplasticmem.h"
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerDimaggio.h"
@@ -55,8 +65,7 @@
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
 #include "TPZPMRSAnalysis.h"
-#include "TPMRSMonoPhasicAnalysis.h"
-#include "TPMRSGeomechanicAnalysis.h"
+
 
 // Matrix
 #include "pzskylstrmatrix.h"
@@ -74,10 +83,6 @@
 #include "TPZPMRSCouplPoroElast.h"
 #include "TPZPMRSCouplPoroPlast.h"
 
-
-// Memory Remains
-#include "TPMRSMonoPhasicMemory.h"
-#include "TPMRSElastoPlasticMemory.h"
 
 // Methods declarations
 //#define USING_Pardiso
@@ -110,11 +115,11 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
 // L2 mesh
 TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
 // Mixed mesh
-TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data, int int_order = 0);
 
 // Geomechanics
 // H1 mesh for displacements
-TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order = 0);
 
 
 // Shear-enhanced compaction and strain localization:
@@ -191,8 +196,11 @@ int main(int argc, char *argv[])
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
 
+    
+    
 //    RuningGeomechanics(sim_data);
-//    RuningMonophasic(sim_data);
+    RuningMonophasic(sim_data);
+//    RuningSegregatedSolver(sim_data);
     return 0;
     
 #ifdef PZDEBUG
@@ -264,12 +272,34 @@ int main(int argc, char *argv[])
 
 void RuningSegregatedSolver(TPZSimulationData * sim_data){
     
+    
+    // Base on Fixed Split stress
+    bool mustOptimizeBandwidth = false;
+    int integration_order = 4;
+    
+    // The Geomechanics Simulator
+    TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data,integration_order);
+    TPMRSGeomechanicAnalysis * geo_analysis = new TPMRSGeomechanicAnalysis;
+    geo_analysis->SetCompMesh(cmesh_geomechanic,mustOptimizeBandwidth);
+    geo_analysis->ConfigurateAnalysis(ECholesky, sim_data);
+    
+    // The Reservoir Simulator
+    TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
+    TPZCompMesh * cmesh_mixed = CMesh_Mixed(mesh_vector,sim_data);
+    TPMRSMonoPhasicAnalysis * res_analysis = new TPMRSMonoPhasicAnalysis;
+    res_analysis->SetCompMesh(cmesh_mixed,mustOptimizeBandwidth);
+    res_analysis->ConfigurateAnalysis(ELDLt, mesh_vector, sim_data);
+    
+    
+    
 }
 
 // Method that makes use of
 void RuningGeomechanics(TPZSimulationData * sim_data){
     
-    TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
+    int int_order = 4;
+    
+    TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data,int_order);
     bool mustOptimizeBandwidth = false;
     TPMRSGeomechanicAnalysis * analysis = new TPMRSGeomechanicAnalysis;
     analysis->SetCompMesh(cmesh_geomechanic,mustOptimizeBandwidth);
@@ -283,7 +313,7 @@ void RuningGeomechanics(TPZSimulationData * sim_data){
     }
 }
 
-TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order){
     
     // Getting mesh dimension
     int dim = sim_data->Dimension();
@@ -317,7 +347,8 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory>(matid);
+//        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory>(matid);
+        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
         material->SetDimension(dim);
         material->SetPlasticIntegrator(LEMC);
         material->SetSimulationData(sim_data);
@@ -353,15 +384,22 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     cmesh->SetAllCreateFunctionsContinuousWithMem();
     cmesh->AutoBuild();
     
-//    long nel = cmesh->NElements();
-//    TPZVec<long> indices;
-//    for (long el = 0; el<nel; el++) {
-//        TPZCompEl *cel = cmesh->Element(el);
-//        if (!cel) {
-//            continue;
-//        }
-//        cel->PrepareIntPtIndices();
-//    }
+//#ifdef PZDEBUG
+//    std::ofstream out_d("Cmesh_Geomechanics_default.txt");
+//    cmesh->Print(out_d);
+//#endif
+//
+    
+    long nel = cmesh->NElements();
+    TPZVec<long> indices;
+    for (long el = 0; el<nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        cel->SetIntegrationRule(int_order);
+        cel->PrepareIntPtIndices();
+    }
     
 #ifdef PZDEBUG
         std::ofstream out("Cmesh_Geomechanics.txt");
@@ -378,8 +416,10 @@ void RuningMonophasic(TPZSimulationData * sim_data){
     sim_data->PrintGeometry();
 #endif
     
+    int int_order = 1;
+    
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-    TPZCompMesh * cmesh_mixed = CMesh_Mixed(mesh_vector,sim_data);
+    TPZCompMesh * cmesh_mixed = CMesh_Mixed(mesh_vector,sim_data,int_order);
     
     bool mustOptimizeBandwidth = false;
     TPMRSMonoPhasicAnalysis * analysis = new TPMRSMonoPhasicAnalysis;
@@ -626,7 +666,7 @@ TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
     return cmesh;
 }
 
-TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data, int int_order){
     
     /// Constant fluid properties
     STATE eta = sim_data->Get_eta();
@@ -650,7 +690,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPMRSMonophasic * material = new TPMRSMonophasic(matid,dim);
+        TPMRSMonoPhasic<TPMRSMemory> * material = new TPMRSMonoPhasic<TPMRSMemory>(matid,dim);
         material->SetSimulationData(sim_data);
         material->SetFluidProperties(rho_0, eta, c);
         material->SetScaleFactor(s);
@@ -687,6 +727,11 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
+//#ifdef PZDEBUG
+//    std::ofstream out_d("Cmesh_CmeshMixed_default.txt");
+//    cmesh->Print(out_d);
+//#endif
+    
     long nel = cmesh->NElements();
     TPZVec<long> indices;
     for (long el = 0; el<nel; el++) {
@@ -695,7 +740,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
         if (!mfcel) {
             continue;
         }
-        mfcel->InitializeIntegrationRule();
+//        mfcel->InitializeIntegrationRule(int_order);
         mfcel->PrepareIntPtIndices();
     }
     

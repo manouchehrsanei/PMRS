@@ -15,7 +15,6 @@
 #include "pzaxestools.h"
 #include "TPZTensor.h"
 
-
 template <class T, class TMEM>
 class TPMRSElastoPlastic : public TPZMatWithMem<TMEM>
 {
