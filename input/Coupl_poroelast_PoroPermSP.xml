@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/CoupPoroPerm.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/CoupPoroPerm.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
