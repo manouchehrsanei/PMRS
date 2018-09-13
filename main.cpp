@@ -274,14 +274,14 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
     
     
     // Base on Fixed Split stress
-    bool mustOptimizeBandwidth = false;
+    bool mustOptimizeBandwidth = true;
     int integration_order = 4;
     
     // The Geomechanics Simulator
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data,integration_order);
     TPMRSGeomechanicAnalysis * geo_analysis = new TPMRSGeomechanicAnalysis;
     geo_analysis->SetCompMesh(cmesh_geomechanic,mustOptimizeBandwidth);
-    geo_analysis->ConfigurateAnalysis(ECholesky, sim_data);
+    geo_analysis->ConfigurateAnalysis(ELDLt, sim_data);
     
     // The Reservoir Simulator
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
