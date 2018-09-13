@@ -297,14 +297,31 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute_Biot_Stress(TPZMaterialData &data, R
     REAL p_n = this->MemItem(gp_index).p_n();
     REAL alpha = this->MemItem(gp_index).GetAlpha();
     
-    for(int iu = 0; iu < n_phi_u; iu++ )
-    {
-        dvdx = grad_phi_u(0,iu);
-        dvdy = grad_phi_u(1,iu);
-        
-        ef(2*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx + 0.0*dvdy);    // x direction
-        ef(2*iu+1 + first_u)   +=    -1.0 * weight * (0.0*dvdx + alpha*(p_n-p_0)*dvdy);    // y direction
+    if (m_dimension == 2) {
+        for(int iu = 0; iu < n_phi_u; iu++ )
+        {
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            
+            ef(2*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+            ef(2*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
+        }
     }
+    else{
+        REAL dvdz;
+        for(int iu = 0; iu < n_phi_u; iu++ )
+        {
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            dvdz = grad_phi_u(2,iu);
+
+            ef(m_dimension*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
+            ef(m_dimension*iu+2 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdz);    // z direction
+        }
+    }
+    
+
     
 }
 
@@ -327,53 +344,190 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     Epsilon(data,epsilon);
     Sigma(epsilon, sigma, &De);
     
-    TPZFNMatrix<4,STATE> Deriv(2, 2);
+    TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;
-    for(int iu = 0; iu < n_phi_u; iu++ )
-    {
-        dvdx = grad_phi_u(0,iu);
-        dvdy = grad_phi_u(1,iu);
+    
+    if (m_dimension == 2) { // Plane strain conditions.
         
-        ef(2*iu + first_u)     +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy);    // x direction
-        ef(2*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy);    // y direction
-        
-        for(int ju = 0; ju < n_phi_u; ju++)
+        for(int iu = 0; iu < n_phi_u; iu++ )
         {
-
-            for (int ud = 0; ud < 2; ud++) {
-                for (int vd = 0; vd < 2; vd++) {
-                    Deriv(vd, ud) = grad_phi_u(vd, iu) * grad_phi_u(ud, ju);
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            
+            ef(m_dimension*iu + first_u)     +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy);    // y direction
+            
+            for(int ju = 0; ju < n_phi_u; ju++)
+            {
+                
+                for (int ud = 0; ud < m_dimension; ud++) {
+                    for (int vd = 0; vd < m_dimension; vd++) {
+                        Deriv(vd, ud) = grad_phi_u(vd, iu) * grad_phi_u(ud, ju);
+                    }
                 }
+                
+                val = 2. * De(_XX_, _XX_) * Deriv(0, 0);
+                val += De(_XX_, _XY_) * Deriv(0, 1);
+                val += 2. * De(_XY_, _XX_) * Deriv(1, 0);
+                val += De(_XY_, _XY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu + first_u,m_dimension*ju + first_u) += weight * val;
+                
+                val = De(_XX_, _XY_) * Deriv(0, 0);
+                val += 2. * De(_XX_, _YY_) * Deriv(0, 1);
+                val += De(_XY_, _XY_) * Deriv(1, 0);
+                val += 2. * De(_XY_, _YY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu + first_u,m_dimension*ju+1 + first_u) += weight * val;
+                
+                val = 2. * De(_XY_, _XX_) * Deriv(0, 0);
+                val += De(_XY_, _XY_) * Deriv(0, 1);
+                val += 2. * De(_YY_, _XX_) * Deriv(1, 0);
+                val += De(_YY_, _XY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u,2*ju + first_u) += weight * val;
+                
+                val = De(_XY_, _XY_) * Deriv(0, 0);
+                val += 2. * De(_XY_, _YY_) * Deriv(0, 1);
+                val += De(_YY_, _XY_) * Deriv(1, 0);
+                val += 2. * De(_YY_, _YY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u,m_dimension*ju+1 + first_u) += weight * val;
+                
             }
-            
-            val = 2. * De(_XX_, _XX_) * Deriv(0, 0);
-            val += De(_XX_, _XY_) * Deriv(0, 1);
-            val += 2. * De(_XY_, _XX_) * Deriv(1, 0);
-            val += De(_XY_, _XY_) * Deriv(1, 1);
-            val *= 0.5;
-            ek(2*iu + first_u,2*ju + first_u) += weight * val;
-            
-            val = De(_XX_, _XY_) * Deriv(0, 0);
-            val += 2. * De(_XX_, _YY_) * Deriv(0, 1);
-            val += De(_XY_, _XY_) * Deriv(1, 0);
-            val += 2. * De(_XY_, _YY_) * Deriv(1, 1);
-            val *= 0.5;
-            ek(2*iu + first_u,2*ju+1 + first_u) += weight * val;
-            
-            val = 2. * De(_XY_, _XX_) * Deriv(0, 0);
-            val += De(_XY_, _XY_) * Deriv(0, 1);
-            val += 2. * De(_YY_, _XX_) * Deriv(1, 0);
-            val += De(_YY_, _XY_) * Deriv(1, 1);
-            val *= 0.5;
-            ek(2*iu+1 + first_u,2*ju + first_u) += weight * val;
-            
-            val = De(_XY_, _XY_) * Deriv(0, 0);
-            val += 2. * De(_XY_, _YY_) * Deriv(0, 1);
-            val += De(_YY_, _XY_) * Deriv(1, 0);
-            val += 2. * De(_YY_, _YY_) * Deriv(1, 1);
-            val *= 0.5;
-            ek(2*iu+1 + first_u,2*ju+1 + first_u) += weight * val;
+        }
+    }else{
 
+        REAL dvdz;
+        REAL val2,val3,val4,val5,val6,val7,val8,val9,val10; // @TODO:: MS, please rename this variables properly
+        for(int iu = 0; iu < n_phi_u; iu++ )
+        {
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            dvdz = grad_phi_u(2,iu);
+            
+            ef(m_dimension*iu + first_u)     +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy + sigma.XZ()*dvdz);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy + sigma.YZ()*dvdz);    // y direction
+            ef(m_dimension*iu+2 + first_u)   +=    weight * (sigma.XZ()*dvdx + sigma.YZ()*dvdy + sigma.ZZ()*dvdz);    // z direction
+            
+            for(int ju = 0; ju < n_phi_u; ju++)
+            {
+                
+                for (int ud = 0; ud < m_dimension; ud++) {
+                    for (int vd = 0; vd < m_dimension; vd++) {
+                        Deriv(vd, ud) = grad_phi_u(vd, iu) * grad_phi_u(ud, ju);
+                    }
+                }
+                
+                val2  = 2. * De(_XX_,_XX_) * Deriv(0,0);//dvdx*dudx
+                val2 +=      De(_XX_,_XY_) * Deriv(0,1);//dvdx*dudy
+                val2 +=       De(_XX_,_XZ_) * Deriv(0,2);//dvdx*dudz
+                val2 += 2. * De(_XY_,_XX_) * Deriv(1,0);//dvdy*dudx
+                val2 +=      De(_XY_,_XY_) * Deriv(1,1);//dvdy*dudy
+                val2 +=      De(_XY_,_XZ_) * Deriv(1,2);//dvdy*dudz
+                val2 += 2. * De(_XZ_,_XX_) * Deriv(2,0);//dvdz*dudx
+                val2 +=      De(_XZ_,_XY_) * Deriv(2,1);//dvdz*dudy
+                val2 +=      De(_XZ_,_XZ_) * Deriv(2,2);//dvdz*dudz
+                val2 *= 0.5;
+                ek(m_dimension*iu + first_u,m_dimension*ju + first_u) += weight * val2;
+                
+                val3  =      De(_XX_,_XY_) * Deriv(0,0);
+                val3 += 2. * De(_XX_,_YY_) * Deriv(0,1);
+                val3 +=      De(_XX_,_YZ_) * Deriv(0,2);
+                val3 +=      De(_XY_,_XY_) * Deriv(1,0);
+                val3 += 2. * De(_XY_,_YY_) * Deriv(1,1);
+                val3 +=      De(_XY_,_YZ_) * Deriv(1,2);
+                val3 +=      De(_XZ_,_XY_) * Deriv(2,0);
+                val3 += 2. * De(_XZ_,_YY_) * Deriv(2,1);
+                val3 +=      De(_XZ_,_YZ_) * Deriv(2,2);
+                val3 *= 0.5;
+                ek(m_dimension*iu + first_u,m_dimension*ju+1 + first_u) += weight * val3;
+                
+                val4  =      De(_XX_,_XZ_) * Deriv(0,0);
+                val4 +=      De(_XX_,_YZ_) * Deriv(0,1);
+                val4 += 2. * De(_XX_,_ZZ_) * Deriv(0,2);
+                val4 +=      De(_XY_,_XZ_) * Deriv(1,0);
+                val4 +=      De(_XY_,_YZ_) * Deriv(1,1);
+                val4 += 2. * De(_XY_,_ZZ_) * Deriv(1,2);
+                val4 +=      De(_XZ_,_XZ_) * Deriv(2,0);
+                val4 +=      De(_XZ_,_YZ_) * Deriv(2,1);
+                val4 += 2. * De(_XZ_,_ZZ_) * Deriv(2,2);
+                val4 *= 0.5;
+                ek(m_dimension*iu + first_u,m_dimension*ju+2 + first_u) += weight * val4;
+                
+                val5  = 2. * De(_XY_,_XX_) * Deriv(0,0);
+                val5 +=      De(_XY_,_XY_) * Deriv(0,1);
+                val5 +=      De(_XY_,_XZ_) * Deriv(0,2);
+                val5 += 2. * De(_YY_,_XX_) * Deriv(1,0);
+                val5 +=      De(_YY_,_XY_) * Deriv(1,1);
+                val5 +=      De(_YY_,_XZ_) * Deriv(1,2);
+                val5 += 2. * De(_YZ_,_XX_) * Deriv(2,0);
+                val5 +=      De(_YZ_,_XY_) * Deriv(2,1);
+                val5 +=      De(_YZ_,_XZ_) * Deriv(2,2);
+                val5 *= 0.5;
+                ek(m_dimension*iu+1 + first_u,m_dimension*ju + first_u) += weight * val5;
+                
+                val6  =      De(_XY_,_XY_) * Deriv(0,0);
+                val6 += 2. * De(_XY_,_YY_) * Deriv(0,1);
+                val6 +=      De(_XY_,_YZ_) * Deriv(0,2);
+                val6 +=      De(_YY_,_XY_) * Deriv(1,0);
+                val6 += 2. * De(_YY_,_YY_) * Deriv(1,1);
+                val6 +=      De(_YY_,_YZ_) * Deriv(1,2);
+                val6 +=      De(_YZ_,_XY_) * Deriv(2,0);
+                val6 += 2. * De(_YZ_,_YY_) * Deriv(2,1);
+                val6 +=      De(_YZ_,_YZ_) * Deriv(2,2);
+                val6 *= 0.5;
+                ek(m_dimension*iu+1 + first_u,m_dimension*ju+1 + first_u) += weight * val6;
+                
+                val7  =      De(_XY_,_XZ_) * Deriv(0,0);
+                val7 +=      De(_XY_,_YZ_) * Deriv(0,1);
+                val7 += 2. * De(_XY_,_ZZ_) * Deriv(0,2);
+                val7 +=      De(_YY_,_XZ_) * Deriv(1,0);
+                val7 +=      De(_YY_,_YZ_) * Deriv(1,1);
+                val7 += 2. * De(_YY_,_ZZ_) * Deriv(1,2);
+                val7 +=      De(_YZ_,_XZ_) * Deriv(2,0);
+                val7 +=      De(_YZ_,_YZ_) * Deriv(2,1);
+                val7 += 2. * De(_YZ_,_ZZ_) * Deriv(2,2);
+                val7 *= 0.5;
+                ek(m_dimension*iu+1 + first_u,m_dimension*ju+2 + first_u) += weight * val7;
+                
+                val8  = 2. * De(_XZ_,_XX_) * Deriv(0,0);
+                val8 +=      De(_XZ_,_XY_) * Deriv(0,1);
+                val8 +=      De(_XZ_,_XZ_) * Deriv(0,2);
+                val8 += 2. * De(_YZ_,_XX_) * Deriv(1,0);
+                val8 +=      De(_YZ_,_XY_) * Deriv(1,1);
+                val8 +=      De(_YZ_,_XZ_) * Deriv(1,2);
+                val8 += 2. * De(_ZZ_,_XX_) * Deriv(2,0);
+                val8 +=      De(_ZZ_,_XY_) * Deriv(2,1);
+                val8 +=      De(_ZZ_,_XZ_) * Deriv(2,2);
+                val8 *= 0.5;
+                ek(m_dimension*iu+2 + first_u,m_dimension*ju + first_u) += weight * val8;
+                
+                val9  =      De(_XZ_,_XY_) * Deriv(0,0);
+                val9 += 2. * De(_XZ_,_YY_) * Deriv(0,1);
+                val9 +=      De(_XZ_,_YZ_) * Deriv(0,2);
+                val9 +=      De(_YZ_,_XY_) * Deriv(1,0);
+                val9 += 2. * De(_YZ_,_YY_) * Deriv(1,1);
+                val9 +=      De(_YZ_,_YZ_) * Deriv(1,2);
+                val9 +=      De(_ZZ_,_XY_) * Deriv(2,0);
+                val9 += 2. * De(_ZZ_,_YY_) * Deriv(2,1);
+                val9 +=      De(_ZZ_,_YZ_) * Deriv(2,2);
+                val9 *= 0.5;
+                ek(m_dimension*iu+2 + first_u,m_dimension*ju+1 + first_u) += weight * val9;
+                
+                val10  =      De(_XZ_,_XZ_) * Deriv(0,0);
+                val10 +=      De(_XZ_,_YZ_) * Deriv(0,1);
+                val10 += 2. * De(_XZ_,_ZZ_) * Deriv(0,2);
+                val10 +=      De(_YZ_,_XZ_) * Deriv(1,0);
+                val10 +=      De(_YZ_,_YZ_) * Deriv(1,1);
+                val10 += 2. * De(_YZ_,_ZZ_) * Deriv(1,2);
+                val10 +=      De(_ZZ_,_XZ_) * Deriv(2,0);
+                val10 +=      De(_ZZ_,_YZ_) * Deriv(2,1);
+                val10 += 2. * De(_ZZ_,_ZZ_) * Deriv(2,2);
+                val10 *= 0.5;
+                ek(m_dimension*iu+2 + first_u,m_dimension*ju+2 + first_u) += weight * val10;
+                
+            }
         }
     }
     
@@ -384,6 +538,12 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
 
 template <class T, class TMEM>
 void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+    
+    
+    if(m_dimension == 3){
+        this->ContributeBC_3D(data,weight,ek,ef,bc);
+        return;
+    }
     
     TPZFMatrix<REAL>  &phiu = data.phi;
     // Getting the solutions and derivatives
@@ -612,7 +772,6 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             
         case 5 : // Nt
             // Neumann of traction
-            
         {
             REAL v[3];
             v[0] = bc.Val2()(0,0);    //    Tnx
@@ -851,11 +1010,3 @@ void TPMRSElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,T
     data.fNeedsSol = true;
     data.fNeedsNormal = true;
 }
-
-
-
-
-
-
-
-

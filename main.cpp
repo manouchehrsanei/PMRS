@@ -189,7 +189,6 @@ int main(int argc, char *argv[])
 //    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);
     RuningSegregatedSolver(sim_data);
-    
 	return EXIT_SUCCESS;
 }
 
@@ -335,7 +334,6 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order){
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-//        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSElastoPlasticMemory>(matid);
         TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
         material->SetDimension(dim);
         material->SetPlasticIntegrator(LEMC);
@@ -355,7 +353,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order){
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
             TPZFMatrix<STATE> val1(0,0,0.), val2(dim,1,0.);
-            for (int i = 0; i < n_bc_values - 1; i++) {
+            for (int i = 0; i < n_bc_values; i++) {
                 REAL value = it_bc_id_to_values->second[i];
                 val2(i,0) = value;
             }

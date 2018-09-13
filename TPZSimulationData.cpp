@@ -709,7 +709,6 @@ void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
         chunkGeo.first = "Duz"; // name
         chunkGeo.second.first = 7; // index
         chunkGeo.second.second.push_back("uz");
-        chunkGeo.second.second.push_back("p");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
     
