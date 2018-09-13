@@ -148,9 +148,11 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
         m_dx_norm = norm_dx;
         
         if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
+#ifdef PZDEBUG
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
+#endif
             LoadSolution(dx);
             if (must_accept_solution_Q) {
                 m_simulation_data->SetTransferCurrentToLastQ(true);
