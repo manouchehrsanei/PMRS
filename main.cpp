@@ -46,6 +46,7 @@
 
 // Segregated solver
 #include "TPMRSMemory.h"
+#include "TPMRSSegregatedAnalysis.h"
 
 
 // Elasticity
@@ -265,89 +266,18 @@ void RuningFullCoupling(TPZSimulationData * sim_data)
 
 void RuningSegregatedSolver(TPZSimulationData * sim_data){
     
-    
-    // Base on Fixed Split stress
-    bool mustOptimizeBandwidth = true;
+    /// needs improvements
     int integration_order = 4;
     
-    // The Geomechanics Simulator
+    // The Geomechanics Simulator cmesh
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data,integration_order);
-    TPMRSGeomechanicAnalysis * geo_analysis = new TPMRSGeomechanicAnalysis;
-    geo_analysis->SetCompMesh(cmesh_geomechanic,mustOptimizeBandwidth);
-    geo_analysis->ConfigurateAnalysis(ELDLt, sim_data);
-    
-    // The Reservoir Simulator
+    // The Reservoir Simulator cmesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
     TPZCompMesh * cmesh_mixed = CMesh_Mixed(mesh_vector,sim_data);
-    TPMRSMonoPhasicAnalysis * res_analysis = new TPMRSMonoPhasicAnalysis;
-    res_analysis->SetCompMesh(cmesh_mixed,mustOptimizeBandwidth);
-    res_analysis->ConfigurateAnalysis(ELU, mesh_vector, sim_data);
-    
-    
-    /// Linking the separated materials by the same shared pointer
-    /// Get memory vector for all volumetric materials inside the geomechanic mesh
-    {
-        int n_regions = sim_data->NumberOfRegions();
-        TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
-        TPZManVector<int,10> volumetric_mat_id(n_regions);
-//        std::vector<std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>>> ptr_vec;
-        for (int iregion = 0; iregion < n_regions; iregion++)
-        {
-            int matid = material_ids[iregion].first;
-            volumetric_mat_id[iregion] = matid;
-            
-            TPZMaterial * material_geo = cmesh_geomechanic->FindMaterial(matid);
-            TPZMaterial * material_res = cmesh_mixed->FindMaterial(matid);
-            if (!material_geo || !material_res) {
-                DebugStop();
-            }
-            
-            TPZMatWithMem<TPMRSMemory> * mat_with_memory_geo = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_geo);
-            TPZMatWithMem<TPMRSMemory> * mat_with_memory_res = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_res);
-            if (!mat_with_memory_geo || !mat_with_memory_res) {
-                DebugStop();
-            }
-            
-//            std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> ptr_mat_memory = mat_with_memory_geo->GetMemory();
-            mat_with_memory_res->SetMemory(mat_with_memory_geo->GetMemory());
-//            ptr_vec.push_back(ptr_mat_memory);
-            
-//            std::cout << "mat_with_memory_geo->GetMemory() = " << mat_with_memory_geo->GetMemory() << std::endl;
-//            std::cout << "mat_with_memory_res->GetMemory() = " << mat_with_memory_res->GetMemory() << std::endl;
-            
-        }
-    
-    }
-    
-    /// Fixed Stress split
-    int n_time_steps = sim_data->ReportingTimes().size();
-    std::string file_res("ReservoirFlow.vtk");
-    std::string file_geo("Geomechanic.vtk");
-    
-    REAL r_norm = sim_data->epsilon_res();
-    REAL dx_norm = sim_data->epsilon_cor();
-    
-    int n_fss_iterations = 10;
-    bool error_stop_criterion_Q = false;
-    bool dx_stop_criterion_Q = false;
-    for (int it = 0; it < n_time_steps; it++) {
-        for (int k = 1; k <= n_fss_iterations; k++) {
-            res_analysis->ExecuteOneTimeStep(false);
-            geo_analysis->ExecuteOneTimeStep(false);
-            error_stop_criterion_Q = (res_analysis->Get_error() < r_norm) && (geo_analysis->Get_error() < r_norm);
-            dx_stop_criterion_Q = (res_analysis->Get_dx_norm() < dx_norm) && (geo_analysis->Get_dx_norm() < dx_norm);
-            
-            if ((error_stop_criterion_Q && (k > 5)) || dx_stop_criterion_Q) {
-                res_analysis->ExecuteOneTimeStep(true);
-                geo_analysis->ExecuteOneTimeStep(true);
-                res_analysis->PostProcessTimeStep(file_res);
-                geo_analysis->PostProcessTimeStep(file_geo);
-                std::cout << "Iterative process converged with residue norm for res = " << res_analysis->Get_error() << std::endl;
-                std::cout << "Iterative process converged with residue norm for geo = " << geo_analysis->Get_error() << std::endl;
-                break;
-            }
-        }
-    }
+
+    TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
+    segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_mixed, mesh_vector);
+    segregated_analysis->ExecuteTimeEvolution();
 }
 
 
