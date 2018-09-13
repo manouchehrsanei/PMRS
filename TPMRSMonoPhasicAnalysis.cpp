@@ -93,6 +93,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         post_mat_id[iregion] = matid;
     }
     
+    // @TODO:: MS, please transfer from xml file
     m_var_names.Push("p");
     m_var_names.Push("phi");
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);

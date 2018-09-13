@@ -87,6 +87,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
         post_mat_id[iregion] = matid;
     }
     
+    // @TODO:: MS, please transfer from xml file
     m_var_names.Push("ux");
     m_var_names.Push("uy");
     m_var_names.Push("sxx");
@@ -98,6 +99,11 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
     m_var_names.Push("epxx");
     m_var_names.Push("epyy");
     m_var_names.Push("epzz");
+    
+    if (m_simulation_data->Dimension() == 3) {
+        m_var_names.Push("uz");
+    }
+    
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
     
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
