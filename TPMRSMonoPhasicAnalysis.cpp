@@ -94,6 +94,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     }
     
     m_var_names.Push("p");
+    m_var_names.Push("phi");
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
     
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
@@ -108,7 +109,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
     this->Solve();
 }
 
-void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
+void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
@@ -117,10 +118,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     m_simulation_data->SetCurrentStateQ(false);
     AcceptTimeStepSolution();
     
-    // Initial guess
-    m_X_n = m_X;
-    LoadCurrentState();
-    
+//    // Initial guess
+//    m_X_n = m_X;
     m_simulation_data->SetCurrentStateQ(true);
     this->AcceptTimeStepSolution();
     
@@ -135,26 +134,32 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     for (int i = 1; i <= n_it; i++) {
         this->ExecuteNewtonInteration();
         dx = Solution();
+        norm_dx  = Norm(dx);
         m_X_n += dx;
-        LoadCurrentState();
+
+        this->AcceptTimeStepSolution();
         this->AssembleResidual();
         norm_res = Norm(Rhs());
-        norm_dx  = Norm(dx);
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
+        
+        m_k_iterations = i;
+        m_error = norm_res;
+        m_dx_norm = norm_dx;
+        
         if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
-            std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
-            std::cout << "Number of iterations = " << i << std::endl;
-            std::cout << "Correction norm = " << norm_dx << std::endl;
-            LoadCurrentState();
-            this->AcceptTimeStepSolution();
-            m_X = m_X_n;
+            std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
+            std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
+            std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
+            if (must_accept_solution_Q) {
+                m_X = m_X_n;
+            }
             break;
         }
     }
     
     if (residual_stop_criterion_Q == false) {
-        std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+        std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
 }
 
@@ -173,12 +178,12 @@ void TPMRSMonoPhasicAnalysis::AcceptTimeStepSolution(){
     bool state = m_simulation_data->IsCurrentStateQ();
     if (state) {
         m_simulation_data->Set_must_accept_solution_Q(true);
-        LoadSolution(m_X_n);
+        LoadCurrentState();
         AssembleResidual();
         m_simulation_data->Set_must_accept_solution_Q(false);
     }else{
         m_simulation_data->Set_must_accept_solution_Q(true);
-        LoadSolution(m_X);
+        LoadLastState();
         AssembleResidual();
         m_simulation_data->Set_must_accept_solution_Q(false);
     }

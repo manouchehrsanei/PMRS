@@ -180,7 +180,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     // Get the pressure at the integrations points
     long gp_index = datavec[0].intGlobPtIndex;
-    TPMRSMonoPhasicMemory & memory = this->GetMemory()->operator[](gp_index);
+    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     
     // Time
     STATE dt = m_simulation_data->dt();
@@ -202,8 +202,6 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     Kinv(1,1) = 1.0/memory.kappa();
     Kinv(2,2) = 1.0/memory.kappa();
     
-    REAL phi_0   = memory.phi_0();
-    
     int nphi_q       = datavec[q_b].fVecShapeIndex.NElements();
     int nphi_p       = phi_ps.Rows();
     int firstq       = 0;
@@ -223,7 +221,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             dot    += Kinv(i,j)*q[j];
         }
         Kl_inv_q(i,0)     = (1.0/lambda) * dot;
-        Kdldp_inv_q(i,0)  = (-(m_c*m_rho_0)/(m_eta*lambda*lambda)) * dot;
+//        Kdldp_inv_q(i,0)  = (-(m_c*m_rho_0)/(m_eta*lambda*lambda)) * dot;
     }
     
     // Integration point contribution
@@ -274,17 +272,21 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * Kdldp_inv_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+//            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * Kdldp_inv_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+            ek(iq + firstq, jp + firstp) += weight * (- (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
         }
         
     }
     
     STATE div_q = (grad_q_axes(0,0) + grad_q_axes(1,1) + grad_q_axes(2,2));
+    STATE phi_n,dphi_ndp,phi;
+    this->porosity(gp_index,phi_n,dphi_ndp,phi);
+    
     
     for (int ip = 0; ip < nphi_p; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * m_scale_factor * weight * (div_q + (1.0/dt) * ( phi_0*rho_n - phi_0*rho )) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * m_scale_factor * weight * (div_q + (1.0/dt) * ( phi_n*rho_n - phi*rho )) * phi_ps(ip,0);
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -293,7 +295,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * m_scale_factor * weight * ( (1.0/dt) * (phi_0*rho_n * drho_ndp_n * phi_ps(jp,0) ) ) * phi_ps(ip,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * m_scale_factor * weight * ( (1.0/dt) * ((phi_n * drho_ndp_n + dphi_ndp * rho_n) * phi_ps(jp,0) ) ) * phi_ps(ip,0);
         }
         
     }
@@ -475,7 +477,7 @@ template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
     
     long gp_index = data.intGlobPtIndex;
-    TPMRSMonoPhasicMemory & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
     switch (var) {
@@ -502,5 +504,41 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
         }
             break;
     }
+
+        
     
+}
+
+template <class TMEM>
+void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
+    
+    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    
+    REAL phi_0 = memory.phi_0();
+//    phi = phi_0;
+//    phi_n = phi_0;
+//    dphi_ndp = 0.0;
+//    this->GetMemory().get()->operator[](gp_index).Setphi(phi);
+//    return;
+    
+    REAL nu = m_simulation_data->Get_nu();
+    REAL E = m_simulation_data->Get_young();
+    REAL Kdr = E/(3.0*(1.0-2.0*nu));
+    
+    REAL alpha = memory.GetAlpha();
+    REAL Se = memory.GetSe();
+    
+    REAL p_0 = memory.p_0();
+    REAL p = memory.p();
+    REAL p_n = memory.p_n();
+
+    REAL sigma_v_0 = memory.GetSigma_0().I1()/3;
+    REAL sigma_v = memory.GetSigma().I1()/3;
+    REAL sigma_v_n = memory.GetSigma_n().I1()/3;
+    
+    phi     = phi_0 + (Se + (alpha*alpha)/Kdr)*(p-p_0) + (alpha/Kdr)*(sigma_v-sigma_v_0);
+    phi_n   = phi_0 + (Se + (alpha*alpha)/Kdr)*(p_n-p_0) + (alpha/Kdr)*(sigma_v_n-sigma_v_0);
+    
+    dphi_ndp = (Se + (alpha*alpha)/Kdr);
+    this->GetMemory().get()->operator[](gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

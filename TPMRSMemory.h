@@ -14,6 +14,14 @@
 
 class TPMRSMemory : public TPMRSMonoPhasicMemory, public TPMRSElastoPlasticMemory {
     
+private:
+    
+    /// Biot-Willis coefficient
+    REAL m_alpha;
+    
+    /// Constrained specific storage at constant strain
+    REAL m_Se;
+    
 public:
     
     /// Default constructor
@@ -47,6 +55,22 @@ public:
     }
     
     virtual int ClassId() const;
+    
+    void SetAlpha(REAL alpha){
+        m_alpha  = alpha;
+    }
+    
+    REAL GetAlpha(){
+        return m_alpha;
+    }
+    
+    void SetSe(REAL Se){
+        m_Se  = Se;
+    }
+    
+    REAL GetSe(){
+        return m_Se;
+    }
     
 };
 

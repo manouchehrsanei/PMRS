@@ -40,6 +40,15 @@ private:
     /// Last displacement field
     TPZManVector<REAL,3> m_u;
     
+    /// Initial stress state
+    TPZTensor<REAL> m_sigma_0;
+    
+    /// Initial plastic_strain state
+    TPZPlasticState<REAL> m_plastic_strain_0;
+    
+    /// Initial displacement field
+    TPZManVector<REAL,3> m_u_0;
+    
     
 public:
     
@@ -134,6 +143,36 @@ public:
     /// Get the last displacement field
     TPZManVector<REAL,3> & Getu(){
         return m_u;
+    }
+    
+    /// Set the initial stress state
+    void SetSigma_0(TPZTensor<REAL> & sigma_0){
+        m_sigma_0 = sigma_0;
+    }
+    
+    /// Get the initial stress state
+    TPZTensor<REAL> & GetSigma_0(){
+        return m_sigma_0;
+    }
+    
+    /// Set the initial plastic_strain state
+    void SetPlasticState_0(TPZPlasticState<REAL> & plastic_strain_0){
+        m_plastic_strain_0 = plastic_strain_0;
+    }
+    
+    /// Get the initial plastic_strain state
+    TPZPlasticState<REAL> & GetPlasticState_0(){
+        return m_plastic_strain_0;
+    }
+    
+    /// Set the initial displacement field
+    void Setu_0(TPZManVector<REAL,3> & u_0){
+        m_u_0 = u_0;
+    }
+    
+    /// Get the initial displacement field
+    TPZManVector<REAL,3> & Getu_0(){
+        return m_u_0;
     }
     
 };

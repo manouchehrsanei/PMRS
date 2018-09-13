@@ -280,8 +280,36 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZTensor<REAL> & epsilon_t, TPZTensor<RE
 }
 
 template <class T, class TMEM>
-void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPMRSElastoPlastic<T,TMEM>::Contribute_Biot_Stress(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){
     
+    // Getting weight functions
+    TPZFMatrix<REAL>  & phi_u     =  data.phi;
+    int n_phi_u = phi_u.Rows();
+    int first_u  = 0;
+    
+    TPZFNMatrix<40,REAL> grad_phi_u(3,n_phi_u);
+    TPZAxesTools<REAL>::Axes2XYZ(data.dphix, grad_phi_u, data.axes);
+    
+    REAL dvdx,dvdy;
+    
+    int gp_index = data.intGlobPtIndex;
+    REAL p_0 = this->MemItem(gp_index).p_0();
+    REAL p_n = this->MemItem(gp_index).p_n();
+    REAL alpha = this->MemItem(gp_index).GetAlpha();
+    
+    for(int iu = 0; iu < n_phi_u; iu++ )
+    {
+        dvdx = grad_phi_u(0,iu);
+        dvdy = grad_phi_u(1,iu);
+        
+        ef(2*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx + 0.0*dvdy);    // x direction
+        ef(2*iu+1 + first_u)   +=    -1.0 * weight * (0.0*dvdx + alpha*(p_n-p_0)*dvdy);    // y direction
+    }
+    
+}
+
+template <class T, class TMEM>
+void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
     
     // Getting weight functions
     TPZFMatrix<REAL>  & phi_u     =  data.phi;
@@ -349,7 +377,9 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         }
     }
     
-    
+    /// Biot's effect
+    this->Contribute_Biot_Stress(data, weight, ef);
+
 }
 
 template <class T, class TMEM>

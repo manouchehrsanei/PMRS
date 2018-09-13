@@ -70,7 +70,7 @@ public:
     void ExecuteNewtonInteration();
     
     /// Execute the evolution for a single pseudo time step
-    void ExecuteOneTimeStep();
+    void ExecuteOneTimeStep(bool must_accept_solution_Q = true);
     
     /// Post-processing the variables for a single pseudo time step
     void PostProcessTimeStep(std::string & file);
@@ -83,6 +83,46 @@ public:
     
     /// Load the last state for the hdiv and 2 meshes
     void LoadLastState();
+    
+    
+    /** @brief Set Residue error */
+    void Set_error(STATE error)
+    {
+        m_error = error;
+    }
+    
+    /** @brief Get Residue error */
+    STATE Get_error()
+    {
+        return m_error;
+    }
+    
+    
+    /** @brief Set Correction variation */
+    void Set_dx_norm(STATE dxnorm)
+    {
+        m_dx_norm = dxnorm;
+    }
+    
+    /** @brief Get Correction variation */
+    STATE Get_dx_norm()
+    {
+        return m_dx_norm;
+    }
+    
+    
+    /** @brief Set number of Newton iterations */
+    void Set_k_iterations(int kiterations)
+    {
+        m_k_iterations = kiterations;
+    }
+    
+    /** @brief Get number of Newton iterations */
+    int Get_k_iterations()
+    {
+        return m_k_iterations;
+    }
+    
     
 };
 

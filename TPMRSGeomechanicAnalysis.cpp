@@ -112,7 +112,7 @@ void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     this->Solve();
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
+void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
@@ -120,9 +120,9 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
 
     m_simulation_data->SetCurrentStateQ(true);
     
-    // Reset du to zero
-    Solution().Zero();
-    LoadSolution(Solution());
+//    // Reset du to zero
+//    Solution().Zero();
+//    LoadSolution(Solution());
     
     TPZFMatrix<STATE> dx(Solution());
     bool residual_stop_criterion_Q = false;
@@ -135,19 +135,24 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     for (int i = 1; i <= n_it; i++) {
         this->ExecuteNewtonInteration();
         dx += Solution();
+        norm_dx  = Norm(Solution());
         LoadSolution(dx);
+        this->AcceptPseudoTimeStepSolution();
         this->AssembleResidual();
-        norm_res = Norm(Rhs());
-        norm_dx  = Norm(dx);
+        norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
+        
+        m_k_iterations = i;
+        m_error = norm_res;
+        m_dx_norm = norm_dx;
+        
         if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
-            std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
-            std::cout << "Number of iterations = " << i << std::endl;
-            std::cout << "Correction norm = " << norm_dx << std::endl;
-            this->AcceptPseudoTimeStepSolution();
-            
-            {// Update last state just for fun
+            std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
+            std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
+            std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
+            LoadSolution(dx);
+            if (must_accept_solution_Q) {
                 m_simulation_data->SetTransferCurrentToLastQ(true);
                 AcceptPseudoTimeStepSolution();
                 m_simulation_data->SetTransferCurrentToLastQ(false);
@@ -157,7 +162,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     }
     
     if (residual_stop_criterion_Q == false) {
-        std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+        std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
 }
 

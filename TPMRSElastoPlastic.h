@@ -105,6 +105,8 @@ public:
     
     void Sigma(TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep = NULL);
     
+    void Contribute_Biot_Stress(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+    
 };
 
 #endif /* TPMRSElastoPlastic_h */

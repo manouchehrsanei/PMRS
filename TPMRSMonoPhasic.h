@@ -197,6 +197,8 @@ public:
         Setc(c);
     }
     
+    void porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi);
+    
 };
 
 

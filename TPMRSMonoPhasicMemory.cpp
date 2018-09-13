@@ -10,7 +10,7 @@
 
 TPMRSMonoPhasicMemory::TPMRSMonoPhasicMemory(){
     
-    m_p_0       = 10.0;
+    m_p_0       = 0.0;
     m_p         = 0.0;
     m_p_n       = 0.0;
     m_kappa_0   = 1.0e-13;

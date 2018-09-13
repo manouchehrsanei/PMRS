@@ -9,11 +9,13 @@
 
 
 TPMRSMemory::TPMRSMemory() : TPMRSMonoPhasicMemory() , TPMRSElastoPlasticMemory() {
-    
+    m_alpha = 0.5;
+    m_Se = 1.0*0.00000145038;
 }
 
 TPMRSMemory::TPMRSMemory(const TPMRSMemory & other): TPMRSMonoPhasicMemory(other), TPMRSElastoPlasticMemory(other) {
-    
+    m_alpha = other.m_alpha;
+    m_Se    = other.m_Se;
 }
 
 const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
@@ -22,6 +24,9 @@ const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
     if(&other == this){
         return *this;
     }
+    
+    m_alpha = other.m_alpha;
+    m_Se    = other.m_Se;
     
     return *this;
 }
