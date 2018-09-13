@@ -2,7 +2,7 @@
 //  TPMRSElastoPlastic.h
 //  PMRS
 //
-//  Created by Omar Durán on 9/11/18.
+//  Created by Omar and Manouchehr on 9/11/18.
 //
 
 #ifndef TPMRSElastoPlastic_h

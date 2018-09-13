@@ -31,22 +31,20 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="CouplPoroelastPoroPermSP.vtk" n_divisions="0" n_scalars="8" n_vectors="2"
+        <PostProcessing vtk_file="CouplPoroelastPoroPermSP.vtk" n_divisions="0" n_reservoiroutputs="1" n_geomechanicoutputs="7"
         />
-        <Scalars>
+        <ReservoirOutputControls>
+            <Var name="p" />
+        </ReservoirOutputControls>
+        <GeomechanicOutputControls>
             <Var name="e_x" />
             <Var name="e_y" />
-            <Var name="p" />
             <Var name="phi" />
             <Var name="k_x" />
             <Var name="k_y" />
             <Var name="s_x" />
             <Var name="s_y" />
-        </Scalars>
-        <Vectors>
-            <Var name="u" />
-            <Var name="v" />
-        </Vectors>
+        </GeomechanicOutputControls>
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
@@ -75,7 +73,7 @@
         <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
     </BoundaryConditionReservoirs> 
     <BoundaryConditionGeomechanics>
-        <BoundaryConditionGeomechanic bc_id="2" type="Duy"  p="20.0e6" />
+        <BoundaryConditionGeomechanic bc_id="2" type="Duy"  uy="0.0" />
         <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-10.0" />
         <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0"  />
     </BoundaryConditionGeomechanics> 

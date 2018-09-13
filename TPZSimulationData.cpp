@@ -30,8 +30,8 @@ TPZSimulationData::TPZSimulationData()
     m_geometry = NULL;
     m_vtk_file = "";
     m_vtk_resolution = 0;
-    m_scalnames.Resize(0);
-    m_vecnames.Resize(0);
+    m_reservoiroutputs.Resize(0);
+    m_geomechanicoutputs.Resize(0);
     m_n_regions = 0;
     m_mat_ids.Resize(0);
     m_mat_props.Resize(0);
@@ -163,37 +163,37 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     int vtk_resolution = std::atoi(char_container);
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
-    char_container = container->Attribute("n_scalars");
-    int n_scalars = std::atoi(char_container);
+    char_container = container->Attribute("n_reservoiroutputs");
+    int n_reservoiroutputs = std::atoi(char_container);
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
-    char_container = container->Attribute("n_vectors");
-    int n_vectors = std::atoi(char_container);
+    char_container = container->Attribute("n_geomechanicoutputs");
+    int n_geomechanicoutputs = std::atoi(char_container);
     
-    TPZManVector<std::string,50> scalnames(n_scalars), vecnames(n_vectors);
+    TPZManVector<std::string,50> reservoiroutputs(n_reservoiroutputs), geomechanicoutputs(n_geomechanicoutputs);
 
     int iscalar = 0;
-    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
+    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "ReservoirOutputControls" ).FirstChild( "Var" ).ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
         char_container = container->Attribute("name");
-        scalnames[iscalar] = char_container;
+        reservoiroutputs[iscalar] = char_container;
         iscalar++;
     }
 
     int ivectorial = 0;
-    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "Vectors" ).FirstChild( "Var" ).ToElement();
+    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "GeomechanicOutputControls" ).FirstChild( "Var" ).ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
         char_container = container->Attribute("name");
-        vecnames[ivectorial] = char_container;
+        geomechanicoutputs[ivectorial] = char_container;
         ivectorial++;
     }
     
     m_vtk_file = vtk_file;
     m_vtk_resolution = vtk_resolution;
-    m_scalnames = scalnames;
-    m_vecnames = vecnames;
+    m_reservoiroutputs = reservoiroutputs;
+    m_geomechanicoutputs = geomechanicoutputs;
     // End:: Outputs
     
     
@@ -368,7 +368,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
 
     
     
-    // Begin:: Regions and materials parameters
+    // Begin:: Regions and materials parameters of Reservoir Simulator
     this->LoadBoundaryConditionsReservoirs();
     
     std::pair<int, std::string > bc_id_to_type_chunk_reser;
@@ -396,7 +396,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
             if (!char_container)
             {
                 std::cout << " the boundary " << condition << "  needs the value " << chunk_reser->second.second[i] << std::endl;
-                std::cout << " Please review your boundary condition definitions. " << std::endl;
+                std::cout << " Please review the boundary condition of Reservoir Simulator. " << std::endl;
                 DebugStop();
             }
 #endif
@@ -411,11 +411,11 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         m_bc_id_to_type_reser.insert(bc_id_to_type_chunk_reser);
         
     }
+    // End:: Regions and materials parameters of Reservoir Simulator
     
     
     
-    
-    // Begin:: Regions and materials parameters
+    // Begin:: Regions and materials parameters of Geomechanic Simulator
     this->LoadBoundaryConditionsGeomechanics();
     
     std::pair<int, std::string > bc_id_to_type_chunk_geo;
@@ -443,7 +443,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
             if (!char_container)
             {
                 std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
-                std::cout << " Please review your boundary condition definitions. " << std::endl;
+                std::cout << " Please review your boundary condition of Geomechanic Simulator. " << std::endl;
                 DebugStop();
             }
 #endif
@@ -458,11 +458,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         m_bc_id_to_type_geo.insert(bc_id_to_type_chunk_geo);
         
     }
-    
-    
-    
-    
-    // End:: Regions and materials parameters
+    // End:: Regions and materials parameters of Geomechanic Simulator
     
 }
 
@@ -514,8 +510,8 @@ void TPZSimulationData::Print()
     std::cout << " m_geometry = " << m_geometry << std::endl;
     std::cout << " m_vtk_file = " << m_vtk_file << std::endl;
     std::cout << " m_vtk_resolution = " << m_vtk_resolution << std::endl;
-    std::cout << " m_scalnames = " << m_scalnames << std::endl;
-    std::cout << " m_vecnames = " << m_vecnames << std::endl;
+    std::cout << " m_reservoiroutputs = " << m_reservoiroutputs << std::endl;
+    std::cout << " m_geomechanicoutputs = " << m_geomechanicoutputs << std::endl;
     std::cout << " m_n_regions = " << m_n_regions << std::endl;
     
     std::cout << " m_mat_ids = " << std::endl;

@@ -2,7 +2,7 @@
 //  TPMRSMonoPhasic_impl.hpp
 //  PMRS
 //
-//  Created by Omar Durán on 9/12/18.
+//  Created by Omar and Manouchehr on 9/11/18.
 //
 
 #include "TPMRSMonoPhasic.h"
@@ -353,7 +353,8 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
     REAL Value = bc.Val2()(0,0);
     
-    switch (bc.Type()) {
+    switch (bc.Type())
+    {
             
         case 0 :    // Dirichlet BC  PD
         {
@@ -365,6 +366,7 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
         }
 
             break;
+            
         case 1 :    // Neumann BC  QN
         {
             

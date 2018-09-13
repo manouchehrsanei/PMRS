@@ -85,10 +85,10 @@ protected:
     int m_vtk_resolution;
     
     /** @brief Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> m_scalnames;
+    TPZManVector<std::string,50> m_reservoiroutputs;
     
     /** @brief Vector that storage vector names for postprocessing */
-    TPZManVector<std::string,50> m_vecnames;
+    TPZManVector<std::string,50> m_geomechanicoutputs;
     
     /** @brief Integer that define the number of regions presented in the geometry */
     int m_n_regions;
@@ -110,28 +110,24 @@ protected:
     /** @brief Current time value */
     REAL m_time;
     
-    /** @brief Map that storage all the boundary conditions supported  */
+    /** @brief Map that storage all the boundary conditions of Reservoir Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_reser;
     
-    /** @brief Map that storage the boundary condition identifier with the numerical values provided  */
+    /** @brief Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided  */
     std::map<int, std::vector<REAL> > m_bc_id_to_values_reser;
     
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition  */
+    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
     std::map<int, std::string> m_bc_id_to_type_reser;
     
-    
-    
-    /** @brief Map that storage all the boundary conditions supported  */
+    /** @brief Map that storage all the boundary conditions of Geomechanic Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_geo;
     
-    /** @brief Map that storage the boundary condition identifier with the numerical values provided  */
+    /** @brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided  */
     std::map<int, std::vector<REAL> > m_bc_id_to_values_geo;
     
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition  */
+    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
     std::map<int, std::string> m_bc_id_to_type_geo;
-    
-    
-    
+        
     
     /** @brief Directive that states if the current solution must be accepted inside the memory  */
     bool m_must_accept_solution_Q;
@@ -152,9 +148,6 @@ protected:
     REAL mc_coh;
     REAL mc_phi;
     REAL mc_psi;
-
-
-    
     
     
 public:
@@ -184,8 +177,8 @@ public:
         m_geometry                          = other.m_geometry;
         m_vtk_file                          = other.m_vtk_file;
         m_vtk_resolution                    = other.m_vtk_resolution;
-        m_scalnames                         = other.m_scalnames;
-        m_vecnames                          = other.m_vecnames;
+        m_reservoiroutputs                         = other.m_reservoiroutputs;
+        m_geomechanicoutputs                          = other.m_geomechanicoutputs;
         m_n_regions                         = other.m_n_regions;
         m_mat_ids                           = other.m_mat_ids;
         m_mat_props                         = other.m_mat_props;
@@ -217,8 +210,8 @@ public:
             m_geometry                          = other.m_geometry;
             m_vtk_file                          = other.m_vtk_file;
             m_vtk_resolution                    = other.m_vtk_resolution;
-            m_scalnames                         = other.m_scalnames;
-            m_vecnames                          = other.m_vecnames;
+            m_reservoiroutputs                         = other.m_reservoiroutputs;
+            m_geomechanicoutputs                          = other.m_geomechanicoutputs;
             m_n_regions                         = other.m_n_regions;
             m_mat_ids                           = other.m_mat_ids;
             m_mat_props                         = other.m_mat_props;
@@ -299,10 +292,10 @@ public:
     int n_div() { return m_vtk_resolution; }
     
     /** @brief Get Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> scalar_names() { return m_scalnames; }
+    TPZManVector<std::string,50> reservoir_outputs() { return m_reservoiroutputs; }
     
     /** @brief Get Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> vector_names() { return m_vecnames; }
+    TPZManVector<std::string,50> geomechanic_outputs() { return m_geomechanicoutputs; }
     
     /** @brief Get the gravity field */
     TPZVec<REAL> & Gravity()
@@ -353,32 +346,24 @@ public:
     /** @brief Print the geometry member */
     void PrintGeometry();
     
-    
-    
-    /** @brief Get the map that storage all the boundary conditions supported  */
+    /** @brief Get the map that storage all the boundary conditions of Reservoir Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexReservoirs() { return m_condition_type_to_index_value_names_reser; }
     
-    /** @brief Get the map that storage the type of boundary condition with the numerical values provided  */
+    /** @brief Get the map that storage the type of boundary condition of Reservoir Simulator with the numerical values provided  */
     std::map< int , std::vector<REAL> > & BCIdToBCValuesReservoirs() { return m_bc_id_to_values_reser; }
     
-    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
+    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
     std::map<int, std::string> & BCIdToConditionTypeReservoirs() { return m_bc_id_to_type_reser; }
     
     
-    
-    
-    
-    /** @brief Get the map that storage all the boundary conditions supported  */
+    /** @brief Get the map that storage all the boundary conditions of Geomechanic Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexGeomechanics() { return m_condition_type_to_index_value_names_geo; }
     
-    /** @brief Get the map that storage the type of boundary condition with the numerical values provided  */
+    /** @brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided  */
     std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanics() { return m_bc_id_to_values_geo; }
     
-    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition  */
+    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
     std::map<int, std::string> & BCIdToConditionTypeGeomechanics() { return m_bc_id_to_type_geo; }
-    
-    
-    
     
     
     /** @brief Get the directive that states if the current solution must be accepted inside the memory  */
@@ -431,11 +416,11 @@ private:
     /** @brief Read the Gmsh file and set the geometry member */
     void ReadGeometry();
     
-    /** @brief Fillup the map that storage all the boundary conditions supported */
+    /** @brief Fillup the map that storage all the boundary conditions of Reservoir Simulator supported */
     void LoadBoundaryConditionsReservoirs();
     
     
-    /** @brief Fillup the map that storage all the boundary conditions supported */
+    /** @brief Fillup the map that storage all the boundary conditions of Geomechanic Simulator supported */
     void LoadBoundaryConditionsGeomechanics();
 
     

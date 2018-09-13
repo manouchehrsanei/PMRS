@@ -297,12 +297,12 @@ void TPZPMRSAnalysis::PostProcessStepStandard()
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
     
-    TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
-    TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
+    TPZManVector<std::string,50> reservoiroutputs = m_SimulationData->reservoir_outputs();
+    TPZManVector<std::string,50> geomechanicoutputs = m_SimulationData->geomechanic_outputs();
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
-    this->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+    this->DefineGraphMesh(dim,reservoiroutputs,geomechanicoutputs,plotfile);
     this->PostProcess(div,dim);
     
     std::cout << "Standard post-processing finished." << std::endl;
@@ -319,23 +319,23 @@ void TPZPMRSAnalysis::PostProcessStep()
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
  
-    TPZManVector<std::string,50> scalnames = m_SimulationData->scalar_names();
-    TPZManVector<std::string,50> vecnames = m_SimulationData->vector_names();
+    TPZManVector<std::string,50> reservoiroutputs = m_SimulationData->reservoir_outputs();
+    TPZManVector<std::string,50> geomechanicoutputs = m_SimulationData->geomechanic_outputs();
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
     // Scalars and vectors in the integration point
-    TPZStack<std::string> scalnames_intPoints;
-    TPZStack<std::string> vecnames_intPoints;
+    TPZStack<std::string> reservoiroutputs_intPoints;
+    TPZStack<std::string> geomechanicoutputs_intPoints;
     
     TPZStack<std::string> vars;
-    for (auto varname : scalnames)
+    for (auto varname : reservoiroutputs)
     {
-            scalnames_intPoints.push_back(varname);
+            reservoiroutputs_intPoints.push_back(varname);
     }
-    for (auto varname : vecnames)
+    for (auto varname : geomechanicoutputs)
     {
-            vecnames_intPoints.push_back(varname);
+            geomechanicoutputs_intPoints.push_back(varname);
     }
     
     TPZVec<int> PostProcMatIds(1);
@@ -343,21 +343,21 @@ void TPZPMRSAnalysis::PostProcessStep()
         PostProcMatIds[0] = 1;
         TPZPostProcAnalysis postProcessAnalysis;
         postProcessAnalysis.SetCompMesh(this->Mesh());
-        TPZVec<std::string> vars(scalnames_intPoints.size()+vecnames_intPoints.size());
-        for (unsigned int i = 0; i < scalnames_intPoints.size(); ++i)
+        TPZVec<std::string> vars(reservoiroutputs_intPoints.size()+geomechanicoutputs_intPoints.size());
+        for (unsigned int i = 0; i < reservoiroutputs_intPoints.size(); ++i)
         {
-            vars[i] = scalnames_intPoints[i];
+            vars[i] = reservoiroutputs_intPoints[i];
         }
-        for (unsigned int i = 0; i < vecnames_intPoints.size(); ++i)
+        for (unsigned int i = 0; i < geomechanicoutputs_intPoints.size(); ++i)
         {
-            vars[scalnames_intPoints.size()+i] = vecnames_intPoints[i];
+            vars[reservoiroutputs_intPoints.size()+i] = geomechanicoutputs_intPoints[i];
         }
         postProcessAnalysis.SetPostProcessVariables(PostProcMatIds, vars);
         TPZFStructMatrix structMatrix(postProcessAnalysis.Mesh());
         structMatrix.SetNumThreads(0);
         postProcessAnalysis.SetStructuralMatrix(structMatrix);
         postProcessAnalysis.TransferSolution();
-        postProcessAnalysis.DefineGraphMesh(dim,scalnames_intPoints,vecnames_intPoints,plotfile);
+        postProcessAnalysis.DefineGraphMesh(dim,reservoiroutputs_intPoints,geomechanicoutputs_intPoints,plotfile);
         postProcessAnalysis.PostProcess(div, dim);
     }
     

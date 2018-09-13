@@ -92,24 +92,17 @@
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 #endif
 
-// Apply the mesh refinement
-void UniformRefinement(TPZGeoMesh *gmesh, int nh);
-void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id);
 
-// Create some functions
-static void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
-static void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP);
-
-// Create a computational mesh for Deformation
+/// PoroElastic Full Coupling
+// L2 mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data);
-
-// Create a computational mesh for Pore Pressure
+// L2 mesh for Pore Pressure
 TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
+// Multiphysics Coupling
+TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
 
-// Create a computational mesh for PorePerm Coupling
-TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
 
-/// Monophasic
+/// Monophasic Reservoir Simulator
 // Hdiv mesh
 TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
 // L2 mesh
@@ -117,33 +110,16 @@ TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
 // Mixed mesh
 TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data, int int_order = 0);
 
-// Geomechanics
+// Geomechanic Simulator
 // H1 mesh for displacements
 TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order = 0);
 
 
-// Shear-enhanced compaction and strain localization:
-// Inelastic deformation and constitutive modeling of four porous sandstones
-
-/**
- * This function generate the data associated to the Figure 2a. Darley Dale Sandstone Data for Cap Model
- *
- */
-void LEDSPorosityReductionPlot();
-
-void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsilon);
-
-/**
- Read experimental duplet
-
- @param n_data number of duplets
- @param file file name
- @return data
- */
-TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
+// Method that makes the poroelastic full coupling
+void RuningFullCoupling(TPZSimulationData * sim_data);
 
 
-// Restructuring implementation
+/// Restructuring implementation of Reservoir Geomechanics Simulator
 
 // Method that makes use of TPMRSMonophasic for parabolic solutions
 void RuningMonophasic(TPZSimulationData * sim_data);
@@ -154,12 +130,25 @@ void RuningGeomechanics(TPZSimulationData * sim_data);
 // Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
 void RuningSegregatedSolver(TPZSimulationData * sim_data);
 
+
+
+
+/// Shear-enhanced compaction and strain localization:
+// Inelastic deformation and constitutive modeling of four porous sandstones
+
+// This function generate the data associated to the Figure 2a. Darley Dale Sandstone Data for Cap Model
+void LEDSPorosityReductionPlot();
+
+// Method that apply stress
+void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS, TPZFMatrix<REAL> &De, TPZFMatrix<REAL> &De_inv, TPZTensor<REAL> &sigma, TPZTensor<REAL> &epsilon);
+
+// Read experimental duplet
+TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
+
+
+
 int main(int argc, char *argv[])
 {
-    
-//    LEDSPorosityReductionPlot();
-//    
-//    return 0;
     
     
 #ifdef LOG4CXX
@@ -191,25 +180,30 @@ int main(int argc, char *argv[])
     }
     
     // Simulation data to be configurated
-    // First a linear poroelasticity kernel.
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
 
     
-    
 //    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);
     RuningSegregatedSolver(sim_data);
-    return 0;
     
+	return EXIT_SUCCESS;
+}
+
+
+
+void RuningFullCoupling(TPZSimulationData * sim_data)
+{
+  
 #ifdef PZDEBUG
-//    sim_data->PrintGeometry();
+    //    sim_data->PrintGeometry();
 #endif
     
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_PoroPermCoupling(mesh_vector,sim_data);
+    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_FullCoupling(mesh_vector,sim_data);
     
     
     // The initial condition is set up to zero for Deformation and Pore Pressure
@@ -229,19 +223,19 @@ int main(int argc, char *argv[])
     time_analysis->AdjustVectors();
     
 #ifdef USING_Pardiso
-//    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
+    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
     TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
 #else
     
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
     
-//    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-//    struct_mat.SetDecomposeType(ELDLt);
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
+    //    struct_mat.SetDecomposeType(ELDLt);
     
 #endif
-
+    
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -260,15 +254,14 @@ int main(int argc, char *argv[])
     
     // Run Transient analysis
     time_analysis->Run_Evolution(x);
-//    time_analysis->PlotStrainStress(file_ss_name);
-//    time_analysis->PlotStrainPorosity(file_sp_name);
-//    time_analysis->PlotStrainPermeability(file_sk_name);
-//    time_analysis->PlotStrainPressure(file_spex_name);
+    //    time_analysis->PlotStrainStress(file_ss_name);
+    //    time_analysis->PlotStrainPorosity(file_sp_name);
+    //    time_analysis->PlotStrainPermeability(file_sk_name);
+    //    time_analysis->PlotStrainPressure(file_spex_name);
     std::cout << " Execution finished" << std::endl;
 
-    
-	return EXIT_SUCCESS;
 }
+
 
 void RuningSegregatedSolver(TPZSimulationData * sim_data){
     
@@ -326,7 +319,6 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
     
     }
     
-    
     /// Fixed Stress split
     int n_time_steps = sim_data->ReportingTimes().size();
     std::string file_res("ReservoirFlow.vtk");
@@ -358,6 +350,7 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
     }
 }
 
+
 // Method that makes use of
 void RuningGeomechanics(TPZSimulationData * sim_data){
     
@@ -376,6 +369,7 @@ void RuningGeomechanics(TPZSimulationData * sim_data){
         analysis->PostProcessTimeStep(file_name);
     }
 }
+
 
 TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order){
     
@@ -498,70 +492,7 @@ void RuningMonophasic(TPZSimulationData * sim_data){
     }    
 }
 
-// Apply the mesh refinement
-void UniformRefinement(TPZGeoMesh *gmesh, int nh)
-{
-    for ( int ref = 0; ref < nh; ref++ )
-    {
-        TPZVec<TPZGeoEl *> sons;
-        long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ )
-        {
-            TPZGeoEl * gel = gmesh->ElementVec() [i];
-            if (gel->Dimension() == 2 || gel->Dimension() == 1) gel->Divide (sons);
-        }//for i
-    }//ref
-}
 
-void UniformRefinement(TPZGeoMesh * gmesh, int nh, int mat_id)
-{
-    for ( int ref = 0; ref < nh; ref++ )
-    {
-        TPZVec<TPZGeoEl *> sons;
-        long n = gmesh->NElements();
-        for ( long i = 0; i < n; i++ )
-        {
-            TPZGeoEl * gel = gmesh->ElementVec() [i];
-            if (gel->Dimension() == 2 || gel->Dimension() == 1)
-            {
-                if (gel->MaterialId()== mat_id)
-                {
-                    gel->Divide (sons);
-                }
-            }
-        }//for i
-    }//ref
-}
-
-
-// Create some functions
-void Sigma(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
-{
-    
-    REAL MPa = 1; // 1.0e6;
-    REAL scale = 5*1.0e5;
-    REAL s_n = -1.0*(scale*time)*MPa;
-    
-    f[0] = 0.0;
-    f[1] = -s_n;
-    f[2] = 0.0;
-    return;
-}
-
-void u_y(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& GradP)
-{
-    REAL scale = 1.0e5;
-    REAL uy = (2.0*(0.00028)*time*scale) + 0.0002;
-    
-    
-    f[0] = 0.0;
-    f[1] = -uy;
-    f[2] = 0.0;
-    return;
-}
-
-
-// Create a computational mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     
     // Getting mesh dimension
@@ -604,7 +535,6 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
 }
 
 
-// Create a computational mesh for continuous Pore Pressure
 TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
 {
     
@@ -647,7 +577,6 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
 }
 
 
-// Create a computational mesh for Hdiv flux vector
 TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
 {
     
@@ -689,7 +618,6 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
     return cmesh;
 }
 
-// Create a computational mesh for discontinuous Pore Pressure
 TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
 {
     
@@ -818,8 +746,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     return cmesh;
 }
 
-// Create a computational mesh for PorePerm Coupling
-TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
     mesh_vector[1] = CMesh_PorePressure(sim_data);
@@ -838,26 +765,8 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        
-       
-        /** @{
-         * @brief of creating material that implements the weak formulation of the model problem
-         */
-        
-        // *************** Begin of checking the type of material ******************************************************
-        // *************** PMRSporoELastic *****************************************************************************
 
-//        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
-        
-        // *************** PMRSporoPlastic *****************************************************************************
-
-        TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPMRSMemoryPoroPlast> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPMRSMemoryPoroPlast>(matid,dim);
-        
-        
-        
-        // *************** End of checking the type of material ********************************************************
-
-        
+        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
 
         int kmodel = 0;
         REAL Ey_r = sim_data->Get_young();
@@ -935,7 +844,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         mfcel->PrepareIntPtIndices();
     }
     
-
     
 #ifdef PZDEBUG
 //    std::ofstream out("PorePermCoupling.txt");
@@ -948,7 +856,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
 }
 
 
-// The function to generate the Cap Model
 void LEDSPorosityReductionPlot()
 {
     
