@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/CoupPoroPerm.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/CoupPoroPerm.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -18,7 +18,7 @@
     </NewtonControls>
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="12" />
+        <Numthreads n_threads="4" />
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
@@ -69,9 +69,14 @@
             </Boundaries>
         </RegionData>          
     </RegionsDefinition>
-    <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Duy_Dp" uy="0.0" p="20.0e6" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-10.0" tz="-3.0e6" p="0.0e6" />
-        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
-    </BoundaryConditions>           
+    <BoundaryConditionReservoirs>
+        <BoundaryConditionReservoir bc_id="2" type="Dp" p="20.0e6" />
+        <BoundaryConditionReservoir bc_id="3" type="Dp" p="0.0e6" />
+        <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
+    </BoundaryConditionReservoirs> 
+    <BoundaryConditionGeomechanics>
+        <BoundaryConditionGeomechanic bc_id="2" type="Duy"  p="20.0e6" />
+        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-10.0" />
+        <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0"  />
+    </BoundaryConditionGeomechanics> 
 </CaseData>

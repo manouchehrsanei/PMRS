@@ -369,12 +369,12 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     
     
     // Begin:: Regions and materials parameters
-    this->LoadBoundaryConditions();
+    this->LoadBoundaryConditionsReservoirs();
     
-    std::pair<int, std::string > bc_id_to_type_chunk;
-    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk;
-    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk;
-    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditions").FirstChild("BoundaryCondition").ToElement();
+    std::pair<int, std::string > bc_id_to_type_chunk_reser;
+    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_reser;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_reser;
+    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditionReservoirs").FirstChild("BoundaryConditionReservoir").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
         
@@ -383,35 +383,85 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         
         char_container = container->Attribute("type");
         std::string condition(char_container);
-        chunk = m_condition_type_to_index_value_names.find(condition);
+        chunk_reser = m_condition_type_to_index_value_names_reser.find(condition);
         
         // Association bc type with numerical values
-        bc_id_to_values_chunk.first = bc_id;
-        bc_id_to_values_chunk.second.resize(0);
-        int n_data = chunk->second.second.size();
+        bc_id_to_values_chunk_reser.first = bc_id;
+        bc_id_to_values_chunk_reser.second.resize(0);
+        int n_data = chunk_reser->second.second.size();
         for (int i = 0; i < n_data; i++)
         {
-            char_container = container->Attribute(chunk->second.second[i].c_str());
+            char_container = container->Attribute(chunk_reser->second.second[i].c_str());
 #ifdef PZDEBUG
             if (!char_container)
             {
-                std::cout << " the boundary " << condition << "  needs the value " << chunk->second.second[i] << std::endl;
+                std::cout << " the boundary " << condition << "  needs the value " << chunk_reser->second.second[i] << std::endl;
                 std::cout << " Please review your boundary condition definitions. " << std::endl;
                 DebugStop();
             }
 #endif
             REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk.second.push_back(bc_value);
+            bc_id_to_values_chunk_reser.second.push_back(bc_value);
         }
-        m_bc_id_to_values.insert(bc_id_to_values_chunk);
+        m_bc_id_to_values_reser.insert(bc_id_to_values_chunk_reser);
 
         // Association bc identifier with bc type
-        bc_id_to_type_chunk.first = bc_id;
-        bc_id_to_type_chunk.second = condition;
-        m_bc_id_to_type.insert(bc_id_to_type_chunk);
-        
+        bc_id_to_type_chunk_reser.first = bc_id;
+        bc_id_to_type_chunk_reser.second = condition;
+        m_bc_id_to_type_reser.insert(bc_id_to_type_chunk_reser);
         
     }
+    
+    
+    
+    
+    // Begin:: Regions and materials parameters
+    this->LoadBoundaryConditionsGeomechanics();
+    
+    std::pair<int, std::string > bc_id_to_type_chunk_geo;
+    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_geo;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_geo;
+    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditionGeomechanics").FirstChild("BoundaryConditionGeomechanic").ToElement();
+    for( ; container; container=container->NextSiblingElement())
+    {
+        
+        char_container = container->Attribute("bc_id");
+        int bc_id = std::atoi(char_container);
+        
+        char_container = container->Attribute("type");
+        std::string condition(char_container);
+        chunk_geo = m_condition_type_to_index_value_names_geo.find(condition);
+        
+        // Association bc type with numerical values
+        bc_id_to_values_chunk_geo.first = bc_id;
+        bc_id_to_values_chunk_geo.second.resize(0);
+        int n_data = chunk_geo->second.second.size();
+        for (int i = 0; i < n_data; i++)
+        {
+            char_container = container->Attribute(chunk_geo->second.second[i].c_str());
+#ifdef PZDEBUG
+            if (!char_container)
+            {
+                std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
+                std::cout << " Please review your boundary condition definitions. " << std::endl;
+                DebugStop();
+            }
+#endif
+            REAL bc_value = std::atof(char_container);
+            bc_id_to_values_chunk_geo.second.push_back(bc_value);
+        }
+        m_bc_id_to_values_geo.insert(bc_id_to_values_chunk_geo);
+        
+        // Association bc identifier with bc type
+        bc_id_to_type_chunk_geo.first = bc_id;
+        bc_id_to_type_chunk_geo.second = condition;
+        m_bc_id_to_type_geo.insert(bc_id_to_type_chunk_geo);
+        
+    }
+    
+    
+    
+    
     // End:: Regions and materials parameters
     
 }
@@ -545,302 +595,154 @@ void TPZSimulationData::PrintGeometry()
 }
 
 
-/** @brief applying the boundary conditions */
-void TPZSimulationData::LoadBoundaryConditions()
+/** @brief applying the boundary conditions for reservoir simulator */
+void TPZSimulationData::LoadBoundaryConditionsReservoirs()
 {
  
-    std::pair<std::string,std::pair<int,std::vector<std::string> > > chunk;
-    if (m_dimesion!=3)
+    std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkReser;
+
+        // Dirichlet for for diffusion
+        chunkReser.first = "Dp"; // name
+        chunkReser.second.first = 0; // index
+        chunkReser.second.second.push_back("p");
+        m_condition_type_to_index_value_names_reser.insert(chunkReser);
+        chunkReser.second.second.resize(0);
+    
+        // Neumann for diffusion
+        chunkReser.first = "Nq"; // name
+        chunkReser.second.first = 1; // index
+        chunkReser.second.second.push_back("qn");
+        m_condition_type_to_index_value_names_reser.insert(chunkReser);
+        chunkReser.second.second.resize(0);
+    
+    return;
+}
+
+
+/** @brief applying the boundary conditions for geomechanics simulator */
+void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
+{
+    std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkGeo;
+    
+    if (m_dimesion == 2)
     {
-        
         // 2D conditions
         
-        // Dirichlet for elasticity and Dirichlet for diffusion
-        chunk.first = "Du_Dp"; // name
-        chunk.second.first = 0; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity
+        chunkGeo.first = "Du"; // name
+        chunkGeo.second.first = 2; // index
+        chunkGeo.second.second.push_back("ux");
+        chunkGeo.second.second.push_back("uy");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x_direction and Dirichlet for diffusion
-        chunk.first = "Dux_Dp"; // name
-        chunk.second.first = 1; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in x_direction
+        chunkGeo.first = "Dux"; // name
+        chunkGeo.second.first = 3; // index
+        chunkGeo.second.second.push_back("ux");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y_direction and Dirichlet for diffusion
-        chunk.first = "Duy_Dp"; // name
-        chunk.second.first = 2; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in y_direction
+        chunkGeo.first = "Duy"; // name
+        chunkGeo.second.first = 4; // index
+        chunkGeo.second.second.push_back("uy");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity and Dirichlet for diffusion
-        chunk.first = "Nt_Dp"; // name
-        chunk.second.first = 3; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Neumann for elasticity
+        chunkGeo.first = "Nt"; // name
+        chunkGeo.second.first = 5; // index
+        chunkGeo.second.second.push_back("tx");
+        chunkGeo.second.second.push_back("ty");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity and Dirichlet for diffusion (Wellbore Boundary)
-        chunk.first = "Ntn_Dp"; // name
-        chunk.second.first = 4; // index
-        chunk.second.second.push_back("tn");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Neumann for elasticity
+        chunkGeo.first = "Ntn"; // name
+        chunkGeo.second.first = 6; // index
+        chunkGeo.second.second.push_back("tn");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity and Neumann for diffusion
-        chunk.first = "Du_Nq"; // name
-        chunk.second.first = 5; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
         
-        // Dirichlet for elasticity in x_direction and Neumann for diffusion
-        chunk.first = "Dux_Nq"; // name
-        chunk.second.first = 6; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in y_direction and Neumann for diffusion
-        chunk.first = "Duy_Nq"; // name
-        chunk.second.first = 7; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Neumann for diffusion
-        chunk.first = "Nt_Nq"; // name
-        chunk.second.first = 8; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Neumann for diffusion (Wellbore Boundary)
-        chunk.first = "Ntn_Nq"; // name
-        chunk.second.first = 9; // index
-        chunk.second.second.push_back("tn");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);       
-
-        // Dirichlet for elasticity and Dirichlet for diffusion (time dependent)
-        chunk.first = "Du_time_Dp"; // name
-        chunk.second.first = 10; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Dirichlet for diffusion (time dependent)
-        chunk.first = "Ntn_time_Dp"; // name
-        chunk.second.first = 11; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-    }
-    else
+    }else
     {
         // 3D conditions
         
-        // Dirichlet for elasticity and Dirichlet for diffusion
-        chunk.first = "Du_Dp"; // name
-        chunk.second.first = 0; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity
+        chunkGeo.first = "Du"; // name
+        chunkGeo.second.first = 2; // index
+        chunkGeo.second.second.push_back("ux");
+        chunkGeo.second.second.push_back("uy");
+        chunkGeo.second.second.push_back("uz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x & y direction and Dirichlet for diffusion
-        chunk.first = "Duxy_Dp"; // name
-        chunk.second.first = 1; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in x_direction
+        chunkGeo.first = "Dux"; // name
+        chunkGeo.second.first = 3; // index
+        chunkGeo.second.second.push_back("ux");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x & z direction and Dirichlet for diffusion
-        chunk.first = "Duxz_Dp"; // name
-        chunk.second.first = 2; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in y_direction
+        chunkGeo.first = "Duy"; // name
+        chunkGeo.second.first = 4; // index
+        chunkGeo.second.second.push_back("uy");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y & z direction and Dirichlet for diffusion
-        chunk.first = "Duyz_Dp"; // name
-        chunk.second.first = 3; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Neumann for elasticity
+        chunkGeo.first = "Nt"; // name
+        chunkGeo.second.first = 5; // index
+        chunkGeo.second.second.push_back("tx");
+        chunkGeo.second.second.push_back("ty");
+        chunkGeo.second.second.push_back("tz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x_direction and Dirichlet for diffusion
-        chunk.first = "Dux_Dp"; // name
-        chunk.second.first = 4; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Neumann for elasticity
+        chunkGeo.first = "Ntn"; // name
+        chunkGeo.second.first = 6; // index
+        chunkGeo.second.second.push_back("tn");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y_direction and Dirichlet for diffusion
-        chunk.first = "Duy_Dp"; // name
-        chunk.second.first = 5; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in z_direction
+        chunkGeo.first = "Duz"; // name
+        chunkGeo.second.first = 7; // index
+        chunkGeo.second.second.push_back("uz");
+        chunkGeo.second.second.push_back("p");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
+    
+        // Dirichlet for elasticity in x & y direction
+        chunkGeo.first = "Duxy"; // name
+        chunkGeo.second.first = 8; // index
+        chunkGeo.second.second.push_back("ux");
+        chunkGeo.second.second.push_back("uy");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in z_direction and Dirichlet for diffusion
-        chunk.first = "Duz_Dp"; // name
-        chunk.second.first = 6; // index
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in x & z direction
+        chunkGeo.first = "Duxz"; // name
+        chunkGeo.second.first = 9; // index
+        chunkGeo.second.second.push_back("ux");
+        chunkGeo.second.second.push_back("uz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
-        
-        // Neumann for elasticity and Dirichlet for diffusion
-        chunk.first = "Nt_Dp"; // name
-        chunk.second.first = 7; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("tz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Dirichlet for diffusion (Wellbore Boundary)
-        chunk.first = "Ntn_Dp"; // name
-        chunk.second.first = 8; // index
-        chunk.second.second.push_back("tn");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity and Neumann for diffusion
-        chunk.first = "Du_Nq"; // name
-        chunk.second.first = 9; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in x & y direction and Dirichlet for diffusion
-        chunk.first = "Duxy_Nq"; // name
-        chunk.second.first = 10; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in x & z direction and Dirichlet for diffusion
-        chunk.first = "Duxz_Nq"; // name
-        chunk.second.first = 11; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in y & z direction and Dirichlet for diffusion
-        chunk.first = "Duyz_Nq"; // name
-        chunk.second.first = 12; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in x_direction and Neumann for diffusion
-        chunk.first = "Dux_Nq"; // name
-        chunk.second.first = 13; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in y_direction and Neumann for diffusion
-        chunk.first = "Duy_Nq"; // name
-        chunk.second.first = 14; // index
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity in z_direction and Neumann for diffusion
-        chunk.first = "Duz_Nq"; // name
-        chunk.second.first = 15; // index
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Neumann for diffusion
-        chunk.first = "Nt_Nq"; // name
-        chunk.second.first = 16; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("tz");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-
-        // Neumann for elasticity and Neumann for diffusion (Wellbore Boundary)
-        chunk.first = "Ntn_Nq"; // name
-        chunk.second.first = 17; // index
-        chunk.second.second.push_back("tn");
-        chunk.second.second.push_back("qn");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Dirichlet for elasticity and Dirichlet for diffusion (time dependent)
-        chunk.first = "Du_time_Dp"; // name
-        chunk.second.first = 18; // index
-        chunk.second.second.push_back("ux");
-        chunk.second.second.push_back("uy");
-        chunk.second.second.push_back("uz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
-        
-        // Neumann for elasticity and Dirichlet for diffusion (time dependent)
-        chunk.first = "Ntn_time_Dp"; // name
-        chunk.second.first = 19; // index
-        chunk.second.second.push_back("tx");
-        chunk.second.second.push_back("ty");
-        chunk.second.second.push_back("tz");
-        chunk.second.second.push_back("p");
-        m_condition_type_to_index_value_names.insert(chunk);
-        chunk.second.second.resize(0);
+        // Dirichlet for elasticity in y & z direction
+        chunkGeo.first = "Duyz"; // name
+        chunkGeo.second.first = 10; // index
+        chunkGeo.second.second.push_back("uy");
+        chunkGeo.second.second.push_back("uz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
     }
     
     return;
+
+
 }

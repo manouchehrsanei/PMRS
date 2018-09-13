@@ -70,6 +70,8 @@ public:
     
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
+    void ContributeBC_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    
     void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
     
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);

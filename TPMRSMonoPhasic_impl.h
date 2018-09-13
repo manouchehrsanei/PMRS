@@ -355,7 +355,7 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
     
     switch (bc.Type()) {
             
-        case 2 :    // Dirichlet BC  PD
+        case 0 :    // Dirichlet BC  PD
         {
             STATE p_D = Value;
             for (int iq = 0; iq < nphi_q; iq++)
@@ -363,36 +363,9 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
                 ef(iq + first_q) += m_scale_factor * weight * p_D * phi_qs(iq,0);
             }
         }
+
             break;
-            
-        case 3 :    // Dirichlet BC  PD
-        {
-            STATE p_D = Value;
-            for (int iq = 0; iq < nphi_q; iq++)
-            {
-                ef(iq + first_q) += m_scale_factor * weight * p_D * phi_qs(iq,0);
-            }
-        }
-            break;
-        case 5 :    // Dirichlet BC  PD
-        {
-            STATE p_D = Value;
-            for (int iq = 0; iq < nphi_q; iq++)
-            {
-                ef(iq + first_q) += m_scale_factor * weight * p_D * phi_qs(iq,0);
-            }
-        }
-            break;
-        case 7 :    // Dirichlet BC  PD
-        {
-            STATE p_D = Value;
-            for (int iq = 0; iq < nphi_q; iq++)
-            {
-                ef(iq + first_q) += m_scale_factor * weight * p_D * phi_qs(iq,0);
-            }
-        }
-            break;
-        case 6 :    // Neumann BC  QN
+        case 1 :    // Neumann BC  QN
         {
             
             for (int iq = 0; iq < nphi_q; iq++)
@@ -408,24 +381,7 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             }
             
         }
-            break;
-            
-        case 13 :    // Neumann BC  QN
-        {
-            
-            for (int iq = 0; iq < nphi_q; iq++)
-            {
-                STATE qn_N = Value, qn = q[0];
-                ef(iq + first_q) += m_scale_factor * weight * BigNumber * (qn - qn_N) * phi_qs(iq,0);
-                
-                for (int jq = 0; jq < nphi_q; jq++)
-                {
-                    
-                    ek(iq + first_q,jq + first_q) += m_scale_factor * weight * BigNumber * phi_qs(jq,0) * phi_qs(iq,0);
-                }
-            }
-            
-        }
+
             break;
             
         default: std::cout << "This BC doesn't exist." << std::endl;

@@ -394,46 +394,47 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     
     REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
     
-    // Dirichlet in Pressure
     switch (bc.Type())
     {
-        case 0 : // Du_Dp
+        case 2 : // Du
+            // Dirichlet of displacement
+
         {
-            REAL v[3];
+            REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
             v[1] = bc.Val2()(1,0);    //    Uy displacement
-            v[2] = bc.Val2()(2,0);    //    Pressure
             
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
                 ef(2*in+0,0)      += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
+                ef(2*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     //    Contribution for Stiffness Matrix
                     ek(2*in+0,2*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                     ek(2*in+1,2*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+
                 }
             }
             
             break;
         }
             
-        case 1 : // Dux_Dp
+        
+        case 3 : // Dux
+            // Dirichlet in x direction of displacement
+
         {
-            REAL v[2];
+            REAL v[1];
             v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Pressure
             
-            //    Diffusion Equation
-            REAL ux_s = u[0];
-            REAL d_ux = (ux_s-v[0]);
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += BigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -445,19 +446,17 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 2 : //Duy_Dp
+        case 4 : //Duy
+            // Dirichlet in y direction of displacement
+
         {
-            
-            REAL v[2];
+            REAL v[1];
             v[0] = bc.Val2()(0,0);    //    Uy displacement
-            v[1] = bc.Val2()(1,0);    //    Pressure
             
-            REAL uy_s = u[1];
-            REAL d_uy = (uy_s-v[0]);
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += BigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement
+                ef(2*in+1,0)      += BigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // Y displacement
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -469,13 +468,14 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 3 : // Nt_Dp
+        case 5 : // Nt
+            // Neumann of traction
+
         {
-            
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Tnx
             v[1] = bc.Val2()(1,0);    //    Tny
-            
+
             //    Neumann condition for each state variable
             //    Elasticity Equation
             for(in = 0 ; in <phru; in++)
@@ -488,12 +488,12 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 4 : // Ntn_Dp
+        case 6 : // Ntn
+            // Neumann of traction
+
         {
-            
-            REAL v[2];
+            REAL v[1];
             v[0] = bc.Val2()(0,0);    //    Tn normal traction
-            v[1] = bc.Val2()(1,0);    //    Pressure
             
             REAL tn = v[0];
             TPZManVector<REAL,2> n = data.normal;
@@ -509,120 +509,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 5 : // Du_Nq
-        {
-            
-            REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Uy displacement
-            v[2] = bc.Val2()(2,0);    //    Qn
-            
-            for(in = 0 ; in < phru; in++)
-            {
-                //    Contribution for load Vector
-                ef(2*in+0,0)        += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // y displacement Value
-                
-                for (jn = 0 ; jn < phru; jn++)
-                {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in+0,2*jn+0)        += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
-                }
-            }
-            
-            break;
-        }
-            
-        case 6 : // Dux_Nq
-        {
-            
-            
-            REAL v[2];
-            v[0] = bc.Val2()(0,0);    //    Ux displacement
-            v[1] = bc.Val2()(1,0);    //    Qn
-            
-            REAL ux_s = u[0];
-            REAL d_ux = (ux_s-v[0]);
-            for(in = 0 ; in < phru; in++)
-            {
-                //    Contribution for load Vector
-                ef(2*in,0)        += BigNumber*(d_ux)*phiu(in,0)*weight;    // X displacement Value
-                
-                for (jn = 0 ; jn < phru; jn++)
-                {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in,2*jn)        += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                }
-            }
-            
-            break;
-        }
-            
-        case 7 : // Duy_Nq
-        {
-            
-            REAL v[2];
-            v[0] = bc.Val2()(0,0);    //    Uy displacement
-            v[1] = bc.Val2()(1,0);    //    Qn
-            
-            REAL uy_s = u[1];
-            REAL d_uy = (uy_s-v[0]);
-            for(in = 0 ; in < phru; in++)
-            {
-                //    Contribution for load Vector
-                ef(2*in+1,0)      += BigNumber*(d_uy)*phiu(in,0)*weight;    // y displacement Value
-                
-                for (jn = 0 ; jn < phru; jn++)
-                {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in+1,2*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
-                }
-            }
-            
-            break;
-        }
-            
-        case 8 : // Nt_Nq
-        {
-            
-            REAL v[3];
-            v[0] = bc.Val2()(0,0);    //    Tnx
-            v[1] = bc.Val2()(1,0);    //    Tny
-            v[2] = bc.Val2()(2,0);    //    Qn
-            
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
-            for(in = 0 ; in <phru; in++)
-            {
-                //    Normal Tension Components on neumman boundary
-                ef(2*in+0,0)     += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
-                ef(2*in+1,0)     += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
-            }
-            
-            break;
-        }
-            
-        case 9 : // Ntn_Nq
-        {
-            
-            REAL v[2];
-            v[0] = bc.Val2()(0,0);    //    Tn normal traction
-            v[1] = bc.Val2()(2,0);    //    Qn
-            
-            REAL tn = v[0];
-            TPZManVector<REAL,2> n = data.normal;
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
-            for(in = 0 ; in <phru; in++)
-            {
-                //    Normal Tension Components on neumman boundary
-                ef(2*in+0,0)      += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
-                ef(2*in+1,0)      += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
-            }
-            
-            break;
-        }
+    
 
         default:
         {
@@ -632,6 +519,256 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     }
     
 }
+
+
+template <class T, class TMEM>
+void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+    
+    TPZFMatrix<REAL>  &phiu = data.phi;
+    // Getting the solutions and derivatives
+    TPZManVector<REAL,3> u = data.sol[0];
+    
+    int phru = phiu.Rows();
+    int in,jn;
+    
+    REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
+    
+    switch (bc.Type())
+    {
+        case 2 : // Du
+            // Dirichlet of displacement
+            
+        {
+            REAL v[3];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            v[2] = bc.Val2()(2,0);    //    Uz displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                //    Contribution for load Vector
+                ef(3*in+0,0)      += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(3*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(3*in+2,0)      += BigNumber*(u[2] - v[2])*phiu(in,0)*weight;    // Z displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(3*in+0,3*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(3*in+1,3*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(3*in+2,3*jn+2)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Z displacement
+                    
+                }
+            }
+            
+            break;
+        }
+            
+            
+        case 3 : // Dux
+            // Dirichlet in x direction of displacement
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                //    Contribution for load Vector
+                ef(3*in,0)        += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(3*in,3*jn)        += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                }
+            }
+            
+            break;
+        }
+            
+        case 4 : //Duy
+            // Dirichlet in y direction of displacement
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                //    Contribution for load Vector
+                ef(3*in+1,0)      += BigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // Y displacement
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //    Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                }
+            }
+            
+            break;
+        }
+            
+        case 5 : // Nt
+            // Neumann of traction
+            
+        {
+            REAL v[3];
+            v[0] = bc.Val2()(0,0);    //    Tnx
+            v[1] = bc.Val2()(1,0);    //    Tny
+            v[2] = bc.Val2()(2,0);    //    Tny
+            
+            //    Neumann condition for each state variable
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(3*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
+                ef(3*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
+                ef(3*in+2,0)    += -1.0 * weight * v[2] * phiu(in,0);        //    Tnz
+            }
+            
+            break;
+        }
+            
+        case 6 : // Ntn
+            // Neumann of traction
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = data.normal;
+            //    Neumann condition for each state variable
+            //    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                //    Normal Tension Components on neumman boundary
+                ef(3*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(3*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+                ef(3*in+2,0)    += -1.0 * weight * tn * n[2] * phiu(in,0);        //    Tnz
+            }
+            
+            break;
+        }
+            
+            
+        case 7 : // Duz
+            // Dirichlet in z direction of displacement
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Uz displacement
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+2,0)		+= BigNumber*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+2,3*jn+2)		+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                    
+                }
+            }
+            
+            break;
+            
+        }
+            
+            
+        case 8 : // Duxy
+            // Dirichlet in x and y direction of displacement
+        {
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uy displacement
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+0,0)	+= BigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+0,3*jn+0)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+1,3*jn+1)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                }
+            }
+            
+            break;
+            
+        }
+            
+        case 9 : // Duxz
+            // Dirichlet in x and z direction of displacement
+        {
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+0,0)	+= BigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= BigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+0,3*jn+0)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// X displacement
+                    ek(3*in+2,3*jn+2)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                }
+            }
+            
+            break;
+            
+        }
+            
+        case 10 : // Duyz
+            // Dirichlet in y and z direction of displacement
+        {
+            REAL v[2];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            v[1] = bc.Val2()(1,0);    //    Uz displacement
+            
+            //	Elasticity Equation
+            for(in = 0 ; in < phru; in++)
+            {
+                //	Contribution for load Vector
+                ef(3*in+1,0)	+= BigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= BigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    //	Contribution for Stiffness Matrix
+                    ek(3*in+1,3*jn+1)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Y displacement
+                    ek(3*in+2,3*jn+2)	+= BigNumber*phiu(in,0)*phiu(jn,0)*weight;	// Z displacement
+                }
+            }
+            
+            break;
+            
+        }
+            
+            
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
+}
+
 
 template <class T, class TMEM>
 void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){

@@ -424,9 +424,9 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data, int int_order){
         {
             int bc_id = material_ids[iregion].second [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
-            it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeGeomechanics().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesGeomechanics().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexGeomechanics().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
@@ -766,9 +766,9 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
         {
             int bc_id = material_ids[iregion].second [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
-            it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoirs().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
@@ -854,8 +854,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPMRSMemoryPoroPlast> * material = new TPZPMRSCouplPoroPlast<TPZElasticCriterion, TPZPMRSMemoryPoroPlast>(matid,dim);
         
         
-//        TPZPMRSCouplPoroPlast <TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZPoroElastoPlasticMem> * material = new TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>(matid,dim);
-        
         
         // *************** End of checking the type of material ********************************************************
 
@@ -891,12 +889,10 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
         {
             int bc_id = material_ids[iregion].second [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionType().find(bc_id);
-       
-            std::string time_depend_bound_type =it_bc_id_to_type->second;
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
             
-            it_bc_id_to_values = sim_data->BCIdToBCValues().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndex().find(it_bc_id_to_type->second);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoirs().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.size();
@@ -907,20 +903,6 @@ TPZCompMesh * CMesh_PoroPermCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vec
             }
             
             TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
-            
-            // selecting the boundary that is time dependent
-            
-            if (time_depend_bound_type == "Du_time_Dp")
-            {
-                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(u_y);
-                bc->SetTimedependentBCForcingFunction(boundary_data);
-            }
-            
-            if (time_depend_bound_type == "Ntn_time_Dp")
-            {
-                TPZFunction<REAL> * boundary_data = new TPZDummyFunction<REAL>(Sigma);
-                bc->SetTimedependentBCForcingFunction(boundary_data);
-            }
             
             cmesh->InsertMaterialObject(bc);
         }
