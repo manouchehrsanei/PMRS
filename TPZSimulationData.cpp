@@ -384,6 +384,14 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         char_container = container->Attribute("type");
         std::string condition(char_container);
         chunk_reser = m_condition_type_to_index_value_names_reser.find(condition);
+        bool bc_condition_not_available_Q = chunk_reser == m_condition_type_to_index_value_names_reser.end();
+        if (bc_condition_not_available_Q)
+        {
+            std::cout << " Geometry dimension =  " << dimension << std::endl;
+            std::cout << " The boundary " << condition << " are not available " << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
         
         // Association bc type with numerical values
         bc_id_to_values_chunk_reser.first = bc_id;
@@ -392,14 +400,12 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         for (int i = 0; i < n_data; i++)
         {
             char_container = container->Attribute(chunk_reser->second.second[i].c_str());
-#ifdef PZDEBUG
             if (!char_container)
             {
                 std::cout << " the boundary " << condition << "  needs the value " << chunk_reser->second.second[i] << std::endl;
-                std::cout << " Please review the boundary condition of Reservoir Simulator. " << std::endl;
+                std::cout << " Please review the boundary conditions for Reservoir Module. " << std::endl;
                 DebugStop();
             }
-#endif
             REAL bc_value = std::atof(char_container);
             bc_id_to_values_chunk_reser.second.push_back(bc_value);
         }
@@ -432,6 +438,15 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         std::string condition(char_container);
         chunk_geo = m_condition_type_to_index_value_names_geo.find(condition);
         
+        bool bc_condition_not_available_Q = chunk_geo == m_condition_type_to_index_value_names_geo.end();
+        if (bc_condition_not_available_Q)
+        {
+            std::cout << " Geometry dimension =  " << dimension << std::endl;
+            std::cout << " The boundary " << condition << " are not available " << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+            DebugStop();
+        }
+        
         // Association bc type with numerical values
         bc_id_to_values_chunk_geo.first = bc_id;
         bc_id_to_values_chunk_geo.second.resize(0);
@@ -439,14 +454,12 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         for (int i = 0; i < n_data; i++)
         {
             char_container = container->Attribute(chunk_geo->second.second[i].c_str());
-#ifdef PZDEBUG
             if (!char_container)
             {
                 std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
-                std::cout << " Please review your boundary condition of Geomechanic Simulator. " << std::endl;
+                std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                 DebugStop();
             }
-#endif
             REAL bc_value = std::atof(char_container);
             bc_id_to_values_chunk_geo.second.push_back(bc_value);
         }

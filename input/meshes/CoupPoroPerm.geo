@@ -14,7 +14,7 @@ r =0.1;
 h =1.0;
 nh = 4;
 nr = 2;
-Is3DQ = 1;
+Is3DQ = 0;
 
 If(Is3DQ)
 
