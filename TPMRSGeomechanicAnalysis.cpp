@@ -177,7 +177,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
 void TPMRSGeomechanicAnalysis::PostProcessTimeStep(std::string & file){
     
     int dim = Mesh()->Dimension();
-    int div = 0;
+    int div = m_simulation_data->n_div();
     TPZStack< std::string> vecnames;
     m_post_processor->TransferSolution();
     m_post_processor->DefineGraphMesh(dim,m_var_names,vecnames,file);

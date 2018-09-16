@@ -12,9 +12,9 @@
 lc =1.0e1;
 r =0.1;
 h =1.0;
-nh = 4;
+nh = 5;
 nr = 2;
-Is3DQ = 0;
+Is3DQ = 1;
 
 If(Is3DQ)
 

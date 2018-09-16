@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
+        <StepSize dt="0.001" />
         <StepNumber n_time_steps="10" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -73,8 +73,8 @@
         <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
     </BoundaryConditionReservoirs> 
     <BoundaryConditionGeomechanics>
-        <BoundaryConditionGeomechanic bc_id="2" type="Duy"  uy="0.0" />
-        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-500.0" tz="-500.0" />
-        <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0" uy="0.0"  />
+        <BoundaryConditionGeomechanic bc_id="2" type="Duz"  uz="0.0" />
+        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="0.0" tz="-10.0" />
+        <BoundaryConditionGeomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0"  />
     </BoundaryConditionGeomechanics> 
 </CaseData>
