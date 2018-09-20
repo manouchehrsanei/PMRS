@@ -24,7 +24,7 @@ TPMRSGeomechanicAnalysis::~TPMRSGeomechanicAnalysis(){
     
 }
 
-TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysis & other){
+TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysis & other) :  TPZAnalysis(other){
     
     m_simulation_data   = other.m_simulation_data;
     m_X_n               = other.m_X_n;
@@ -144,7 +144,6 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
         this->AcceptPseudoTimeStepSolution();
-        this->AssembleResidual();
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
