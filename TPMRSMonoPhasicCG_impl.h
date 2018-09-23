@@ -199,10 +199,10 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
             this->GetMemory().get()->operator[](gp_index).Setp(p);
         }
         
-    }else{
-        TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
-        this->Contribute(data, weight, ek_fake, ef);
     }
+
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute(data, weight, ek_fake, ef);
     
     
     return;
@@ -228,17 +228,17 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
     switch (bc.Type())
     {
   
-        case 0 :    // Dirichlet BC  QN
+        case 0 :    // Dirichlet BC  PD
         {
             REAL p_D = m_scale_factor * Value;
             for (int ip = 0; ip < n_phi_p; ip++)
             {
-                ef(ip) += weight * BigNumber * (p - p_D) * phi_p(ip,0);
+                ef(ip) += m_scale_factor * weight * BigNumber * (p - p_D) * phi_p(ip,0);
                 
                 for (int jp = 0; jp < n_phi_p; jp++)
                 {
                     
-                    ek(ip,jp) += weight * BigNumber * phi_p(jp,0) * phi_p(ip,0);
+                    ek(ip,jp) += m_scale_factor * weight * BigNumber * phi_p(jp,0) * phi_p(ip,0);
                 }
             }
             
@@ -246,7 +246,7 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
             
             break;
             
-        case 1 :    // Neumann BC  Normal flux
+        case 1 :    // Neumann BC  Normal flux qn_N
         {
             STATE qn_N = Value;
             for (int ip = 0; ip < n_phi_p; ip++)

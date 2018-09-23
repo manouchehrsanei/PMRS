@@ -113,9 +113,12 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
-    this->Assemble();
-    this->Rhs() *= -1.0;
-    this->Solve();
+    Assemble();
+//    Solver().Matrix()->Print("j = ",std::cout, EMathematicaInput);
+    Rhs() *= -1.0;
+//    Rhs().Print("r = ",std::cout, EMathematicaInput);
+    Solve();
+//    Solution().Print("dp = ",std::cout,EMathematicaInput);
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
@@ -147,7 +150,6 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
         m_X_n += dx;
 
         this->AcceptTimeStepSolution();
-        this->AssembleResidual();
         norm_res = Norm(Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;

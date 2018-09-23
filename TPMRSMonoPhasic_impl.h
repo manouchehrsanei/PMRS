@@ -323,10 +323,10 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             this->GetMemory().get()->operator[](gp_index).Setp(p);
         }
         
-    }else{
-        TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
-        this->Contribute(datavec, weight, ek_fake, ef);
     }
+
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute(datavec, weight, ek_fake, ef);
     
     
     return;

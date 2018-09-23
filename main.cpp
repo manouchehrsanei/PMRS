@@ -26,6 +26,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "pzintel.h"
 #include "pzlog.h"
 
 // Materials
@@ -86,12 +87,12 @@
 #include "TPZPMRSCouplPoroPlast.h"
 
 
-// Methods declarations
-//#define USING_Pardiso
-
-
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
+#endif
+
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
 
@@ -194,7 +195,23 @@ int main(int argc, char *argv[])
     
 //    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     RuningSegregatedSolver(sim_data);
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime int_case_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    REAL case_solving_time = boost::numeric_cast<double>((int_case_t2-int_case_t1).total_milliseconds());
+    std::cout << "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+    std::cout << std::endl;
+#endif
+    
 	return EXIT_SUCCESS;
 }
 
@@ -697,7 +714,6 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
     cmesh->SetDimModel(dim);
     cmesh->SetDefaultOrder(sim_data->DiffusionOrder());
     cmesh->SetAllCreateFunctionsContinuousWithMem();
-    cmesh->ApproxSpace().CreateWithMemory(true);
     cmesh->AutoBuild();
 
 #ifdef PZDEBUG
@@ -1072,12 +1088,13 @@ void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_ge
             mfcel->PrepareIntPtIndices();
         }else{
             cel->SetIntegrationRule(int_order);
-            cel->PrepareIntPtIndices();
         }
         counter++;
     }
     
-    cmesh_reservoir->CleanUpUnconnectedNodes();
+    if (sim_data->Get_is_dual_formulation_Q()) {
+        cmesh_reservoir->CleanUpUnconnectedNodes();
+    }
     
 #ifdef PZDEBUG
     std::ofstream out_res("CmeshReservoir_adjusted.txt");
