@@ -73,7 +73,7 @@ public:
     void ExecuteNewtonInteration();
     
     /// Execute the evolution for a single time step
-    void ExecuteOneTimeStep(bool must_accept_solution_Q = true);
+    void ExecuteOneTimeStep();
     
     /// Post-processing the variables for a single time step
     void PostProcessTimeStep(std::string & file);

@@ -121,7 +121,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 //    Solution().Print("dp = ",std::cout,EMathematicaInput);
 }
 
-void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
+void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
@@ -164,9 +164,6 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
             std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
 #endif
-            if (must_accept_solution_Q) {
-                UpdateState();
-            }
             break;
         }
     }

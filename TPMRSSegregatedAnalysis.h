@@ -50,7 +50,7 @@ public:
     void ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPZSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec);
     
     /// Execute the evolution for a single time step
-    void ExecuteOneTimeStep(bool must_accept_solution_Q);
+    void ExecuteOneTimeStep();
     
     /// Post-processing the variables for a single time step
     void PostProcessTimeStep(std::string & geo_file, std::string & res_file);

@@ -77,9 +77,9 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
 }
 
 
-void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
-    m_reservoir_analysis->ExecuteOneTimeStep(must_accept_solution_Q);
-    m_geomechanic_analysis->ExecuteOneTimeStep(must_accept_solution_Q);
+void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(){
+    m_reservoir_analysis->ExecuteOneTimeStep();
+    m_geomechanic_analysis->ExecuteOneTimeStep();
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
@@ -102,7 +102,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
         for (int k = 1; k <= n_max_fss_iterations; k++) {
-            this->ExecuteOneTimeStep(false);
+            this->ExecuteOneTimeStep();
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
             dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
             

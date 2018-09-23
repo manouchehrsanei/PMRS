@@ -118,7 +118,7 @@ void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     Solve();
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
+void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
@@ -159,9 +159,6 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
 #endif
             LoadSolution(dx);
-            if (must_accept_solution_Q) {
-                UpdateState();
-            }
             break;
         }
     }
