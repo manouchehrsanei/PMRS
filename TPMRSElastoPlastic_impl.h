@@ -970,11 +970,11 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         }
 
         
-    }else{
-        TPZFMatrix<REAL> ek_fake;
-        ek_fake.Resize(ef.Rows(),ef.Rows());
-        this->Contribute(data, weight, ek_fake, ef);
     }
+    
+    TPZFMatrix<REAL> ek_fake;
+    ek_fake.Resize(ef.Rows(),ef.Rows());
+    this->Contribute(data, weight, ek_fake, ef);
 
     
 }

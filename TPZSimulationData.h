@@ -188,6 +188,7 @@ public:
         m_is_initial_state_Q                = other.m_is_initial_state_Q;
         m_is_current_state_Q                = other.m_is_current_state_Q;
         m_time                              = other.m_time;
+        m_is_dual_formulation_Q             = other.m_is_dual_formulation_Q;
     }
     
     /** @brief default constructor */
@@ -221,6 +222,7 @@ public:
             m_is_initial_state_Q                = other.m_is_initial_state_Q;
             m_is_current_state_Q                = other.m_is_current_state_Q;
             m_time                              = other.m_time;
+            m_is_dual_formulation_Q             = other.m_is_dual_formulation_Q;
         }
         return *this;
     }

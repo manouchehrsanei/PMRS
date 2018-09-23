@@ -13,8 +13,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="40" />
-        <Residue res_tolerance="0.001" />
-        <Correction cor_tolerance="0.01" />
+        <Residue res_tolerance="0.00001" />
+        <Correction cor_tolerance="0.0001" />
     </NewtonControls>
     <!-- Parallel controls  -->
     <ParallelControls>
@@ -22,10 +22,10 @@
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -74,7 +74,7 @@
     </BoundaryConditionReservoirs> 
     <BoundaryConditionGeomechanics>
         <BoundaryConditionGeomechanic bc_id="2" type="Duy"  uy="0.0" />
-        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-0.0" tz="-500.0" />
+        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-10.0" tz="-500.0" />
         <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0" uy="0.0"  />
     </BoundaryConditionGeomechanics> 
 </CaseData>

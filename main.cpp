@@ -191,9 +191,6 @@ int main(int argc, char *argv[])
     
     TPZSimulationData * sim_data = new TPZSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
-
-    // @TODO:: MS, please move to xml file
-    sim_data->Set_is_dual_formulation_Q(false);
     
 //    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);

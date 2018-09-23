@@ -113,9 +113,9 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
 }
 
 void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
-    this->Assemble();
-    this->Rhs() *= -1.0;
-    this->Solve();
+    Assemble();
+    Rhs() *= -1.0;
+    Solve();
 }
 
 void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
