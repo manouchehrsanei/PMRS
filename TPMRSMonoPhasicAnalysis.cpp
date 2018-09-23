@@ -165,7 +165,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
 #endif
             if (must_accept_solution_Q) {
-                m_X = m_X_n;
+                UpdateState();
             }
             break;
         }
@@ -174,6 +174,10 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
     if (residual_stop_criterion_Q == false) {
         std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
+}
+
+void TPMRSMonoPhasicAnalysis::UpdateState(){
+    m_X = m_X_n;
 }
 
 void TPMRSMonoPhasicAnalysis::PostProcessTimeStep(std::string & file){

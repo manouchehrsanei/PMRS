@@ -58,6 +58,9 @@ public:
     /// Execute the transient evolution using Fixed Stress Split Iteration
     void ExecuteTimeEvolution();
     
+    /// Update solution state x = x_n
+    void UpdateState();
+    
 };
 
 #endif /* TPMRSSegregatedAnalysis_h */

@@ -87,6 +87,8 @@ public:
     /// Load the last state for the hdiv and 2 meshes
     void LoadLastState();
     
+    /// Update solution state x = x_n
+    void UpdateState();
     
     /** @brief Set Residue error */
     void Set_error(STATE error)

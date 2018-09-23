@@ -160,9 +160,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
 #endif
             LoadSolution(dx);
             if (must_accept_solution_Q) {
-                m_simulation_data->SetTransferCurrentToLastQ(true);
-                AcceptPseudoTimeStepSolution();
-                m_simulation_data->SetTransferCurrentToLastQ(false);
+                UpdateState();
             }
             break;
         }
@@ -171,6 +169,12 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
     if (residual_stop_criterion_Q == false) {
         std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
+}
+
+void TPMRSGeomechanicAnalysis::UpdateState(){
+    m_simulation_data->SetTransferCurrentToLastQ(true);
+    AcceptPseudoTimeStepSolution();
+    m_simulation_data->SetTransferCurrentToLastQ(false);
 }
 
 void TPMRSGeomechanicAnalysis::PostProcessTimeStep(std::string & file){
