@@ -8,7 +8,7 @@
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepNumber n_time_steps="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -22,10 +22,10 @@
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
-        <Diffusion p_order="2" />
+        <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
