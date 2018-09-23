@@ -132,6 +132,9 @@ protected:
     /** @brief Directive that states if the current solution must be accepted inside the memory  */
     bool m_must_accept_solution_Q;
     
+    /** @brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    bool m_is_dual_formulation_Q;
+    
     // Begin::  Block that define the material parameters
     /** @brief the property of material  */
     REAL m_young;
@@ -253,6 +256,10 @@ public:
     bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
         m_must_accept_solution_Q = must_accept_solution_Q;}
     
+    /** @brief Set the the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    bool Set_is_dual_formulation_Q(bool is_dual_formulation_Q){
+        m_is_dual_formulation_Q = is_dual_formulation_Q;}
+    
     /** @brief Setup for Newton method controls */
     void SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor);
     
@@ -369,6 +376,9 @@ public:
     /** @brief Get the directive that states if the current solution must be accepted inside the memory  */
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
+    /** @brief Get the the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }
+   
     // Begin::  Block that define the material parameters
     /** @brief Get the young modulus */
     REAL Get_young() { return m_young; }

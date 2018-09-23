@@ -203,12 +203,16 @@ void TPMRSMonoPhasicAnalysis::AcceptTimeStepSolution(){
 
 void TPMRSMonoPhasicAnalysis::LoadCurrentState(){
     LoadSolution(m_X_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    if(m_simulation_data->Get_is_dual_formulation_Q()){
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    }
 }
 
 void TPMRSMonoPhasicAnalysis::LoadLastState(){
     LoadSolution(m_X);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    if(m_simulation_data->Get_is_dual_formulation_Q()){
+        TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_mesh_vec, Mesh());
+    }
 }
 
 

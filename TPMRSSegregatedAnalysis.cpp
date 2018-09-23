@@ -76,6 +76,7 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     
 }
 
+
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(bool must_accept_solution_Q){
     m_reservoir_analysis->ExecuteOneTimeStep(must_accept_solution_Q);
     m_geomechanic_analysis->ExecuteOneTimeStep(must_accept_solution_Q);
@@ -92,7 +93,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::string file_geo("Geomechanic.vtk");
     
     int n_max_fss_iterations = 10; // @TODO:: MS, please to xml file structure
-    int n_enforced_fss_iterations = 2; // @TODO:: MS, please to xml file structure
+    int n_enforced_fss_iterations = 5; // @TODO:: MS, please to xml file structure
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
