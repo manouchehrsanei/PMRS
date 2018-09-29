@@ -35,7 +35,7 @@ private:
     TPZTensor<REAL> m_sigma;
     
     /// Last plastic_strain state
-    TPZPlasticState<REAL> m_plastic_strain;
+    TPZPlasticState<REAL> m_plastic_strain; // @TODO:: MS, Please rename it to m_plastic_state
     
     /// Last displacement field
     TPZManVector<REAL,3> m_u;
