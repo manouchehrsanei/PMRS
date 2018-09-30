@@ -344,8 +344,8 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     REAL E = sim_data->Get_young();
     
     // Mohr Coulomb data
-    REAL mc_cohesion    = 25.0;//25.0*1.0e10;
-    REAL mc_phi         = (10.0*M_PI/180);//(90.0*M_PI/180);//(10.0*M_PI/180);
+    REAL mc_cohesion    = 1.0e8;//23.30000;//25.0;//25.0*1.0e10;
+    REAL mc_phi         = (80.73346*M_PI/180);//(90.0*M_PI/180);//(10.0*M_PI/180);
     REAL mc_psi         = mc_phi; // because MS do not understand
     
     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
@@ -903,7 +903,7 @@ void LEDSPorosityReductionPlot()
     // Initial damage data
     REAL k_0;
     LEDS.InitialDamage(sigma, k_0);
-    LEDS.fN.fAlpha = k_0;
+    LEDS.fN.m_hardening = k_0;
     
 //    TPZFNMatrix<36,STATE> De_c(6,6,0.0),De(6,6,0.0),De_inv;
 //    ER.SetUp(E, nu);
@@ -969,8 +969,8 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
 
     depsilon_acum.Zero();
     sigma_res = sigma_target - sigma_x;
-    epsilon   = plastic_state.fEpsT;
-    epsilon_p = plastic_state.fEpsP;
+    epsilon   = plastic_state.m_eps_t;
+    epsilon_p = plastic_state.m_eps_p;
     epsilon_e = epsilon - epsilon_p;
     
     epsilon_e.CopyTo(eps_e_0);

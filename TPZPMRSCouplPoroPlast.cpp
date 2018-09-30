@@ -289,7 +289,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TMEM &point_memory = memory_vec[global_point_index];
     
     // Setting for the elastoplastic integrator
-    T elasto_plastic_integrator(this->fPlasticity);
+    T elasto_plastic_integrator(this->m_plasticity_model);
 //    elasto_plastic_integrator.SetState(point_memory.fPlasticState);
     TPZElasticResponse ER;
     ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
@@ -302,14 +302,14 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     TPZFNMatrix<6,STATE> deltastrain(6,1,0.);
     ComputeDeltaStrainVector(datavec[u_b], deltastrain);
     EpsT.CopyFrom(deltastrain);
-    EpsT.Add(elasto_plastic_integrator.GetState().fEpsT, 1.);// Adding the last point total strain state
+    EpsT.Add(elasto_plastic_integrator.GetState().m_eps_t, 1.);// Adding the last point total strain state
     
     
     // Perform the return mapping algorithm
     elasto_plastic_integrator.ApplyStrainComputeSigma(EpsT, Stress);
     
-    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().fEpsT;
-    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().fEpsP;
+    TPZTensor<REAL> eps_total_last_state = elasto_plastic_integrator.GetState().m_eps_t;
+    TPZTensor<REAL> eps_plastic_last_state = elasto_plastic_integrator.GetState().m_eps_p;
     TPZTensor<REAL> eps_elastic_last_state = eps_total_last_state - eps_plastic_last_state;
     
     // Compute porosity poroelastic correction
@@ -514,7 +514,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     {
         TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
         TMEM &point_memory = memory_vec[ptindex];
-        point_memory.fPlasticState.fEpsT.Zero();
+        point_memory.fPlasticState.m_eps_t.Zero();
 //        point_memory.fPlasticState.fEpsT.Zero();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
@@ -2624,7 +2624,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
     TMEM &Memory = memory_vec[global_point];
     
-    T plasticloc(this->fPlasticity);
+    T plasticloc(this->m_plasticity_model);
 //    plasticloc.SetState(Memory.fPlasticState);
     
     TPZTensor<STATE> Sigma ;//= Memory.fSigma;
@@ -2638,13 +2638,13 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
         ComputeDeltaStrainVector(data, deltastrain);
         
         EpsT.CopyFrom(deltastrain);
-        EpsT.Add(plasticloc.GetState().fEpsT, 1.);
+        EpsT.Add(plasticloc.GetState().m_eps_t, 1.);
         plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
     }
     
     TPZPlasticState<STATE> PState = plasticloc.GetState();
-    TPZTensor<REAL> totalStrain = PState.fEpsT;
-    TPZTensor<REAL> plasticStrain = PState.fEpsP;
+    TPZTensor<REAL> totalStrain = PState.m_eps_t;
+    TPZTensor<REAL> plasticStrain = PState.m_eps_p;
     TPZTensor<REAL> elasticStrain = totalStrain - plasticStrain;
     
     // The values of displacement and total stress
