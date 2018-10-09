@@ -23,7 +23,7 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(int mat_id, int dimension) : TPZMatWithMe
 }
 
 template <class TMEM>
-TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(const TPMRSMonoPhasic & other){
+TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(const TPMRSMonoPhasic & other) : TPZMatWithMem<TMEM>(other){
     m_simulation_data   = other.m_simulation_data;
     m_dimension         = other.m_dimension;
     m_c                 = other.m_c;
@@ -39,7 +39,7 @@ TPMRSMonoPhasic<TMEM> & TPMRSMonoPhasic<TMEM>::operator=(const TPMRSMonoPhasic &
     if(&other == this){
         return *this;
     }
-    
+    TPZMatWithMem<TMEM>::operator=(other);
     m_simulation_data   = other.m_simulation_data;
     m_dimension         = other.m_dimension;
     m_c                 = other.m_c;
