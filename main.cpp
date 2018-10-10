@@ -1023,6 +1023,10 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file)
 
 void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_geomechanic, TPZCompMesh * cmesh_reservoir){
     
+    
+    // Assuming the geomechanics mesh as directive.
+    cmesh_reservoir->LoadReferences();
+    
     int nel_geo = cmesh_geomechanic->NElements();
     int nel_res = cmesh_reservoir->NElements();
     
@@ -1031,44 +1035,35 @@ void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_ge
         DebugStop();
     }
     
-    int p_order_geo = sim_data->ElasticityOrder();
-    int p_order_res = sim_data->DiffusionOrder();
-    
-    int int_order = 0;
-
-    if (sim_data->Get_is_dual_formulation_Q()) {
-        if (p_order_res > p_order_geo) {
-            int_order = 2*(p_order_res);
-        }else{
-            int_order = 2*(p_order_geo);
-        }
-        
-        if(p_order_res == p_order_geo){
-            int_order = 2*(p_order_res+1);
-        }
-    }else{
-        if (p_order_res > p_order_geo) {
-            int_order = 2*(p_order_res+1);
-        }else{
-            int_order = 2*(p_order_geo);
-        }
-        
-        if(p_order_res == p_order_geo){
-            int_order = 2*(p_order_res);
-        }
-    }
-    
-    std::vector<TPZIntPoints *> int_rule_vec;
-    for (long el = 0; el<nel_geo; el++) {
-        TPZCompEl *cel = cmesh_geomechanic->Element(el);
-        if (!cel) {
+    int counter = 0;
+    for (long el = 0; el < nel_geo; el++) {
+        TPZCompEl *cel_o = cmesh_geomechanic->Element(el);
+        if (!cel_o) {
             continue;
         }
-        cel->SetIntegrationRule(int_order);
-        cel->PrepareIntPtIndices();
-        const TPZIntPoints & rule = cel->GetIntegrationRule();
-        TPZIntPoints * rule_copy = rule.Clone();
-        int_rule_vec.push_back(rule_copy);
+        
+        TPZGeoEl * gel = cel_o->Reference();
+        if (!gel) {
+            continue;
+        }
+        
+        // Finding the other computational element
+        TPZCompEl * cel_d = gel->Reference();
+        if (!cel_d) {
+            continue;
+        }
+        
+        const TPZIntPoints & rule = cel_o->GetIntegrationRule();
+        TPZIntPoints * cloned_rule = rule.Clone();
+        
+        TPZVec<int64_t> indices;
+        cel_o->GetMemoryIndices(indices);
+        cel_d->SetMemoryIndices(indices);
+        cel_d->SetIntegrationRule(cloned_rule);
+//        cel_d->SetFreeIntPtIndices();
+        cel_d->ForcePrepareIntPtIndices();
+        
+        counter++;
     }
     
 #ifdef PZDEBUG
@@ -1076,25 +1071,9 @@ void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_ge
     cmesh_geomechanic->Print(out_geo);
 #endif
     
-    int counter = 0;
-    for (long el = 0; el < nel_res; el++) {
-        TPZCompEl *cel = cmesh_reservoir->Element(el);
-        if (sim_data->Get_is_dual_formulation_Q()) {
-            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
-            if (!mfcel) {
-                continue;
-            }
-            mfcel->SetIntegrationRule(int_rule_vec[counter]);
-            mfcel->PrepareIntPtIndices();
-        }else{
-            cel->SetIntegrationRule(int_order);
-        }
-        counter++;
-    }
-    
-    if (sim_data->Get_is_dual_formulation_Q()) {
-        cmesh_reservoir->CleanUpUnconnectedNodes();
-    }
+//    if (sim_data->Get_is_dual_formulation_Q()) {
+//        cmesh_reservoir->CleanUpUnconnectedNodes();
+//    }
     
 #ifdef PZDEBUG
     std::ofstream out_res("CmeshReservoir_adjusted.txt");
