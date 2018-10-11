@@ -98,7 +98,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         DebugStop();
     }
     
-    int counter = 0;
     for (long el = 0; el < nel_o; el++) {
         TPZCompEl *cel_o = cmesh_o->Element(el);
         if (!cel_o) {
@@ -116,10 +115,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
             continue;
         }
         
-        if (gel->Dimension() == 2) {
-            int aka = 0;
-        }
-        
         cel_o->SetFreeIntPtIndices();
         cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
@@ -128,11 +123,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         TPZManVector<int64_t,20> indices;
         cel_o->GetMemoryIndices(indices);
         cel_d->SetMemoryIndices(indices);
-//        cel_d->SetFreeIntPtIndices();
         cel_d->SetIntegrationRule(cloned_rule);
-//        cel_d->ForcePrepareIntPtIndices();
         
-        counter++;
     }
     
 #ifdef PZDEBUG
