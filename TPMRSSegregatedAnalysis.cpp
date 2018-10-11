@@ -64,11 +64,11 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     bool mustOptimizeBandwidth = true;
 
     if (simulation_data->ElasticityOrder()>simulation_data->DiffusionOrder()) {
-        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
         this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
     }else{
-        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
         this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
     }
 
     
@@ -115,16 +115,21 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
             continue;
         }
         
-        cel_o->SetFreeIntPtIndices();
-        cel_o->ForcePrepareIntPtIndices();
+        int dim = gel->Dimension();
+        
+        cel_o->PrepareIntPtIndices();
+        
+//        cel_o->SetFreeIntPtIndices();
+//        cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
         TPZIntPoints * cloned_rule = rule.Clone();
         
         TPZManVector<int64_t,20> indices;
         cel_o->GetMemoryIndices(indices);
+        cel_d->SetFreeIntPtIndices();
         cel_d->SetMemoryIndices(indices);
         cel_d->SetIntegrationRule(cloned_rule);
-        
+        cel_d->ForcePrepareIntPtIndices();
     }
     
 #ifdef PZDEBUG
