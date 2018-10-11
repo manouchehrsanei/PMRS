@@ -132,8 +132,8 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
     TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
-    TPZTensor<REAL> epsilon_t = memory.GetPlasticState_n().fEpsT;
-    TPZTensor<REAL> epsilon_p = memory.GetPlasticState_n().fEpsP;
+    TPZTensor<REAL> epsilon_t = memory.GetPlasticState_n().m_eps_t;
+    TPZTensor<REAL> epsilon_p = memory.GetPlasticState_n().m_eps_p;
     
     switch (var) {
         case 0:
@@ -255,7 +255,7 @@ template <class T, class TMEM>
 void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t){
     
     int gp_index = data.intGlobPtIndex;
-    TPZTensor<REAL> last_epsilon = this->MemItem(gp_index).GetPlasticState().fEpsT;
+    TPZTensor<REAL> last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
     TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u,grad_delta_u_t;
     TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
     TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);
