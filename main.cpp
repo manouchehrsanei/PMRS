@@ -121,9 +121,6 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data);
 // H1 mesh for displacements
 TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data);
 
-/// Adjust the integration order to be same
-void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_geomechanic, TPZCompMesh * cmesh_mixed);
-
 // Method that makes the poroelastic full coupling
 void RuningFullCoupling(TPZSimulationData * sim_data);
 
@@ -300,14 +297,13 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
         cmesh_res = CMesh_Primal(sim_data);
     }
  
-    AdjustIntegrationOrder(sim_data,cmesh_geomechanic,cmesh_res);
-
     TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
     if (sim_data->Get_is_dual_formulation_Q()) {
         segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }else{
         segregated_analysis->ConfigurateAnalysis(ELDLt, ELDLt, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }
+
     segregated_analysis->ExecuteTimeEvolution();
 }
 
@@ -1020,69 +1016,3 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file)
     }
     return data;
 }
-
-void AdjustIntegrationOrder(TPZSimulationData * sim_data, TPZCompMesh * cmesh_geomechanic, TPZCompMesh * cmesh_reservoir){
-    
-    
-    // Assuming the geomechanics mesh as directive.
-    cmesh_reservoir->LoadReferences();
-    
-    int nel_geo = cmesh_geomechanic->NElements();
-    int nel_res = cmesh_reservoir->NElements();
-    
-    if (nel_geo != nel_res) {
-        std::cout << "The geometrical partitions are not the same." << std::endl;
-        DebugStop();
-    }
-    
-    int counter = 0;
-    for (long el = 0; el < nel_geo; el++) {
-        TPZCompEl *cel_o = cmesh_geomechanic->Element(el);
-        if (!cel_o) {
-            continue;
-        }
-        
-        TPZGeoEl * gel = cel_o->Reference();
-        if (!gel) {
-            continue;
-        }
-        
-        // Finding the other computational element
-        TPZCompEl * cel_d = gel->Reference();
-        if (!cel_d) {
-            continue;
-        }
-        
-        const TPZIntPoints & rule = cel_o->GetIntegrationRule();
-        TPZIntPoints * cloned_rule = rule.Clone();
-        
-        TPZVec<int64_t> indices;
-        cel_o->GetMemoryIndices(indices);
-        cel_d->SetMemoryIndices(indices);
-        cel_d->SetIntegrationRule(cloned_rule);
-//        cel_d->SetFreeIntPtIndices();
-        cel_d->ForcePrepareIntPtIndices();
-        
-        counter++;
-    }
-    
-#ifdef PZDEBUG
-    std::ofstream out_geo("Cmesh_Geomechanics_adjusted.txt");
-    cmesh_geomechanic->Print(out_geo);
-#endif
-    
-//    if (sim_data->Get_is_dual_formulation_Q()) {
-//        cmesh_reservoir->CleanUpUnconnectedNodes();
-//    }
-    
-#ifdef PZDEBUG
-    std::ofstream out_res("CmeshReservoir_adjusted.txt");
-    cmesh_reservoir->Print(out_res);
-#endif
-    
-    
-}
-
-
-
-

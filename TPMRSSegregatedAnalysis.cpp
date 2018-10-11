@@ -24,7 +24,7 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis &
     m_reservoir_analysis    = other.m_reservoir_analysis;
 }
 
-void TPMRSSegregatedAnalysis::ApplyMemoryLink(){
+void TPMRSSegregatedAnalysis::ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
     if (!m_simulation_data) {
         DebugStop();
@@ -38,18 +38,19 @@ void TPMRSSegregatedAnalysis::ApplyMemoryLink(){
         int matid = material_ids[iregion].first;
         volumetric_mat_id[iregion] = matid;
         
-        TPZMaterial * material_geo = m_geomechanic_analysis->Mesh()->FindMaterial(matid);
-        TPZMaterial * material_res = m_reservoir_analysis->Mesh()->FindMaterial(matid);
-        if (!material_geo || !material_res) {
+        TPZMaterial * material_o = cmesh_o->FindMaterial(matid);
+        TPZMaterial * material_d = cmesh_d->FindMaterial(matid);
+        if (!material_o || !material_d) {
             DebugStop();
         }
         
-        TPZMatWithMem<TPMRSMemory> * mat_with_memory_geo = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_geo);
-        TPZMatWithMem<TPMRSMemory> * mat_with_memory_res = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_res);
-        if (!mat_with_memory_geo || !mat_with_memory_res) {
+        TPZMatWithMem<TPMRSMemory> * mat_with_memory_o = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_o);
+        TPZMatWithMem<TPMRSMemory> * mat_with_memory_d = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material_d);
+        if (!mat_with_memory_o || !mat_with_memory_d) {
             DebugStop();
         }
-        mat_with_memory_res->SetMemory(mat_with_memory_geo->GetMemory());
+        
+        mat_with_memory_d->SetMemory(mat_with_memory_o->GetMemory());
     }
 }
 
@@ -62,6 +63,9 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     this->SetSimulationData(simulation_data);
     bool mustOptimizeBandwidth = true;
 
+    this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
+    this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+    
     // The Geomechanics Simulator
     m_geomechanic_analysis = new TPMRSGeomechanicAnalysis;
     m_geomechanic_analysis->SetCompMesh(cmesh_geomechanics,mustOptimizeBandwidth);
@@ -71,11 +75,67 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     m_reservoir_analysis = new TPMRSMonoPhasicAnalysis;
     m_reservoir_analysis->SetCompMesh(cmesh_reservoir,mustOptimizeBandwidth);
     m_reservoir_analysis->ConfigurateAnalysis(decompose_res, mesh_vec, m_simulation_data);
-    
-    this->ApplyMemoryLink();
-    
+
 }
 
+
+void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
+    
+    // Assuming the cmesh_o as directive.
+    
+    cmesh_d->LoadReferences();
+    int nel_o = cmesh_o->NElements();
+    int nel_d = cmesh_d->NElements();
+    
+    if (nel_o != nel_d) {
+        std::cout << "The geometrical partitions are not the same." << std::endl;
+        DebugStop();
+    }
+    
+    int counter = 0;
+    for (long el = 0; el < nel_o; el++) {
+        TPZCompEl *cel_o = cmesh_o->Element(el);
+        if (!cel_o) {
+            continue;
+        }
+        
+        TPZGeoEl * gel = cel_o->Reference();
+        if (!gel) {
+            continue;
+        }
+        
+        // Finding the other computational element
+        TPZCompEl * cel_d = gel->Reference();
+        if (!cel_d) {
+            continue;
+        }
+        cel_o->SetFreeIntPtIndices();
+        cel_o->ForcePrepareIntPtIndices();
+        const TPZIntPoints & rule = cel_o->GetIntegrationRule();
+        TPZIntPoints * cloned_rule = rule.Clone();
+        
+        TPZManVector<int64_t,20> indices;
+        cel_o->GetMemoryIndices(indices);
+        cel_d->SetMemoryIndices(indices);
+//        cel_d->SetFreeIntPtIndices();
+        cel_d->SetIntegrationRule(cloned_rule);
+//        cel_d->ForcePrepareIntPtIndices();
+        
+        counter++;
+    }
+    
+#ifdef PZDEBUG
+    std::ofstream out_geo("Cmesh_origin_adjusted.txt");
+    cmesh_o->Print(out_geo);
+#endif
+    
+
+#ifdef PZDEBUG
+    std::ofstream out_res("Cmesh_destination_adjusted.txt");
+    cmesh_d->Print(out_res);
+#endif
+
+}
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(){
     m_reservoir_analysis->ExecuteOneTimeStep();
@@ -107,10 +167,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
             
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) || dx_stop_criterion_Q) {
-                this->PostProcessTimeStep(file_geo, file_res);
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
                 UpdateState();
+                this->PostProcessTimeStep(file_geo, file_res);
                 break;
             }
         }

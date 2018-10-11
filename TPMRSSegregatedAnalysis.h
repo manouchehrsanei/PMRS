@@ -44,7 +44,10 @@ public:
     }
 
     /// Attach materials with the same share pointer (For now just volumeric linking)
-    void ApplyMemoryLink();
+    void ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d);
+    
+    /// Adjust integration orders
+    void AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d);
     
     /// Configurate internal analysis objects and linked them through the memory shared pointer
     void ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPZSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec);
