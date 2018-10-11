@@ -63,8 +63,14 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     this->SetSimulationData(simulation_data);
     bool mustOptimizeBandwidth = true;
 
-    this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
-    this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+    if (simulation_data->ElasticityOrder()>simulation_data->DiffusionOrder()) {
+        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
+        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+    }else{
+        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
+        this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+    }
+
     
     // The Geomechanics Simulator
     m_geomechanic_analysis = new TPMRSGeomechanicAnalysis;
@@ -109,6 +115,11 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         if (!cel_d) {
             continue;
         }
+        
+        if (gel->Dimension() == 2) {
+            int aka = 0;
+        }
+        
         cel_o->SetFreeIntPtIndices();
         cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
