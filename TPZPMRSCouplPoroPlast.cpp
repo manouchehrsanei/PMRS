@@ -332,7 +332,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         return;
     }
     
-    TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
+    TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
     Sigma_0.Zero();
     TPZFNMatrix<9,REAL> delta_S(2,2,0.0);
     

@@ -19,7 +19,7 @@ TPZSimulationData::TPZSimulationData()
     m_diffusion_order = 0;
     m_dimesion = 0;
     m_g.Resize(0);
-    m_sigma_0.Resize(0, 0);
+//    m_sigma_0.Resize(0, 0);
     m_n_steps = 0;
     m_dt = 0.0;
     m_reporting_times.resize(0);
@@ -31,8 +31,11 @@ TPZSimulationData::TPZSimulationData()
     m_geometry = NULL;
     m_vtk_file = "";
     m_vtk_resolution = 0;
-    m_reservoiroutputs.Resize(0);
-    m_geomechanicoutputs.Resize(0);
+    m_s_names_res.Resize(0);
+    m_s_names_geo.Resize(0);
+    m_v_names_res.Resize(0);
+    m_v_names_geo.Resize(0);
+    m_t_names_geo.Resize(0);
     m_n_regions = 0;
     m_mat_ids.Resize(0);
     m_mat_props.Resize(0);
@@ -169,37 +172,70 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     int vtk_resolution = std::atoi(char_container);
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
-    char_container = container->Attribute("n_reservoiroutputs");
-    int n_reservoiroutputs = std::atoi(char_container);
+    char_container = container->Attribute("n_outputs_geo");
+    int n_outputs_geo = std::atoi(char_container);
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
-    char_container = container->Attribute("n_geomechanicoutputs");
-    int n_geomechanicoutputs = std::atoi(char_container);
-    
-    TPZManVector<std::string,50> reservoiroutputs(n_reservoiroutputs), geomechanicoutputs(n_geomechanicoutputs);
+    char_container = container->Attribute("n_outputs_res");
+    int n_outputs_res = std::atoi(char_container);
 
-    int iscalar = 0;
-    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "ReservoirOutputControls" ).FirstChild( "Var" ).ToElement();
+    int is_r = 0;
+    int iv_r = 0;
+    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "OutputControlsRes" ).FirstChild( "Var" ).ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
-        char_container = container->Attribute("name");
-        reservoiroutputs[iscalar] = char_container;
-        iscalar++;
+        char_container = container->Attribute("v_name");
+        if (char_container) {
+            iv_r++;
+            m_v_names_res.Resize(iv_r,"");
+            m_v_names_res[iv_r-1] = char_container;
+        }
+        char_container = container->Attribute("s_name");
+        if (char_container) {
+            is_r++;
+            m_s_names_res.Resize(is_r,"");
+            m_s_names_res[is_r-1] = char_container;
+        }
+    }
+    
+    if (is_r+iv_r!=n_outputs_res) {
+        std::cout << "OutputControlsRes has a different number of variables that you request with n_outputs_res." << std::endl;
+        DebugStop();
     }
 
-    int ivectorial = 0;
-    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "GeomechanicOutputControls" ).FirstChild( "Var" ).ToElement();
+    int is_g = 0;
+    int iv_g = 0;
+    int it_g = 0;
+    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "OutputControlsGeo" ).FirstChild( "Var" ).ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
-        char_container = container->Attribute("name");
-        geomechanicoutputs[ivectorial] = char_container;
-        ivectorial++;
+        char_container = container->Attribute("t_name");
+        if (char_container) {
+            it_g++;
+            m_t_names_geo.Resize(it_g,"");
+            m_t_names_geo[it_g-1] = char_container;
+        }
+        char_container = container->Attribute("v_name");
+        if (char_container) {
+            iv_g++;
+            m_v_names_geo.Resize(iv_g,"");
+            m_v_names_geo[iv_g-1] = char_container;
+        }
+        char_container = container->Attribute("s_name");
+        if (char_container) {
+            is_g++;
+            m_s_names_geo.Resize(is_g,"");
+            m_s_names_geo[is_g-1] = char_container;
+        }
+    }
+    
+    if (is_g+iv_g+it_g!=n_outputs_geo) {
+        std::cout << "OutputControlsGeo has a different number of variables that you request with n_outputs_geo." << std::endl;
+        DebugStop();
     }
     
     m_vtk_file = vtk_file;
     m_vtk_resolution = vtk_resolution;
-    m_reservoiroutputs = reservoiroutputs;
-    m_geomechanicoutputs = geomechanicoutputs;
     // End:: Outputs
     
     
@@ -214,8 +250,6 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("y_direction");
     REAL y_dir = std::atof(char_container);
     m_g.Resize(dimension,0.0);
-    m_sigma_0.Resize(3, 3);
-    m_sigma_0.Zero();
     m_g[0] = g_c * x_dir;
     m_g[1] = g_c * y_dir;
     
@@ -226,36 +260,6 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         m_g[2] = g_c * z_dir;
     }
     
-    container = doc_handler.FirstChild("CaseData").FirstChild("Physics").FirstChild("Prestress").ToElement();
-    char_container = container->Attribute("sxx");
-    REAL sxx = std::atof(char_container);
-    char_container = container->Attribute("syy");
-    REAL syy = std::atof(char_container);
-    char_container = container->Attribute("sxy");
-    REAL sxy = std::atof(char_container);
-    
-    m_sigma_0(0,0) = sxx;
-    m_sigma_0(1,1) = syy;
-    m_sigma_0(1,0) = sxy;
-    m_sigma_0(0,1) = sxy;
-    
-    if (dimension == 3)
-    {
-        
-        char_container = container->Attribute("szz");
-        REAL szz = std::atof(char_container);
-        char_container = container->Attribute("sxz");
-        REAL sxz = std::atof(char_container);
-        char_container = container->Attribute("syz");
-        REAL syz = std::atof(char_container);
-        
-        m_sigma_0(2,2) = szz;
-        m_sigma_0(0,2) = sxz;
-        m_sigma_0(2,0) = sxz;
-        m_sigma_0(1,2) = syz;
-        m_sigma_0(2,1) = syz;
-    
-    }
     // End:: Physics
     
     
@@ -267,27 +271,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     m_n_regions = n_regions;
     m_mat_ids.Resize(n_regions);
     m_mat_props.Resize(n_regions);
-    
-    // Block that will increase with the number of parameters that the PDE require
-    // This follow the Parameters structure in the input xml file
-    TPZStack<std::string> par_names;
-    par_names.Push("eyoung");
-    par_names.Push("nu");
-    par_names.Push("phi");
-    par_names.Push("kappa");
-    par_names.Push("alpha");
-    par_names.Push("m");
-    par_names.Push("mu");
-    par_names.Push("rhof");
-    par_names.Push("rhos");
-    
-    par_names.Push("MCcoh");
-    par_names.Push("MCphi");
-    par_names.Push("MCpsi");
-    
 
-    
-    
     int iregion = 0;
     TiXmlElement * sub_container;
     container = doc_handler.FirstChild( "CaseData" ).FirstChild( "RegionsDefinition" ).FirstChild("RegionData").ToElement();
@@ -296,24 +280,47 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         
         char_container = container->Attribute("mat_id");
         int mat_id = std::atoi(char_container);
-        char_container = container->Attribute("n_boundaries");
-        int n_boundaries = std::atoi(char_container);
-        char_container = container->Attribute("n_parameters");
-        int n_parameters = std::atoi(char_container);
+        char_container = container->Attribute("n_boundaries_geo");
+        int n_boundaries_geo = std::atoi(char_container);
+        char_container = container->Attribute("n_boundaries_res");
+        int n_boundaries_res = std::atoi(char_container);
+        char_container = container->Attribute("n_poro_mech_undrained_par");
+        int n_poro_mech_undrained_par = std::atoi(char_container);
+        char_container = container->Attribute("n_poro_mech_par");
+        int n_poro_mech_par = std::atoi(char_container);
+        char_container = container->Attribute("n_plasticity_par");
+        int n_plasticity_par = std::atoi(char_container);
         
         m_mat_ids[iregion].first = mat_id;
-        m_mat_ids[iregion].second.Resize(n_boundaries);
+        m_mat_ids[iregion].second.first.Resize(n_boundaries_geo);
+        m_mat_ids[iregion].second.second.Resize(n_boundaries_res);
         
-        sub_container = container->FirstChild("Boundaries")->FirstChild("Boundary")->ToElement();
-        int iboundary = 0;
+        sub_container = container->FirstChild("GeoBoundaries")->FirstChild("Boundary")->ToElement();
+        int iboundary_g = 0;
         for( ; sub_container; sub_container=sub_container->NextSiblingElement())
         {
             char_container = sub_container->Attribute("bc_id");
             int bc_id = std::atoi(char_container);
-            m_mat_ids[iregion].second [iboundary] = bc_id;
-            iboundary++;
+            m_mat_ids[iregion].second.first[iboundary_g] = bc_id;
+            iboundary_g++;
         }
         
+        sub_container = container->FirstChild("ResBoundaries")->FirstChild("Boundary")->ToElement();
+        int iboundary_r = 0;
+        for( ; sub_container; sub_container=sub_container->NextSiblingElement())
+        {
+            char_container = sub_container->Attribute("bc_id");
+            int bc_id = std::atoi(char_container);
+            m_mat_ids[iregion].second.second[iboundary_r] = bc_id;
+            iboundary_r++;
+        }
+        
+        if ((iboundary_g != n_boundaries_geo) || (iboundary_r != n_boundaries_res)) {
+        std::cout << "RegionData has a different number of boundary conditions that you request with n_boundaries_geo or n_boundaries_res." << std::endl;
+            DebugStop();
+        }
+        
+        /// I dislike this
         
         m_mat_props[iregion].Resize(n_parameters);
         sub_container = container->FirstChild("Parameters")->ToElement();
@@ -512,7 +519,7 @@ void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, R
 /** @brief Print the all members */
 void TPZSimulationData::Print()
 {
-    
+    DebugStop();
     std::cout << " TPZSimulationData class members : " << std::endl;
     std::cout << std::endl;
     std::cout << " m_is_dual_formulation_Q = " << m_is_dual_formulation_Q << std::endl;
@@ -522,7 +529,7 @@ void TPZSimulationData::Print()
     std::cout << " m_diffusion_order = " << m_diffusion_order << std::endl;
     std::cout << " m_dimesion = " << m_dimesion << std::endl;
     std::cout << " m_g = " << m_g << std::endl;
-    std::cout << " m_sigma_0 = " << m_sigma_0 << std::endl;
+//    std::cout << " m_sigma_0 = " << m_sigma_0 << std::endl;
     std::cout << " m_n_steps = " << m_n_steps << std::endl;
     std::cout << " m_dt = " << m_dt << std::endl;
     std::cout << " m_reporting_times = " << m_reporting_times << std::endl;
@@ -534,8 +541,8 @@ void TPZSimulationData::Print()
     std::cout << " m_geometry = " << m_geometry << std::endl;
     std::cout << " m_vtk_file = " << m_vtk_file << std::endl;
     std::cout << " m_vtk_resolution = " << m_vtk_resolution << std::endl;
-    std::cout << " m_reservoiroutputs = " << m_reservoiroutputs << std::endl;
-    std::cout << " m_geomechanicoutputs = " << m_geomechanicoutputs << std::endl;
+//    std::cout << " m_reservoiroutputs = " << m_reservoiroutputs << std::endl;
+//    std::cout << " m_geomechanicoutputs = " << m_geomechanicoutputs << std::endl;
     std::cout << " m_n_regions = " << m_n_regions << std::endl;
     
     std::cout << " m_mat_ids = " << std::endl;

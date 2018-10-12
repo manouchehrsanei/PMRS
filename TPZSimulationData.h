@@ -25,7 +25,7 @@
 
 
 //@TODO: Rename TPZSimulationData to TPMRSSimulationData
-//@TODO: Rename Create a copy constructor
+//@TODO: Rename Update a copy constructor
 class TPZSimulationData
 {
     
@@ -48,9 +48,6 @@ protected:
 
     /** @brief Gravity field */
     TPZManVector<REAL,3> m_g;
-
-    /** @brief Prestress state */
-    TPZFMatrix<REAL> m_sigma_0;
     
     /** @brief Number of time steps */
     int m_n_steps;
@@ -85,17 +82,26 @@ protected:
     /** @brief Number of vtk resolution during postprocessing */
     int m_vtk_resolution;
     
-    /** @brief Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> m_reservoiroutputs;
+    /** @brief Vector that storage scalar names for reservoir postprocessing */
+    TPZManVector<std::string,50> m_s_names_res;
     
-    /** @brief Vector that storage vector names for postprocessing */
-    TPZManVector<std::string,50> m_geomechanicoutputs;
+    /** @brief Vector that storage vectors names for reservoir postprocessing */
+    TPZManVector<std::string,50> m_v_names_res;
+    
+    /** @brief Vector that storage scalar names for geomechanics postprocessing */
+    TPZManVector<std::string,50> m_s_names_geo;
+    
+    /** @brief Vector that storage vectors names for geomechanics postprocessing */
+    TPZManVector<std::string,50> m_v_names_geo;
+    
+    /** @brief Vector that storage tensor names for geomechanics postprocessing */
+    TPZManVector<std::string,50> m_t_names_geo;
     
     /** @brief Integer that define the number of regions presented in the geometry */
     int m_n_regions;
     
     /** @brief Material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12> m_mat_ids;
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> m_mat_ids;
     
     /** @brief Material properties sorted per region */
     TPZManVector<TPZManVector<REAL,12>,12> m_mat_props;
@@ -163,16 +169,17 @@ public:
     /** @brief default constructor */
     TPZSimulationData();
     
-    /** @brief default constructor */
+    /** @brief Copy constructor */
     TPZSimulationData(const TPZSimulationData & other)
     {
+        DebugStop();
         m_transfer_current_to_last_solution_Q            = other.m_transfer_current_to_last_solution_Q;
         m_h_level                           = other.m_h_level;
         m_elasticity_order                  = other.m_elasticity_order;
         m_diffusion_order                   = other.m_diffusion_order;
         m_dimesion                          = other.m_dimesion;
         m_g                                 = other.m_g;
-        m_sigma_0                           = other.m_sigma_0;
+//        m_sigma_0                           = other.m_sigma_0;
         m_n_steps                           = other.m_n_steps;
         m_dt                                = other.m_dt;
         m_reporting_times                   = other.m_reporting_times;
@@ -184,8 +191,8 @@ public:
         m_geometry                          = other.m_geometry;
         m_vtk_file                          = other.m_vtk_file;
         m_vtk_resolution                    = other.m_vtk_resolution;
-        m_reservoiroutputs                         = other.m_reservoiroutputs;
-        m_geomechanicoutputs                          = other.m_geomechanicoutputs;
+//        m_reservoiroutputs                         = other.m_reservoiroutputs;
+//        m_geomechanicoutputs                          = other.m_geomechanicoutputs;
         m_n_regions                         = other.m_n_regions;
         m_mat_ids                           = other.m_mat_ids;
         m_mat_props                         = other.m_mat_props;
@@ -195,9 +202,10 @@ public:
         m_is_dual_formulation_Q             = other.m_is_dual_formulation_Q;
     }
     
-    /** @brief default constructor */
+    /** @brief Assignement constructor */
     TPZSimulationData &operator=(const TPZSimulationData &other)
     {
+        DebugStop();
         if (this != & other) // prevent self-assignment
         {
             m_transfer_current_to_last_solution_Q = other.m_transfer_current_to_last_solution_Q;
@@ -206,7 +214,7 @@ public:
             m_diffusion_order                   = other.m_diffusion_order;
             m_dimesion                          = other.m_dimesion;
             m_g                                 = other.m_g;
-            m_sigma_0                           = other.m_sigma_0;
+//            m_sigma_0                           = other.m_sigma_0;
             m_n_steps                           = other.m_n_steps;
             m_dt                                = other.m_dt;
             m_reporting_times                   = other.m_reporting_times;
@@ -218,8 +226,8 @@ public:
             m_geometry                          = other.m_geometry;
             m_vtk_file                          = other.m_vtk_file;
             m_vtk_resolution                    = other.m_vtk_resolution;
-            m_reservoiroutputs                         = other.m_reservoiroutputs;
-            m_geomechanicoutputs                          = other.m_geomechanicoutputs;
+//            m_reservoiroutputs                         = other.m_reservoiroutputs;
+//            m_geomechanicoutputs                          = other.m_geomechanicoutputs;
             m_n_regions                         = other.m_n_regions;
             m_mat_ids                           = other.m_mat_ids;
             m_mat_props                         = other.m_mat_props;
@@ -304,22 +312,25 @@ public:
     /** @brief Get Number of vtk resolution during postprocessing */
     int n_div() { return m_vtk_resolution; }
     
-    /** @brief Get Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> reservoir_outputs() { return m_reservoiroutputs; }
+    /** @brief Get Vector that storage scalar names for reservoir postprocessing */
+    TPZManVector<std::string,50> s_names_res() { return m_s_names_res; }
     
-    /** @brief Get Vector that storage scalar names for postprocessing */
-    TPZManVector<std::string,50> geomechanic_outputs() { return m_geomechanicoutputs; }
+    /** @brief Get Vector that storage vector names for reservoir postprocessing */
+    TPZManVector<std::string,50> v_names_res() { return m_v_names_res; }
+    
+    /** @brief Get Vector that storage scalar names for geomechanics postprocessing */
+    TPZManVector<std::string,50> s_names_geo() { return m_s_names_geo; }
+    
+    /** @brief Get Vector that storage vector names for geomechanics postprocessing */
+    TPZManVector<std::string,50> v_names_geo() { return m_v_names_geo; }
+    
+    /** @brief Get Vector that storage tensor names for geomechanics postprocessing */
+    TPZManVector<std::string,50> t_names_geo() { return m_t_names_geo; }
     
     /** @brief Get the gravity field */
     TPZVec<REAL> & Gravity()
     {
         return m_g;
-    }
-    
-    /** @brief Get prestress state */
-    TPZFMatrix<REAL> & PreStress()
-    {
-        return m_sigma_0;
     }
     
     /** @brief Get the neopz geometry description */

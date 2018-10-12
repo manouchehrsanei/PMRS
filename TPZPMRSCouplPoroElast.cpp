@@ -305,7 +305,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0);
     TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
 
-    TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
+    TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
     
     
     Sigma_0.Zero();
@@ -528,7 +528,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     REAL duydx, duydy, duydz;
     REAL duzdx, duzdy, duzdz;
     
-    TPZFMatrix<REAL> & Sigma_0 = m_SimulationData->PreStress();
+    TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
     
     Sigma_0.Zero();
     S -= Sigma_0; // Applying prestress

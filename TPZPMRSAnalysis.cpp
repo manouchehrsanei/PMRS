@@ -297,8 +297,9 @@ void TPZPMRSAnalysis::PostProcessStepStandard()
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
     
-    TPZManVector<std::string,50> reservoiroutputs = m_SimulationData->reservoir_outputs();
-    TPZManVector<std::string,50> geomechanicoutputs = m_SimulationData->geomechanic_outputs();
+    DebugStop();
+    TPZManVector<std::string,50> reservoiroutputs;// = m_SimulationData->reservoir_outputs();
+    TPZManVector<std::string,50> geomechanicoutputs;// = m_SimulationData->geomechanic_outputs();
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
@@ -319,8 +320,9 @@ void TPZPMRSAnalysis::PostProcessStep()
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
  
-    TPZManVector<std::string,50> reservoiroutputs = m_SimulationData->reservoir_outputs();
-    TPZManVector<std::string,50> geomechanicoutputs = m_SimulationData->geomechanic_outputs();
+    DebugStop();
+    TPZManVector<std::string,50> reservoiroutputs;// = m_SimulationData->reservoir_outputs();
+    TPZManVector<std::string,50> geomechanicoutputs;// = m_SimulationData->geomechanic_outputs();
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     

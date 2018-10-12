@@ -32,25 +32,23 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_Cricular_2D.vtk" n_divisions="1" n_reservoiroutputs="1" n_geomechanicoutputs="7"
-        />
-        <ReservoirOutputControls>
-            <Var name="p" />
-        </ReservoirOutputControls>
-        <GeomechanicOutputControls>
-            <Var name="e_x" />
-            <Var name="e_y" />
-            <Var name="phi" />
-            <Var name="k_x" />
-            <Var name="k_y" />
-            <Var name="s_x" />
-            <Var name="s_y" />
-        </GeomechanicOutputControls>
+        <PostProcessing vtk_file="Wellbore_Cricular_2D.vtk" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <OutputControlsGeo>
+            <Var s_name="e_x" />
+            <Var s_name="e_y" />
+            <Var s_name="phi" />
+            <Var s_name="k_x" />
+            <Var s_name="k_y" />
+            <Var s_name="s_x" />
+            <Var s_name="s_y" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="p" />
+        </OutputControlsRes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
