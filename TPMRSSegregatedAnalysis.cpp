@@ -71,7 +71,6 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
         this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
     }
 
-    
     // The Geomechanics Simulator
     m_geomechanic_analysis = new TPMRSGeomechanicAnalysis;
     m_geomechanic_analysis->SetCompMesh(cmesh_geomechanics,mustOptimizeBandwidth);
@@ -114,13 +113,9 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         if (!cel_d) {
             continue;
         }
-        
-        int dim = gel->Dimension();
-        
+
         cel_o->PrepareIntPtIndices();
-        
-//        cel_o->SetFreeIntPtIndices();
-//        cel_o->ForcePrepareIntPtIndices();
+
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
         TPZIntPoints * cloned_rule = rule.Clone();
         
@@ -160,8 +155,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::string file_res("ReservoirFlow.vtk");
     std::string file_geo("Geomechanic.vtk");
     
-    int n_max_fss_iterations = 10; // @TODO:: MS, please to xml file structure
-    int n_enforced_fss_iterations = 5; // @TODO:: MS, please to xml file structure
+    int n_max_fss_iterations = 20; // @TODO:: MS, please to xml file structure
+    int n_enforced_fss_iterations = 10; // @TODO:: MS, please to xml file structure
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
