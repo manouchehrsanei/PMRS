@@ -7,8 +7,9 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
+        <StepSize dt="0.01" />
         <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -24,8 +25,8 @@
     <FEM>
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="2" />
+        <Elasticity p_order="1" />
+        <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -57,14 +58,20 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="12" >
-            <Parameters eyoung="29269.0" nu="0.20300" phi="0.25" kappa="5.0e-9" alpha="1.0" m="1.0e29" mu="0.001" rhof="1000.0" rhos="2700.0"
-            MCcoh="1e6" MCphi="25.0" MCpsi="25.0"/>
-            <Boundaries>
+        <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3" n_poro_mech_undrained_par="4" n_poro_mech_par="9" n_plasticity_par ="3">
+            <PoroMechUndrainedParameters Eyoung_u="29269.0" nu_u="0.20300" phi_0="0.25" kappa_0="5.0e-9" />            
+            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" M="1.0e29" eta="0.001" rho_f="1000.0" rho_s="2700.0" phi_model="phi1" kappa_model="kappa1" />
+            <PlasticityParameters name="MC" cohesion="0.20300" friction="0.25"/>            
+            <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
-            </Boundaries>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+            </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
     <BoundaryConditionReservoirs>
@@ -72,6 +79,11 @@
         <BoundaryConditionReservoir bc_id="3" type="Dp" p="0.0" />
         <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
     </BoundaryConditionReservoirs> 
+    <BoundaryConditionUndrainedGeomechanics>
+        <BoundaryConditionUndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
+        <BoundaryConditionUndrainedGeomechanic bc_id="3" type="Ntn" tn="-100.0" />
+        <BoundaryConditionUndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
+    </BoundaryConditionUndrainedGeomechanics>     
     <BoundaryConditionGeomechanics>
         <BoundaryConditionGeomechanic bc_id="2" type="Duy" uy="0.0" />
         <BoundaryConditionGeomechanic bc_id="3" type="Ntn" tn="-100.0" />

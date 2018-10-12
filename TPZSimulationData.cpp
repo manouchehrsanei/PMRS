@@ -39,6 +39,7 @@ TPZSimulationData::TPZSimulationData()
     m_is_initial_state_Q = false;
     m_is_current_state_Q = false;
     m_time = 0.0;
+    m_is_crank_nicolson_Q = false;
     
 }
 
@@ -93,7 +94,11 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("n_time_steps");
     int n_stpes = std::atoi(char_container);
     
-    SetTimeControls(n_stpes,dt);
+    container = doc_handler.FirstChild("CaseData").FirstChild("TimeControls").FirstChild("CrankNicolsonQ").ToElement();
+    char_container = container->Attribute("useQ");
+    bool is_crank_nicolson_Q = std::atoi(char_container);
+    
+    SetTimeControls(n_stpes,dt,is_crank_nicolson_Q);
     // End:: Time controls
     
     
@@ -474,14 +479,18 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     }
     // End:: Regions and materials parameters of Geomechanic Simulator
     
+    // Begin:: Apply uniform refinement
+    this->UniformRefinement();
+    // End:: Apply uniform refinement
 }
 
 /** @brief Setup reporting times and time step size */
-void TPZSimulationData::SetTimeControls(int n_times, REAL dt)
+void TPZSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q)
 {
     
     m_n_steps    = n_times;
     m_dt         = dt;
+    m_is_crank_nicolson_Q = crank_nicolson_Q;
     m_reporting_times.Resize(n_times, 0.0);
     for (int it = 0; it < n_times; it++)
     {
@@ -753,6 +762,22 @@ void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
     }
     
     return;
+}
 
-
+void TPZSimulationData::UniformRefinement() {
+    
+    TPZManVector<TPZGeoEl*> sons;
+    for(int i=0; i < m_h_level; i++)
+    {
+        int64_t nels = m_geometry->NElements();
+        for(int64_t elem = 0; elem < nels; elem++)
+        {
+            TPZGeoEl * gel = m_geometry->ElementVec()[elem];
+            if(!gel || gel->HasSubElement())
+                continue;
+            gel->Divide(sons);
+        }
+    }
+    m_geometry->ResetConnectivities();
+    m_geometry->BuildConnectivity();
 }

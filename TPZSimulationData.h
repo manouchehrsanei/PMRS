@@ -25,6 +25,7 @@
 
 
 //@TODO: Rename TPZSimulationData to TPMRSSimulationData
+//@TODO: Rename Create a copy constructor
 class TPZSimulationData
 {
     
@@ -109,6 +110,9 @@ protected:
     
     /** @brief Current time value */
     REAL m_time;
+    
+    /** @brief Use for Crank-Nicolson method directive */
+    bool m_is_crank_nicolson_Q;
     
     /** @brief Map that storage all the boundary conditions of Reservoir Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_reser;
@@ -252,7 +256,7 @@ public:
     bool IsCurrentStateQ() {return m_is_current_state_Q;}
 
     /** @brief Setup for reporting times and time step size */
-    void SetTimeControls(int n_times, REAL dt);
+    void SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q);
     
     /** @brief Set the directive that states if the current solution must be accepted inside the memory  */
     bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
@@ -380,6 +384,9 @@ public:
     
     /** @brief Get the the use of dual (true) or pirmal (false) formulation for monophacic flow  */
     bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }
+    
+    /** @brief Get crank nicolson directive for time derivative (false Euler method)  */
+    bool Get_is_crank_nicolson_Q() { return m_is_crank_nicolson_Q; }
    
     // Begin::  Block that define the material parameters
     /** @brief Get the young modulus */
@@ -435,7 +442,8 @@ private:
     /** @brief Fillup the map that storage all the boundary conditions of Geomechanic Simulator supported */
     void LoadBoundaryConditionsGeomechanics();
 
-    
+    /** @brief Apply uniform refinements */
+    void UniformRefinement();
     
     
 };
