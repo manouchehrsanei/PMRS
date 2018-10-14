@@ -127,14 +127,14 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     
 //    m_simulation_data->SetCurrentStateQ(false);
-//    AcceptTimeStepSolution();
+//    LoadMemorySolution();
 //
 ////    // Initial guess
 ////    m_X_n = m_X;
     
     // The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-//    this->AcceptTimeStepSolution();
+//    this->LoadMemorySolution();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
@@ -149,8 +149,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         dx = Solution();
         norm_dx  = Norm(dx);
         m_X_n += dx;
-        LoadCurrentState();
-        AssembleResidual();
+        LoadMemorySolution();
         norm_res = Norm(Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
@@ -162,10 +161,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
 #ifdef PZDEBUG
             std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
-            std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
+            std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
 #endif
-            AcceptTimeStepSolution();
             break;
         }
     }
@@ -177,7 +175,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
 
 void TPMRSMonoPhasicAnalysis::UpdateState(){
     m_simulation_data->SetTransferCurrentToLastQ(true);
-    AcceptTimeStepSolution();
+    LoadMemorySolution();
     m_simulation_data->SetTransferCurrentToLastQ(false);
     m_X = m_X_n;
 }
@@ -192,7 +190,7 @@ void TPMRSMonoPhasicAnalysis::PostProcessTimeStep(std::string & file){
     m_post_processor->PostProcess(div,dim);
 }
 
-void TPMRSMonoPhasicAnalysis::AcceptTimeStepSolution(){
+void TPMRSMonoPhasicAnalysis::LoadMemorySolution(){
 
     bool state = m_simulation_data->IsCurrentStateQ();
     if (state) {

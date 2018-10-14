@@ -140,8 +140,15 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(){
+    
+//    std::string file_res("ReservoirFlow_c.vtk");
+//    std::string file_geo("Geomechanic_c.vtk");
+    
     m_reservoir_analysis->ExecuteOneTimeStep();
+//    m_reservoir_analysis->PostProcessTimeStep(file_res);
+    
     m_geomechanic_analysis->ExecuteOneTimeStep();
+//    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
@@ -171,6 +178,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) || dx_stop_criterion_Q) {
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
+//                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
                 this->PostProcessTimeStep(file_geo, file_res);
                 break;

@@ -180,7 +180,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     // Get the pressure at the integrations points
     long gp_index = datavec[0].intGlobPtIndex;
-    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index);//this->GetMemory().get()->operator[](gp_index);
     
     // Time
     STATE dt = m_simulation_data->dt();
@@ -221,7 +221,6 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             dot    += Kinv(i,j)*q[j];
         }
         Kl_inv_q(i,0)     = (1.0/lambda) * dot;
-//        Kdldp_inv_q(i,0)  = (-(m_c*m_rho_0)/(m_eta*lambda*lambda)) * dot;
     }
     
     // Integration point contribution
@@ -272,7 +271,6 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-//            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * Kdldp_inv_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
             ek(iq + firstq, jp + firstp) += weight * (- (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
         }
         
@@ -333,11 +331,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
-    
-    
     return;
-    
-    
     
 }
 
@@ -390,7 +384,7 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             
         }
 
-            break;
+        break;
             
         default: std::cout << "This BC doesn't exist." << std::endl;
         {
@@ -441,7 +435,7 @@ template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
     
     long gp_index = data.intGlobPtIndex;
-    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index);//this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
     switch (var) {
@@ -476,7 +470,7 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
     
-    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index);//this->GetMemory().get()->operator[](gp_index);
     
     REAL phi_0 = memory.phi_0();
 //    phi = phi_0;
@@ -504,5 +498,5 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     phi_n   = phi_0 + (Se + (alpha*alpha)/Kdr)*(p_n-p_0) + (alpha/Kdr)*(sigma_v_n-sigma_v_0);
     
     dphi_ndp = (Se + (alpha*alpha)/Kdr);
-    this->GetMemory().get()->operator[](gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
+    this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

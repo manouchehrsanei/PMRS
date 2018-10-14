@@ -69,7 +69,7 @@
     </RegionsDefinition>
     <BoundaryConditionReservoirs>
         <BoundaryConditionReservoir bc_id="2" type="Nq" qn="0.0" />
-        <BoundaryConditionReservoir bc_id="3" type="Dp" p="0.0" />
+        <BoundaryConditionReservoir bc_id="3" type="Dp" p="1.0e6" />
         <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
     </BoundaryConditionReservoirs> 
     <BoundaryConditionGeomechanics>

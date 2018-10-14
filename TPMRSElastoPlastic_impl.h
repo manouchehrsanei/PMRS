@@ -550,16 +550,15 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         
         if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            bc_with_memory.MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
+            bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n()) ;
             return;
         }
-        
         
         if (m_simulation_data->IsCurrentStateQ()) {
             
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
-            TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu());
+            TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
             for (int i = 0; i < m_dimension; i++) {
                 u_n[i] = delta_u[i] + u[i];
             }
@@ -569,8 +568,6 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             TPZManVector<STATE,3> u    = data.sol[0];
             bc_with_memory.MemItem(gp_index).Setu(u);
         }
-        
-        
     }
     
     TPZFMatrix<REAL>  &phiu = data.phi;
@@ -580,6 +577,9 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     for (int i = 0; i < m_dimension; i++) {
         u_n[i] = delta_u[i] + u[i];
     }
+    
+    TPZManVector<STATE,3> u_n_c(bc_with_memory.MemItem(gp_index).Getu_n());
+    
     
     int phru = phiu.Rows();
     int in,jn;
@@ -721,7 +721,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         
         if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            bc_with_memory.MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
+            bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n()) ;
             return;
         }
         
@@ -730,7 +730,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
-            TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu());
+            TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
             for (int i = 0; i < m_dimension; i++) {
                 u_n[i] = delta_u[i] + u[i];
             }

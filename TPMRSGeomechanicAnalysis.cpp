@@ -126,9 +126,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
 
     // The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-    
     TPZFMatrix<STATE> dx(Solution());
-    dx.Zero();
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
@@ -141,7 +139,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         dx += Solution();
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
-        AssembleResidual();
+        LoadMemorySolution();
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
@@ -153,10 +151,10 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
 #ifdef PZDEBUG
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
-            std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
+            std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
 #endif
-            AcceptPseudoTimeStepSolution();
+
             break;
         }
     }
@@ -168,7 +166,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
 
 void TPMRSGeomechanicAnalysis::UpdateState(){
     m_simulation_data->SetTransferCurrentToLastQ(true);
-    AcceptPseudoTimeStepSolution();
+    LoadMemorySolution();
     m_simulation_data->SetTransferCurrentToLastQ(false);
 }
 
@@ -182,7 +180,7 @@ void TPMRSGeomechanicAnalysis::PostProcessTimeStep(std::string & file){
     m_post_processor->PostProcess(div,dim);
 }
 
-void TPMRSGeomechanicAnalysis::AcceptPseudoTimeStepSolution(){
+void TPMRSGeomechanicAnalysis::LoadMemorySolution(){
     
     bool state = m_simulation_data->IsCurrentStateQ();
     if (state) {
