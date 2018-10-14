@@ -11,9 +11,10 @@
 #include <stdio.h>
 #include "TPZMatWithMem.h"
 #include "TPZSimulationData.h"
-#include "pzbndcond.h"
+#include "TPZBndCondWithMem.h"
 #include "pzaxestools.h"
 #include "TPZTensor.h"
+#include "TPMRSElastoPlasticMemory.h"
 
 template <class T, class TMEM>
 class TPMRSElastoPlastic : public TPZMatWithMem<TMEM>

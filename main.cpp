@@ -32,6 +32,7 @@
 // Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
+#include "TPZBndCondWithMem.h"
 
 // Monophasic
 #include "TPMRSMonoPhasic_impl.h"
@@ -384,7 +385,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
                 val2(i,0) = value;
             }
             
-            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+            TPZBndCondWithMem<TPMRSElastoPlasticMemory> * bc = new  TPZBndCondWithMem<TPMRSElastoPlasticMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
         
@@ -493,6 +494,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
         {
             int bc_id = material_ids[iregion].second [ibc];
             TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
+            
             cmesh->InsertMaterialObject(bc);
         }
     }
@@ -702,7 +704,8 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
             REAL value = it_bc_id_to_values->second[n_bc_values-1];
             val2(0,0) = value;
             
-            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+//            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+            TPZBndCondWithMem<TPMRSMonoPhasicMemory> * bc = new  TPZBndCondWithMem<TPMRSMonoPhasicMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
     }

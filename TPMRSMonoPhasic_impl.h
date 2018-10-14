@@ -310,17 +310,23 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         long gp_index = datavec[0].intGlobPtIndex;
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n()) ;
+            return;
+        }
+        
         TPZManVector<STATE,3> q  = datavec[q_b].sol[0];
         STATE p                  = datavec[p_b].sol[0][0];
         
         if (m_simulation_data->IsInitialStateQ()) {
-            this->GetMemory().get()->operator[](gp_index).Setp_0(p);
+            this->MemItem(gp_index).Setp_0(p);
         }
         
         if (m_simulation_data->IsCurrentStateQ()) {
-            this->GetMemory().get()->operator[](gp_index).Setp_n(p);
+            this->MemItem(gp_index).Setp_n(p);
         }else{
-            this->GetMemory().get()->operator[](gp_index).Setp(p);
+            this->MemItem(gp_index).Setp(p);
         }
         
     }

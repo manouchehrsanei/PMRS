@@ -124,13 +124,11 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         m_X = Solution();
     }
 
+    // The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     
-//    // Reset du to zero
-//    Solution().Zero();
-//    LoadSolution(Solution());
-    
     TPZFMatrix<STATE> dx(Solution());
+    dx.Zero();
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
@@ -143,7 +141,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         dx += Solution();
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
-        this->AcceptPseudoTimeStepSolution();
+        AssembleResidual();
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
@@ -158,7 +156,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
             std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
 #endif
-            LoadSolution(dx);
+            AcceptPseudoTimeStepSolution();
             break;
         }
     }

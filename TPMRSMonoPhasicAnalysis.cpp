@@ -125,13 +125,16 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_X = Solution();
     }
     
-    m_simulation_data->SetCurrentStateQ(false);
-    AcceptTimeStepSolution();
     
-//    // Initial guess
-//    m_X_n = m_X;
+//    m_simulation_data->SetCurrentStateQ(false);
+//    AcceptTimeStepSolution();
+//
+////    // Initial guess
+////    m_X_n = m_X;
+    
+    // The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-    this->AcceptTimeStepSolution();
+//    this->AcceptTimeStepSolution();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
@@ -146,8 +149,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         dx = Solution();
         norm_dx  = Norm(dx);
         m_X_n += dx;
-
-        this->AcceptTimeStepSolution();
+        LoadCurrentState();
+        AssembleResidual();
         norm_res = Norm(Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
@@ -162,6 +165,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
             std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
 #endif
+            AcceptTimeStepSolution();
             break;
         }
     }
@@ -172,6 +176,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
 }
 
 void TPMRSMonoPhasicAnalysis::UpdateState(){
+    m_simulation_data->SetTransferCurrentToLastQ(true);
+    AcceptTimeStepSolution();
+    m_simulation_data->SetTransferCurrentToLastQ(false);
     m_X = m_X_n;
 }
 

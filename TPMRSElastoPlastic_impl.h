@@ -545,9 +545,41 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
         return;
     }
     
+    TPZBndCondWithMem<TPMRSElastoPlasticMemory> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TPMRSElastoPlasticMemory> &>(bc);
+    int gp_index = data.intGlobPtIndex;
+    if (m_simulation_data->Get_must_accept_solution_Q()) {
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            bc_with_memory.MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
+            return;
+        }
+        
+        
+        if (m_simulation_data->IsCurrentStateQ()) {
+            
+            TPZManVector<STATE,3> delta_u    = data.sol[0];
+            TPZManVector<STATE,3> u_n(m_dimension,0.0);
+            TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu());
+            for (int i = 0; i < m_dimension; i++) {
+                u_n[i] = delta_u[i] + u[i];
+            }
+            bc_with_memory.MemItem(gp_index).Setu_n(u_n);
+            
+        }else{
+            TPZManVector<STATE,3> u    = data.sol[0];
+            bc_with_memory.MemItem(gp_index).Setu(u);
+        }
+        
+        
+    }
+    
     TPZFMatrix<REAL>  &phiu = data.phi;
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,2> u = data.sol[0];
+    TPZManVector<STATE,3> delta_u    = data.sol[0];
+    TPZManVector<STATE,3> u_n(m_dimension,0.0);
+    TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+    for (int i = 0; i < m_dimension; i++) {
+        u_n[i] = delta_u[i] + u[i];
+    }
     
     int phru = phiu.Rows();
     int in,jn;
@@ -567,8 +599,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+0,0)      += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(2*in+0,0)      += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BigNumber*(u_n[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
 
                 
                 for (jn = 0 ; jn < phru; jn++)
@@ -594,7 +626,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in,0)        += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in,0)        += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -616,7 +648,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(2*in+1,0)      += BigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // Y displacement
+                ef(2*in+1,0)      += BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;    // Y displacement
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -684,9 +716,41 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
 template <class T, class TMEM>
 void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
     
+    TPZBndCondWithMem<TPMRSElastoPlasticMemory> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TPMRSElastoPlasticMemory> &>(bc);
+    int gp_index = data.intGlobPtIndex;
+    if (m_simulation_data->Get_must_accept_solution_Q()) {
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            bc_with_memory.MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
+            return;
+        }
+        
+        
+        if (m_simulation_data->IsCurrentStateQ()) {
+            
+            TPZManVector<STATE,3> delta_u    = data.sol[0];
+            TPZManVector<STATE,3> u_n(m_dimension,0.0);
+            TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu());
+            for (int i = 0; i < m_dimension; i++) {
+                u_n[i] = delta_u[i] + u[i];
+            }
+            bc_with_memory.MemItem(gp_index).Setu_n(u_n);
+            
+        }else{
+            TPZManVector<STATE,3> u    = data.sol[0];
+            bc_with_memory.MemItem(gp_index).Setu(u);
+        }
+        
+        
+    }
+    
     TPZFMatrix<REAL>  &phiu = data.phi;
-    // Getting the solutions and derivatives
-    TPZManVector<REAL,3> u = data.sol[0];
+    TPZManVector<STATE,3> delta_u    = data.sol[0];
+    TPZManVector<STATE,3> u_n(m_dimension,0.0);
+    TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+    for (int i = 0; i < m_dimension; i++) {
+        u_n[i] = delta_u[i] + u[i];
+    }
     
     int phru = phiu.Rows();
     int in,jn;
@@ -707,9 +771,9 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(3*in+0,0)      += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(3*in+1,0)      += BigNumber*(u[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
-                ef(3*in+2,0)      += BigNumber*(u[2] - v[2])*phiu(in,0)*weight;    // Z displacement Value
+                ef(3*in+0,0)      += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(3*in+1,0)      += BigNumber*(u_n[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(3*in+2,0)      += BigNumber*(u_n[2] - v[2])*phiu(in,0)*weight;    // Z displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
@@ -736,7 +800,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(3*in,0)        += BigNumber*(u[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(3*in,0)        += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -758,7 +822,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //    Contribution for load Vector
-                ef(3*in+1,0)      += BigNumber*(u[1] - v[0])*phiu(in,0)*weight;    // Y displacement
+                ef(3*in+1,0)      += BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;    // Y displacement
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -824,7 +888,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+2,0)		+= BigNumber*(u[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+2,0)		+= BigNumber*(u_n[2] - v[0])*phiu(in,0)*weight;	// Z displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
@@ -851,8 +915,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+0,0)	+= BigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+1,0)	+= BigNumber*(u[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+0,0)	+= BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+1,0)	+= BigNumber*(u_n[1] - v[1])*phiu(in,0)*weight;	// Y displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -877,8 +941,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+0,0)	+= BigNumber*(u[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
-                ef(3*in+2,0)	+= BigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+0,0)	+= BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;	// X displacement Value
+                ef(3*in+2,0)	+= BigNumber*(u_n[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
@@ -903,8 +967,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             for(in = 0 ; in < phru; in++)
             {
                 //	Contribution for load Vector
-                ef(3*in+1,0)	+= BigNumber*(u[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
-                ef(3*in+2,0)	+= BigNumber*(u[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
+                ef(3*in+1,0)	+= BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;	// Y displacement Value
+                ef(3*in+2,0)	+= BigNumber*(u_n[2] - v[1])*phiu(in,0)*weight;	// Z displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
