@@ -685,7 +685,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             v[0] = bc.Val2()(0,0);    //    Tn normal traction
             
             REAL tn = v[0];
-            TPZManVector<REAL,2> n = data.normal;
+            TPZManVector<REAL,3> n = data.normal;
             //    Neumann condition for each state variable
             //    Elasticity Equation
             for(in = 0 ; in <phru; in++)

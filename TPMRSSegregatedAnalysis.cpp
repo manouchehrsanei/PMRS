@@ -140,15 +140,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(){
-    
-//    std::string file_res("ReservoirFlow_c.vtk");
-//    std::string file_geo("Geomechanic_c.vtk");
-    
     m_reservoir_analysis->ExecuteOneTimeStep();
-//    m_reservoir_analysis->PostProcessTimeStep(file_res);
-    
     m_geomechanic_analysis->ExecuteOneTimeStep();
-//    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){

@@ -74,7 +74,7 @@
     </BoundaryConditionReservoirs> 
     <BoundaryConditionGeomechanics>
         <BoundaryConditionGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0" ty="-10" />
+        <BoundaryConditionGeomechanic bc_id="3" type="Ntn" tn="-10" />
         <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BoundaryConditionGeomechanics> 
 </CaseData>
