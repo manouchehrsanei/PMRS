@@ -321,7 +321,6 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         }
         
         /// I dislike this
-        
         m_mat_props[iregion].Resize(n_parameters);
         sub_container = container->FirstChild("Parameters")->ToElement();
         

@@ -99,7 +99,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
     // Get the pressure at the integrations points
     long gp_index = data.intGlobPtIndex;
-    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index);
     
     // Time
     STATE dt = m_simulation_data->dt();
@@ -187,16 +187,22 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
 
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         long gp_index = data.intGlobPtIndex;
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n()) ;
+            return;
+        }
+        
         STATE p                  = data.sol[0][0];
         
         if (m_simulation_data->IsInitialStateQ()) {
-            this->GetMemory().get()->operator[](gp_index).Setp_0(p);
+            this->MemItem(gp_index).Setp_0(p);
         }
         
         if (m_simulation_data->IsCurrentStateQ()) {
-            this->GetMemory().get()->operator[](gp_index).Setp_n(p);
+            this->MemItem(gp_index).Setp_n(p);
         }else{
-            this->GetMemory().get()->operator[](gp_index).Setp(p);
+            this->MemItem(gp_index).Setp(p);
         }
         
     }
@@ -341,13 +347,13 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
     
-    TMEM & memory = this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index);
     
     REAL phi_0 = memory.phi_0();
     //    phi = phi_0;
     //    phi_n = phi_0;
     //    dphi_ndp = 0.0;
-    //    this->GetMemory().get()->operator[](gp_index).Setphi(phi);
+    //    this->MemItem(gp_index).Setphi(phi);
     //    return;
     
     REAL nu = m_simulation_data->Get_nu();
@@ -369,5 +375,5 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     phi_n   = phi_0 + (Se + (alpha*alpha)/Kdr)*(p_n-p_0) + (alpha/Kdr)*(sigma_v_n-sigma_v_0);
     
     dphi_ndp = (Se + (alpha*alpha)/Kdr);
-    this->GetMemory().get()->operator[](gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
+    this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

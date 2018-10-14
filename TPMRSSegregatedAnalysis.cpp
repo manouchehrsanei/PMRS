@@ -63,12 +63,12 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     this->SetSimulationData(simulation_data);
     bool mustOptimizeBandwidth = true;
 
-    if (simulation_data->ElasticityOrder()>simulation_data->DiffusionOrder()) {
-        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
-        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
-    }else{
-        this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+    if (simulation_data->ElasticityOrder()==simulation_data->DiffusionOrder() && simulation_data->Get_is_dual_formulation_Q()) {
         this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
+        this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+    }else{
+        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
+        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
     }
 
     // The Geomechanics Simulator
@@ -113,9 +113,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         if (!cel_d) {
             continue;
         }
-
-        cel_o->PrepareIntPtIndices();
-
+        cel_o->SetFreeIntPtIndices();
+        cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
         TPZIntPoints * cloned_rule = rule.Clone();
         
@@ -124,7 +123,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         cel_d->SetFreeIntPtIndices();
         cel_d->SetMemoryIndices(indices);
         cel_d->SetIntegrationRule(cloned_rule);
-        cel_d->ForcePrepareIntPtIndices();
     }
     
 #ifdef PZDEBUG
@@ -172,6 +170,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) || dx_stop_criterion_Q) {
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
+//                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
                 this->PostProcessTimeStep(file_geo, file_res);
                 break;

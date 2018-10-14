@@ -347,7 +347,7 @@ public:
     int NumberOfRegions() { return m_n_regions; }
     
     /** @brief Get the material and boundaries identifiers sorted per region */
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12> & MaterialIds() { return m_mat_ids; }
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> & MaterialIds() { return m_mat_ids; }
     
     /** @brief Get the material properties sorted per region */
     TPZManVector<TPZManVector<REAL,12>,12> & MaterialProps() { return m_mat_props; }

@@ -79,7 +79,7 @@ public:
     void PostProcessTimeStep(std::string & file);
     
     /// Update the memory with the converged time step solution
-    void AcceptTimeStepSolution();
+    void LoadMemorySolution();
     
     /// Load the current state for the hdiv and 2 meshes
     void LoadCurrentState();
