@@ -578,9 +578,6 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
         u_n[i] = delta_u[i] + u[i];
     }
     
-    TPZManVector<STATE,3> u_n_c(bc_with_memory.MemItem(gp_index).Getu_n());
-    
-    
     int phru = phiu.Rows();
     int in,jn;
     

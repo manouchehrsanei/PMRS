@@ -704,8 +704,8 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
             REAL value = it_bc_id_to_values->second[n_bc_values-1];
             val2(0,0) = value;
             
-//            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
-            TPZBndCondWithMem<TPMRSMonoPhasicMemory> * bc = new  TPZBndCondWithMem<TPMRSMonoPhasicMemory>(material, bc_id, bc_index, val1, val2);
+            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
+//            TPZBndCondWithMem<TPMRSMonoPhasicMemory> * bc = new  TPZBndCondWithMem<TPMRSMonoPhasicMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
     }

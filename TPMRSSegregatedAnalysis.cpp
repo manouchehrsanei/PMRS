@@ -67,8 +67,8 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
         this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
         this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
     }else{
-        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
-        this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
+        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
     }
 
     
