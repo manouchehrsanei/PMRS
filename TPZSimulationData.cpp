@@ -321,23 +321,24 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         }
         
         /// I dislike this
-        m_mat_props[iregion].Resize(n_parameters);
-        sub_container = container->FirstChild("Parameters")->ToElement();
-        
-#ifdef PZDEBUG
-        if (n_parameters != par_names.size())
-        {
-            std::cout << "The list of parameters does not conicides with the impelemented during reading the xml." << std::endl;
-            DebugStop();
-        }
-#endif
-    
-        for (int ipar = 0; ipar < n_parameters; ipar++)
-        {
-            char_container = sub_container->Attribute(par_names[ipar].c_str());
-            REAL par = std::atof(char_container);
-            m_mat_props[iregion][ipar] = par;
-        }
+        DebugStop();
+//        m_mat_props[iregion].Resize(n_parameters);
+//        sub_container = container->FirstChild("Parameters")->ToElement();
+//
+//#ifdef PZDEBUG
+//        if (n_parameters != par_names.size())
+//        {
+//            std::cout << "The list of parameters does not conicides with the impelemented during reading the xml." << std::endl;
+//            DebugStop();
+//        }
+//#endif
+//
+//        for (int ipar = 0; ipar < n_parameters; ipar++)
+//        {
+//            char_container = sub_container->Attribute(par_names[ipar].c_str());
+//            REAL par = std::atof(char_container);
+//            m_mat_props[iregion][ipar] = par;
+//        }
         
         iregion++;
     }
@@ -545,29 +546,31 @@ void TPZSimulationData::Print()
     std::cout << " m_n_regions = " << m_n_regions << std::endl;
     
     std::cout << " m_mat_ids = " << std::endl;
-    int n_data = m_mat_ids.size();
-    for (int i = 0; i < n_data; i++)
-    {
-        std::cout << " region material id = " << m_mat_ids[i].first << std::endl;
-        int n_bc = m_mat_ids[i].second.size();
-        std::cout << " bc material ids = " << m_mat_ids[i].first << std::endl;
-        for (int j = 0; j <n_bc; j++)
-        {
-            std::cout << " " << m_mat_ids[i].second [j];
-        }
-        std::cout << std::endl;
-    }
+    DebugStop();
+//    int n_data = m_mat_ids.size();
+//    for (int i = 0; i < n_data; i++)
+//    {
+//        std::cout << " region material id = " << m_mat_ids[i].first << std::endl;
+//        int n_bc = m_mat_ids[i].second.size();
+//        std::cout << " bc material ids = " << m_mat_ids[i].first << std::endl;
+//        for (int j = 0; j <n_bc; j++)
+//        {
+//            std::cout << " " << m_mat_ids[i].second [j];
+//        }
+//        std::cout << std::endl;
+//    }
     
     std::cout << " m_mat_props = " << std::endl;
-    n_data = m_mat_props.size();
-    for (int i = 0; i < n_data; i++) {
-        std::cout << " region number = " << i << std::endl;
-        int n_bc = m_mat_props[i].size();
-        for (int j = 0; j <n_bc; j++) {
-            std::cout << " " << m_mat_props[i][j];
-        }
-        std::cout << std::endl;
-    }
+    DebugStop();
+//    n_data = m_mat_props.size();
+//    for (int i = 0; i < n_data; i++) {
+//        std::cout << " region number = " << i << std::endl;
+//        int n_bc = m_mat_props[i].size();
+//        for (int j = 0; j <n_bc; j++) {
+//            std::cout << " " << m_mat_props[i][j];
+//        }
+//        std::cout << std::endl;
+//    }
     
     std::cout << " m_is_initial_state_Q = " <<m_is_initial_state_Q << std::endl;
     std::cout << " m_is_current_state_Q = " << m_is_current_state_Q << std::endl;

@@ -51,6 +51,18 @@ public:
     
     ///  Set undrained parameters
     void SetUndrainedParameters(REAL e_young_u, REAL nu_u, REAL phi_0, REAL kappa_0);
+    
+    /// Get the undrained Young modulus
+    REAL E_young_u();
+    
+    /// Get the undrained Poisson ratio
+    REAL nu_u();
+    
+    /// Get the initial constant porosity
+    REAL phi_0();
+    
+    /// Get the initial constant abolute permeability
+    REAL kappa_0();
 
 };
 

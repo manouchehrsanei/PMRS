@@ -63,3 +63,19 @@ void TPMRSUndrainedParameters::SetUndrainedParameters(REAL e_young_u, REAL nu_u,
     m_kappa_0   = kappa_0;
 }
 
+REAL TPMRSUndrainedParameters::E_young_u(){
+    return m_e_young_u;
+}
+
+REAL TPMRSUndrainedParameters::nu_u(){
+    return m_nu_u;
+}
+
+REAL TPMRSUndrainedParameters::phi_0(){
+    return m_phi_0;
+}
+
+REAL TPMRSUndrainedParameters::kappa_0(){
+    return m_kappa_0;
+}
+

@@ -352,7 +352,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     
     TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
@@ -368,10 +368,10 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
         cmesh->InsertMaterialObject(material);
         
         // Inserting boundary conditions
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.first [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionTypeGeomechanics().find(bc_id);
             it_bc_id_to_values = sim_data->BCIdToBCValuesGeomechanics().find(bc_id);
@@ -436,7 +436,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
     int nstate = dim;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -446,10 +446,10 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
         // Inserting boundary conditions
         int dirichlet = 0;
         TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.first [ibc];
             TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
@@ -479,7 +479,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -489,10 +489,10 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
         // Inserting boundary conditions
         int dirichlet = 0;
         TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.first [ibc];
             TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
             
             cmesh->InsertMaterialObject(bc);
@@ -522,7 +522,7 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -532,10 +532,10 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
         // Inserting boundary conditions
         int dirichlet = 0;
         TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.second.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.second [ibc];
             TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
@@ -563,7 +563,7 @@ TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
     int nstate = 1;
     TPZVec<STATE> sol;
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -614,7 +614,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -625,10 +625,10 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
         cmesh->InsertMaterialObject(material);
         
         // Inserting boundary conditions
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.second.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.second [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
             it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
@@ -679,7 +679,7 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
     std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -690,10 +690,10 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
         cmesh->InsertMaterialObject(material);
         
         // Inserting boundary conditions
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.second.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.second [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
             it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
@@ -739,7 +739,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     
     
     int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = sim_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
@@ -769,12 +769,12 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
         cmesh->InsertMaterialObject(material);
         
-        
+        DebugStop();
         // Inserting boundary conditions
-        int n_bc = material_ids[iregion].second.size();
+        int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
-            int bc_id = material_ids[iregion].second [ibc];
+            int bc_id = material_ids[iregion].second.first [ibc];
             
             it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
             

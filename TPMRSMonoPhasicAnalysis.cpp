@@ -91,7 +91,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     m_post_processor->SetCompMesh(Mesh());
     
     int n_regions = m_simulation_data->NumberOfRegions();
-    TPZManVector<std::pair<int, TPZManVector<int,12>>,12>  material_ids = m_simulation_data->MaterialIds();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
     TPZManVector<int,10> post_mat_id(n_regions);
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
