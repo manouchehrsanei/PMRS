@@ -18,10 +18,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <tuple>
 #include "TPZGmshReader.h"
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckgeom.h"
+#include "TPMRSUndrainedParameters.h"
+
+
 
 
 //@TODO: Rename TPZSimulationData to TPMRSSimulationData
@@ -104,7 +108,7 @@ protected:
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> m_mat_ids;
     
     /** @brief Material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,12>,12> m_mat_props;
+    TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSUndrainedParameters, TPMRSUndrainedParameters>,12> m_mat_props;
 
     // Controled by the kernel
     

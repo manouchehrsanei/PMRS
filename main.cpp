@@ -876,8 +876,7 @@ void LEDSPorosityReductionPlot()
     REAL phi = 0, psi = 1., N = 0;
     
     REAL Pc = -100.0;
-    
-    
+
     ER.SetUp(E, nu);
     
     // Mohr Coulomb data
