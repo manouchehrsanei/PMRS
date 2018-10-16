@@ -91,7 +91,7 @@ void TPMRSKappaParameters::Initialize()
     m_name_to_e_model["Petunin"] = e_petunin;
     m_name_to_e_model["Davies"] = e_davies;
     
-    std::cout << "TPMRSPhiParameters::Initialization." << std::endl;
+    std::cout << "TPMRSKappaParameters::Initialization." << std::endl;
 }
 
 void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0){

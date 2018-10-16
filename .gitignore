@@ -1,4 +1,4 @@
-*.DS_Store
+
 *.aux
 *.bbl
 *.bcf
@@ -6,3 +6,4 @@
 *.log
 *.gz
 *.msh
+*.DS_Store
