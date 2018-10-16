@@ -16,23 +16,23 @@
 #include "pzreal.h"
 #include "pzerror.h"
 
-/// Enumerate defining the porosity model
-enum EModel { e_none = 0, e_constant = 1, e_petunin = 2, e_davies = 3 };
+/// Enumerate defining the permeability model
+enum EKappaModel { k_none = 0, k_constant = 1, k_petunin = 2, k_davies = 3 };
 
 // Map to associate the strings with the enum values
-static std::map<std::string, EModel> m_name_to_e_model;
+static std::map<std::string, EKappaModel> m_name_to_kappa_model;
 
 class TPMRSKappaParameters {
     
 private:
     
     /// model definition
-    EModel m_model;
+    EKappaModel m_model;
     
     /// model parameters
     std::vector<REAL> m_parameters;
     
-    /// Initialization for names_to_e_model map
+    /// Initialization for names_to_k_model map
     static void Initialize();
     
     
@@ -61,6 +61,15 @@ public:
     
     /// Computes the porosity using the selected model
     void Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0);
+    
+    /// Set the parameters
+    void SetParameters(std::vector<REAL> parameters);
+    
+    /// Get the parameters
+    std::vector<REAL> & GetParameters();
+    
+    /// Get the model index
+    EKappaModel GetModel();
     
 };
 

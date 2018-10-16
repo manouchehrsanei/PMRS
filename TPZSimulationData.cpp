@@ -284,12 +284,6 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         int n_boundaries_geo = std::atoi(char_container);
         char_container = container->Attribute("n_boundaries_res");
         int n_boundaries_res = std::atoi(char_container);
-        char_container = container->Attribute("n_poro_mech_undrained_par");
-        int n_poro_mech_undrained_par = std::atoi(char_container);
-        char_container = container->Attribute("n_poro_mech_par");
-        int n_poro_mech_par = std::atoi(char_container);
-        char_container = container->Attribute("n_plasticity_par");
-        int n_plasticity_par = std::atoi(char_container);
         
         m_mat_ids[iregion].first = mat_id;
         m_mat_ids[iregion].second.first.Resize(n_boundaries_geo);
@@ -320,65 +314,150 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
-        /// I dislike this
-        DebugStop();
-//        m_mat_props[iregion].Resize(n_parameters);
-//        sub_container = container->FirstChild("Parameters")->ToElement();
-//
-//#ifdef PZDEBUG
-//        if (n_parameters != par_names.size())
-//        {
-//            std::cout << "The list of parameters does not conicides with the impelemented during reading the xml." << std::endl;
-//            DebugStop();
-//        }
-//#endif
-//
-//        for (int ipar = 0; ipar < n_parameters; ipar++)
-//        {
-//            char_container = sub_container->Attribute(par_names[ipar].c_str());
-//            REAL par = std::atof(char_container);
-//            m_mat_props[iregion][ipar] = par;
-//        }
+        std::vector<REAL> pars;
+        TPMRSUndrainedParameters u_pars;
+        TPMRSPoroMechParameters poro_pars;
+        TPMRSPhiParameters      phi_pars;
+        TPMRSKappaParameters    kappa_pars;
+        TPMRSPlasticityParameters plasticity_pars;
+        
+        std::tuple <TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters, TPMRSPlasticityParameters> chunk;
+        
+        sub_container = container->FirstChild("PoroMechUndrainedParameters")->ToElement();
+        pars.resize(4);
+        char_container = sub_container->Attribute("Eyoung_u");
+        if (!char_container) {
+            std::cout << "Please provide Eyoung_u." << std::endl;
+            DebugStop();
+        }
+        pars[0] = std::atof(char_container);
+        char_container = sub_container->Attribute("nu_u");
+        if (!char_container) {
+            std::cout << "Please provide nu_u." << std::endl;
+            DebugStop();
+        }
+        pars[1] = std::atof(char_container);
+        char_container = sub_container->Attribute("phi_0");
+        if (!char_container) {
+            std::cout << "Please provide phi_0." << std::endl;
+            DebugStop();
+        }
+        pars[2] = std::atof(char_container);
+        char_container = sub_container->Attribute("kappa_0");
+        if (!char_container) {
+            std::cout << "Please provide kappa_0." << std::endl;
+            DebugStop();
+        }
+        pars[3] = std::atof(char_container);
+        u_pars.SetParameters(pars);
+        
+        sub_container = container->FirstChild("PoroMechParameters")->ToElement();
+        pars.resize(7);
+        char_container = sub_container->Attribute("Eyoung");
+        if (!char_container) {
+            std::cout << "Please provide Eyoung." << std::endl;
+            DebugStop();
+        }
+        pars[0] = std::atof(char_container);
+        char_container = sub_container->Attribute("nu");
+        if (!char_container) {
+            std::cout << "Please provide nu." << std::endl;
+            DebugStop();
+        }
+        pars[1] = std::atof(char_container);
+        char_container = sub_container->Attribute("alpha");
+        if (!char_container) {
+            std::cout << "Please provide alpha." << std::endl;
+            DebugStop();
+        }
+        pars[2] = std::atof(char_container);
+        char_container = sub_container->Attribute("Se");
+        if (!char_container) {
+            std::cout << "Please provide Se." << std::endl;
+            DebugStop();
+        }
+        pars[3] = std::atof(char_container);
+        char_container = sub_container->Attribute("eta");
+        if (!char_container) {
+            std::cout << "Please provide eta." << std::endl;
+            DebugStop();
+        }
+        pars[4] = std::atof(char_container);
+        char_container = sub_container->Attribute("rho_f");
+        if (!char_container) {
+            std::cout << "Please provide rho_f." << std::endl;
+            DebugStop();
+        }
+        pars[5] = std::atof(char_container);
+        char_container = sub_container->Attribute("rho_s");
+        if (!char_container) {
+            std::cout << "Please provide rho_s." << std::endl;
+            DebugStop();
+        }
+        pars[6] = std::atof(char_container);
+        poro_pars.SetParameters(pars);
+        
+        // Porosity model data
+        sub_container = container->FirstChild("PhiParameters")->ToElement();
+        pars.resize(0);
+        char_container = sub_container->Attribute("phi_model");
+        if (!char_container) {
+            std::cout << "Please provide phi_model name." << std::endl;
+            DebugStop();
+        }
+        std::string phi_model(char_container);
+        char_container = sub_container->Attribute("n_parameters");
+        if (!char_container) {
+            std::cout << "Please provide n_parameters >= 0." << std::endl;
+            DebugStop();
+        }
+        int n_phi_pars = std::atoi(char_container);
+        pars.resize(n_phi_pars);
+        phi_pars.ConfigurateModel(phi_model, pars);
+        
+        // Permeability model data
+        sub_container = container->FirstChild("KappaParameters")->ToElement();
+        pars.resize(0);
+        char_container = sub_container->Attribute("kappa_model");
+        if (!char_container) {
+            std::cout << "Please provide kappa_model name." << std::endl;
+            DebugStop();
+        }
+        std::string kappa_model(char_container);
+        char_container = sub_container->Attribute("n_parameters");
+        if (!char_container) {
+            std::cout << "Please provide n_parameters >= 0." << std::endl;
+            DebugStop();
+        }
+        int n_kappa_pars = std::atoi(char_container);
+        pars.resize(n_kappa_pars);
+        phi_pars.ConfigurateModel(kappa_model, pars);
+        
+        // Plasticity model data
+        sub_container = container->FirstChild("PlasticityParameters")->ToElement();
+        pars.resize(0);
+        char_container = sub_container->Attribute("plasticity_model");
+        if (!char_container) {
+            std::cout << "Please provide plasticity_model name." << std::endl;
+            DebugStop();
+        }
+        std::string plasticity_model(char_container);
+        char_container = sub_container->Attribute("n_parameters");
+        if (!char_container) {
+            std::cout << "Please provide n_parameters >= 0." << std::endl;
+            DebugStop();
+        }
+        int n_plas_pars = std::atoi(char_container);
+        pars.resize(n_plas_pars);
+        plasticity_pars.ConfigurateModel(plasticity_model, pars);
+        
+        // Assigning values to tuple using make_tuple()
+        chunk = make_tuple(u_pars, poro_pars, phi_pars, kappa_pars, plasticity_pars);
+        m_mat_props[iregion] = chunk;
         
         iregion++;
     }
     // End:: Regions and materials parameters
-    
-    
-    // Begin::  Block that define the material parameters
-    for (int iregion = 0; iregion < n_regions; iregion++)
-    {
-        
-        
-        int n_parameters = m_mat_props[iregion].size();
-        
-#ifdef PZDEBUG
-        if (n_parameters != 12)
-        { // 12 for linear poroelastoplastic
-            DebugStop();
-        }
-#endif
-        
-        
-    int eyoung = 0, nu = 1, phi = 2, kappa = 3, alpha = 4, m = 5, mu = 6, rhof = 7, rhos = 8, MCcoh = 9, MCphi = 10, MCpsi = 11;
-    m_young = m_mat_props[iregion][eyoung];
-    m_nu = m_mat_props[iregion][nu];
-    m_porosity = m_mat_props[iregion][phi];
-    m_k_0 = m_mat_props[iregion][kappa];
-    m_alpha = m_mat_props[iregion][alpha];
-    m_Se = 1.0/m_mat_props[iregion][m];
-    m_eta = m_mat_props[iregion][mu];
-    m_rho_f = m_mat_props[iregion][rhof];
-    m_rho_s = m_mat_props[iregion][rhos];
-        
-    mc_coh = m_mat_props[iregion][MCcoh];
-    mc_phi = m_mat_props[iregion][MCphi];
-    mc_psi = m_mat_props[iregion][MCpsi];
-    
-        
-    }
-    // End::  Block that define the material parameters
-
     
     
     // Begin:: Regions and materials parameters of Reservoir Simulator

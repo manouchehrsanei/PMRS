@@ -11,23 +11,16 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "pzreal.h"
+#include "pzerror.h"
 
 class TPMRSUndrainedParameters {
   
 private:
     
-    /// Undrained Young modulus
-    REAL m_e_young_u;
-    
-    /// Undrained Poisson ratio
-    REAL m_nu_u;
-    
-    /// Initial constant porosity
-    REAL m_phi_0;
-    
-    /// Initial constant abolute permeability
-    REAL m_kappa_0;
+    /// Undrained parameters
+    std::vector<REAL> m_parameters;
     
 public:
     
@@ -49,20 +42,11 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    ///  Set undrained parameters
-    void SetUndrainedParameters(REAL e_young_u, REAL nu_u, REAL phi_0, REAL kappa_0);
+    /// Set parameters vector {Eyoung_u, nu_u, phi_0, kappa_0}
+    void SetParameters(std::vector<REAL> & parameters);
     
-    /// Get the undrained Young modulus
-    REAL E_young_u();
-    
-    /// Get the undrained Poisson ratio
-    REAL nu_u();
-    
-    /// Get the initial constant porosity
-    REAL phi_0();
-    
-    /// Get the initial constant abolute permeability
-    REAL kappa_0();
+    /// Get parameters vector {Eyoung_u, nu_u, phi_0, kappa_0}
+    std::vector<REAL> & GetParameters();
 
 };
 

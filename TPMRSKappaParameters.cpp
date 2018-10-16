@@ -10,7 +10,7 @@
 
 TPMRSKappaParameters::TPMRSKappaParameters(){
     
-    m_model = e_none;
+    m_model = k_none;
     m_parameters.resize(0);
     Initialize();
 }
@@ -57,21 +57,21 @@ void TPMRSKappaParameters::Print(std::ostream &out) const{
 
 void TPMRSKappaParameters::ConfigurateModel(std::string model, std::vector<REAL> & parameters){
     
-    switch (m_name_to_e_model[model])
+    switch (m_name_to_kappa_model[model])
     {
-        case e_constant : {
-            m_model = e_constant;
+        case k_constant : {
+            m_model = k_constant;
         }
             break;
-        case e_petunin : {
-            m_model = e_petunin;
+        case k_petunin : {
+            m_model = k_petunin;
             if (parameters.size()!=1) {
                 DebugStop();
             }
         }
             break;
-        case e_davies : {
-            m_model = e_davies;
+        case k_davies : {
+            m_model = k_davies;
             if (parameters.size()!=1) {
                 DebugStop();
             }
@@ -87,29 +87,29 @@ void TPMRSKappaParameters::ConfigurateModel(std::string model, std::vector<REAL>
 
 void TPMRSKappaParameters::Initialize()
 {
-    m_name_to_e_model["none"] = e_none;
-    m_name_to_e_model["Petunin"] = e_petunin;
-    m_name_to_e_model["Davies"] = e_davies;
+    m_name_to_kappa_model["none"] = k_none;
+    m_name_to_kappa_model["Petunin"] = k_petunin;
+    m_name_to_kappa_model["Davies"] = k_davies;
     
-    std::cout << "TPMRSKappaParameters::Initialization." << std::endl;
+//    std::cout << "TPMRSKappaParameters::Initialization." << std::endl;
 }
 
 void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0){
     
     switch (m_model)
     {
-        case e_constant : {
+        case k_constant : {
             kappa = kappa_0;
             dkappa_dphi = 0;
         }
             break;
-        case e_petunin : {
+        case k_petunin : {
             REAL A = m_parameters[0];
             kappa = kappa_0*pow(phi/phi_0,A);
             dkappa_dphi = (A*kappa_0*pow(phi/phi_0,-1.0 + A))/phi_0;
         }
             break;
-        case e_davies : {
+        case k_davies : {
             REAL C = m_parameters[0];
             kappa = exp(C*(-1.0 + phi/phi_0))*kappa_0;
             dkappa_dphi = (C*exp(C*(-1.0 + phi/phi_0))*kappa_0)/phi_0;
@@ -120,4 +120,16 @@ void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &ka
         }
     }
     
+}
+
+void TPMRSKappaParameters::SetParameters(std::vector<REAL> parameters){
+    m_parameters = parameters;
+}
+
+std::vector<REAL> & TPMRSKappaParameters::GetParameters(){
+    return m_parameters;
+}
+
+EKappaModel TPMRSKappaParameters::GetModel(){
+    return m_model;
 }

@@ -11,27 +11,16 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include "pzreal.h"
+#include "pzerror.h"
 
 class TPMRSPoroMechParameters {
     
     // @TODO:: MS, please document this class.
 private:
     
-    REAL m_e_young;
-    
-    REAL m_nu;
-    
-    REAL m_alpha;
-    
-    REAL m_se;
-    
-    REAL m_eta;
-    
-    REAL m_rho_f;
-    
-    REAL m_rho_s;
-
+    std::vector<REAL> m_parameters;
     
 public:
     
@@ -53,6 +42,11 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
+    /// Set parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s}
+    void SetParameters(std::vector<REAL> & parameters);
+    
+    /// Get parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s}
+    std::vector<REAL> & GetParameters();
     
 };
 

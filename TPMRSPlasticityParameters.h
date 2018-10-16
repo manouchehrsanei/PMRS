@@ -16,23 +16,23 @@
 #include "pzreal.h"
 #include "pzerror.h"
 
-/// Enumerate defining the porosity model
-enum EModel { e_none = 0, e_mc = 1, e_ds = 2, e_cc = 3, e_dp = 4 };
+/// Enumerate defining the plastic model
+enum EEPModel { ep_none = 0, ep_mc = 1, ep_ds = 2, ep_cc = 3, ep_dp = 4 };
 
 // Map to associate the strings with the enum values
-static std::map<std::string, EModel> m_name_to_e_model;
+static std::map<std::string, EEPModel> m_name_to_ep_model;
 
 class TPMRSPlasticityParameters {
     
 private:
     
     /// model definition
-    EModel m_model;
+    EEPModel m_model;
     
     /// model parameters
     std::vector<REAL> m_parameters;
     
-    /// Initialization for names_to_e_model map
+    /// Initialization for names_to_ep_model map
     static void Initialize();
     
     
@@ -55,6 +55,18 @@ public:
     
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
+    
+    /// Configurate the model according to the string and number of parameters
+    void ConfigurateModel(std::string model, std::vector<REAL> & parameters);
+    
+    /// Set the parameters
+    void SetParameters(std::vector<REAL> parameters);
+    
+    /// Get the parameters
+    std::vector<REAL> & GetParameters();
+    
+    /// Get the model index
+    EEPModel GetModel();
     
 };
 

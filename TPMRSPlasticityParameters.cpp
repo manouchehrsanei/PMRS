@@ -9,7 +9,7 @@
 
 TPMRSPlasticityParameters::TPMRSPlasticityParameters(){
     
-    m_model         = e_none;
+    m_model         = ep_none;
     m_parameters.resize(0);
     Initialize();
     
@@ -54,11 +54,49 @@ void TPMRSPlasticityParameters::Print(std::ostream &out) const {
 
 void TPMRSPlasticityParameters::Initialize()
 {
-    m_name_to_e_model["none"] = e_none;
-    m_name_to_e_model["MC"] = e_mc;
-    m_name_to_e_model["DS"] = e_ds;
-    m_name_to_e_model["CC"] = e_cc;
-    m_name_to_e_model["DP"] = e_dp;
+    m_name_to_ep_model["none"] = ep_none;
+    m_name_to_ep_model["MC"] = ep_mc;
+    m_name_to_ep_model["DS"] = ep_ds;
+    m_name_to_ep_model["CC"] = ep_cc;
+    m_name_to_ep_model["DP"] = ep_dp;
     
-    std::cout << "TPMRSPlasticityParameters::Initialization." << std::endl;
+//    std::cout << "TPMRSPlasticityParameters::Initialization." << std::endl;
+}
+
+void TPMRSPlasticityParameters::ConfigurateModel(std::string model, std::vector<REAL> & parameters){
+    
+    switch (m_name_to_ep_model[model])
+    {
+        case ep_mc : {
+            m_model = ep_mc;
+            if (parameters.size()!=2) {
+                DebugStop();
+            }
+        }
+            break;
+        case ep_ds : {
+            m_model = ep_ds;
+            if (parameters.size()!=8) {
+                DebugStop();
+            }
+        }
+            break;
+        default : {
+            DebugStop();
+        }
+    }
+    m_parameters = parameters;
+}
+
+void TPMRSPlasticityParameters::SetParameters(std::vector<REAL> parameters){
+    m_parameters = parameters;
+}
+
+std::vector<REAL> & TPMRSPlasticityParameters::GetParameters(){
+    return m_parameters;
+}
+
+EEPModel TPMRSPlasticityParameters::GetModel(){
+    return m_model;
+    
 }

@@ -24,7 +24,10 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzcheckgeom.h"
 #include "TPMRSUndrainedParameters.h"
-#include ""
+#include "TPMRSPoroMechParameters.h"
+#include "TPMRSPhiParameters.h"
+#include "TPMRSKappaParameters.h"
+#include "TPMRSPlasticityParameters.h"
 
 
 
@@ -109,8 +112,8 @@ protected:
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> m_mat_ids;
     
     /** @brief Material properties sorted per region */
-    TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSUndrainedParameters, TPMRSUndrainedParameters>,12> m_mat_props;
-
+    TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters>,12> m_mat_props;
+    
     // Controled by the kernel
     
     /** @brief Initial state directive */
@@ -355,7 +358,7 @@ public:
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> & MaterialIds() { return m_mat_ids; }
     
     /** @brief Get the material properties sorted per region */
-    TPZManVector<TPZManVector<REAL,12>,12> & MaterialProps() { return m_mat_props; }
+    TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters>,12> & MaterialProps() { return m_mat_props; }
     
     /** @brief Get the physical dimension of the domain */
     int Dimension() { return m_dimesion; }
