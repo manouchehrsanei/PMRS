@@ -9,8 +9,8 @@
 
 
 TPMRSMemory::TPMRSMemory() : TPMRSMonoPhasicMemory() , TPMRSElastoPlasticMemory() {
-    m_alpha = 1.0*1.0;
-    m_Se = 0.0*0.0000145038;
+    m_alpha = 0.0;
+    m_Se = 0.0;
 }
 
 TPMRSMemory::TPMRSMemory(const TPMRSMemory & other): TPMRSMonoPhasicMemory(other), TPMRSElastoPlasticMemory(other) {

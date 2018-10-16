@@ -80,6 +80,8 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     m_reservoir_analysis = new TPMRSMonoPhasicAnalysis;
     m_reservoir_analysis->SetCompMesh(cmesh_reservoir,mustOptimizeBandwidth);
     m_reservoir_analysis->ConfigurateAnalysis(decompose_res, mesh_vec, m_simulation_data);
+    
+    // Loading spatial properties
 
 }
 
