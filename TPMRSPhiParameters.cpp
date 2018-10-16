@@ -17,7 +17,7 @@ TPMRSPhiParameters::TPMRSPhiParameters(){
 TPMRSPhiParameters::TPMRSPhiParameters(const TPMRSPhiParameters & other){
     m_model         = other.m_model;
     m_parameters    = other.m_parameters;
-    Initialize();
+    m_name_to_p_model = other.m_name_to_p_model;
 }
 
 
@@ -30,7 +30,7 @@ const TPMRSPhiParameters & TPMRSPhiParameters::operator=(const TPMRSPhiParameter
     
     m_model         = other.m_model;
     m_parameters    = other.m_parameters;
-    Initialize();
+    m_name_to_p_model = other.m_name_to_p_model;
     return *this;
     
 }
@@ -52,7 +52,7 @@ void TPMRSPhiParameters::Print(std::ostream &out) const{
     
 }
 
-void TPMRSPhiParameters::ConfigurateModel(std::string model, std::vector<REAL> & parameters){
+void TPMRSPhiParameters::SetModel(std::string model){
         
     switch (m_name_to_p_model[model])
     {
@@ -68,7 +68,6 @@ void TPMRSPhiParameters::ConfigurateModel(std::string model, std::vector<REAL> &
             DebugStop();
         }
     }
-    m_parameters = parameters;
 }
 
 void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &eps_v, REAL &eps_v_0, REAL &alpha, REAL &Se){
@@ -97,8 +96,7 @@ void TPMRSPhiParameters::Initialize()
     m_name_to_p_model["none"] = p_none;
     m_name_to_p_model["Constant"] = p_constant;
     m_name_to_p_model["Linear"] = p_linear;
-    
-//    std::cout << "TPMRSPhiParameters::Initialization." << std::endl;
+
 }
 
 
@@ -110,7 +108,7 @@ std::vector<REAL> & TPMRSPhiParameters::GetParameters(){
     return m_parameters;
 }
 
-EPhiModel TPMRSPhiParameters::GetModel(){
+TPMRSPhiParameters::EPhiModel TPMRSPhiParameters::GetModel(){
     return m_model;
 }
 

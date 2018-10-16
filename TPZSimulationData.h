@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string>
 #include <tuple>
+#include "pzerror.h"
 #include "TPZGmshReader.h"
 #include "pzgmesh.h"
 #include "TPZVTKGeoMesh.h"
@@ -127,15 +128,12 @@ protected:
     
     /** @brief Use for Crank-Nicolson method directive */
     bool m_is_crank_nicolson_Q;
+        
+    /** @brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided  */
+    std::map<int, std::vector<REAL> > m_bc_id_to_values_geo_un;
     
-    /** @brief Map that storage all the boundary conditions of Reservoir Simulator supported  */
-    std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_reser;
-    
-    /** @brief Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided  */
-    std::map<int, std::vector<REAL> > m_bc_id_to_values_reser;
-    
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
-    std::map<int, std::string> m_bc_id_to_type_reser;
+    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    std::map<int, std::string> m_bc_id_to_type_geo_un;
     
     /** @brief Map that storage all the boundary conditions of Geomechanic Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_geo;
@@ -145,7 +143,15 @@ protected:
     
     /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
     std::map<int, std::string> m_bc_id_to_type_geo;
-        
+    
+    /** @brief Map that storage all the boundary conditions of Reservoir Simulator supported  */
+    std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_reser;
+    
+    /** @brief Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided  */
+    std::map<int, std::vector<REAL> > m_bc_id_to_values_reser;
+    
+    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
+    std::map<int, std::string> m_bc_id_to_type_reser;
     
     /** @brief Directive that states if the current solution must be accepted inside the memory  */
     bool m_must_accept_solution_Q;
@@ -387,6 +393,11 @@ public:
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
     std::map<int, std::string> & BCIdToConditionTypeReservoirs() { return m_bc_id_to_type_reser; }
     
+    /** @brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided  */
+    std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanicsUndrained() { return m_bc_id_to_values_geo_un; }
+    
+    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    std::map<int, std::string> & BCIdToConditionTypeGeomechanicsUndrained() { return m_bc_id_to_type_geo_un; }
     
     /** @brief Get the map that storage all the boundary conditions of Geomechanic Simulator supported  */
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexGeomechanics() { return m_condition_type_to_index_value_names_geo; }
@@ -396,7 +407,6 @@ public:
     
     /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
     std::map<int, std::string> & BCIdToConditionTypeGeomechanics() { return m_bc_id_to_type_geo; }
-    
     
     /** @brief Get the directive that states if the current solution must be accepted inside the memory  */
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
@@ -464,6 +474,14 @@ private:
     /** @brief Apply uniform refinements */
     void UniformRefinement();
     
+    /// @TODO:: MS, please implement and comment this function
+    void ReadRegionsAndMaterials();
+    
+    /// @TODO:: MS, please implement and comment this function
+    void ReadBCForGeomechanicSimulator();
+    
+    /// @TODO:: MS, please implement and comment this function
+    void ReadBCForReservoirSimulator();
     
 };
 

@@ -18,13 +18,12 @@
 
 #endif /* TPMRSPhiParameters_h */
 
-/// Enumerate defining the porosity model
-enum EPhiModel { p_none = 0, p_constant = 1, p_linear = 2 };
-
-// Map to associate the strings with the enum values
-static std::map<std::string, EPhiModel> m_name_to_p_model;
-
 class TPMRSPhiParameters {
+    
+public:
+    
+    /// Enumerate defining the porosity model
+    enum EPhiModel { p_none = 0, p_constant = 1, p_linear = 2 };
     
 private:
     
@@ -33,10 +32,9 @@ private:
     
     /// model parameters
     std::vector<REAL> m_parameters;
-    
-    /// Initialization for names_to_p_model map
-    static void Initialize();
 
+    // Map to associate the strings with the enum values
+    std::map<std::string, EPhiModel> m_name_to_p_model;
     
 public:
     
@@ -58,11 +56,11 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    /// Configurate the model according to the string and number of parameters
-    void ConfigurateModel(std::string model, std::vector<REAL> & parameters);
+    /// Initialization for names_to_p_model map
+    void Initialize();
     
-    /// Computes the porosity using the selected model
-    void Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &eps_v, REAL &eps_v_0, REAL &alpha, REAL &Se);
+    /// Configurate the model according to the string
+    void SetModel(std::string model);
     
     /// Set the parameters
     void SetParameters(std::vector<REAL> parameters);
@@ -72,5 +70,8 @@ public:
     
     /// Get the model index
     EPhiModel GetModel();
+    
+    /// Computes the porosity using the selected model
+    void Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &eps_v, REAL &eps_v_0, REAL &alpha, REAL &Se);
     
 };

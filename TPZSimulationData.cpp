@@ -413,7 +413,11 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         }
         int n_phi_pars = std::atoi(char_container);
         pars.resize(n_phi_pars);
-        phi_pars.ConfigurateModel(phi_model, pars);
+        /// Reading porosity parameters by case
+        if(n_phi_pars!=0){
+        }
+        phi_pars.SetModel(phi_model);
+        phi_pars.SetParameters(pars);
         
         // Permeability model data
         sub_container = container->FirstChild("KappaParameters")->ToElement();
@@ -424,6 +428,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         std::string kappa_model(char_container);
+        kappa_pars.SetModel(kappa_model);
         char_container = sub_container->Attribute("n_parameters");
         if (!char_container) {
             std::cout << "Please provide n_parameters >= 0." << std::endl;
@@ -431,7 +436,46 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         }
         int n_kappa_pars = std::atoi(char_container);
         pars.resize(n_kappa_pars);
-        phi_pars.ConfigurateModel(kappa_model, pars);
+        /// Reading permeability parameters by case
+        if(n_kappa_pars!=0){
+            switch (kappa_pars.GetModel()) {
+                case kappa_pars.k_constant:
+                    {
+                        // nothing to say
+                    }
+                    break;
+                case kappa_pars.k_petunin:
+                {
+                    char_container = sub_container->Attribute("a");
+                    if (!char_container) {
+                        std::cout << "PetuninModel::Please provide a parameter" << std::endl;
+                        DebugStop();
+                    }
+                    REAL a = std::atof(char_container);
+                    pars[0] = a;
+                }
+                    break;
+                case kappa_pars.k_davies:
+                {
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "DaviesModel::Please provide c parameter" << std::endl;
+                        DebugStop();
+                    }
+                    REAL c = std::atof(char_container);
+                    pars[0] = c;
+                }
+                    break;
+                default:
+                {
+                    std::cout << "KappaModel::Please provide a permeability model example {kappa_model, n_parameters, a}." << std::endl;
+                    DebugStop();
+                }
+                    break;
+            }
+            
+        }
+        kappa_pars.SetParameters(pars);
         
         // Plasticity model data
         sub_container = container->FirstChild("PlasticityParameters")->ToElement();
@@ -449,7 +493,104 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         }
         int n_plas_pars = std::atoi(char_container);
         pars.resize(n_plas_pars);
-        plasticity_pars.ConfigurateModel(plasticity_model, pars);
+        plasticity_pars.SetModel(plasticity_model);
+        /// Reading plasticity parameters by case
+        if(n_plas_pars!=0){
+            switch (plasticity_pars.GetModel()) {
+                case plasticity_pars.ep_mc:
+                {
+                    if (n_plas_pars!=2) {
+                        std::cout << "MCModel::Please set n_parameters = 2" << std::endl;
+                    }
+                    char_container = sub_container->Attribute("cohesion");
+                    if (!char_container) {
+                        std::cout << "MCModel::Please provide the cohesion" << std::endl;
+                        DebugStop();
+                    }
+                    REAL cohesion = std::atof(char_container);
+                    pars[0] = cohesion;
+                    
+                    char_container = sub_container->Attribute("friction");
+                    if (!char_container) {
+                        std::cout << "MCModel::Please provide the friction" << std::endl;
+                        DebugStop();
+                    }
+                    REAL friction = std::atof(char_container);
+                    pars[1] = friction;
+                }
+                    break;
+                case plasticity_pars.ep_ds:
+                {
+                    if (n_plas_pars!=7) {
+                        std::cout << "DSModel::Please set n_parameters = 7" << std::endl;
+                    }
+                    char_container = sub_container->Attribute("a");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide a" << std::endl;
+                        DebugStop();
+                    }
+                    REAL a = std::atof(char_container);
+                    pars[0] = a;
+                    
+                    char_container = sub_container->Attribute("b");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide b" << std::endl;
+                        DebugStop();
+                    }
+                    REAL b = std::atof(char_container);
+                    pars[1] = b;
+                    
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide c" << std::endl;
+                        DebugStop();
+                    }
+                    REAL c = std::atof(char_container);
+                    pars[2] = c;
+                    
+                    char_container = sub_container->Attribute("d");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide d" << std::endl;
+                        DebugStop();
+                    }
+                    REAL d = std::atof(char_container);
+                    pars[3] = d;
+                    
+                    char_container = sub_container->Attribute("r");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide r" << std::endl;
+                        DebugStop();
+                    }
+                    REAL r = std::atof(char_container);
+                    pars[4] = r;
+                    
+                    char_container = sub_container->Attribute("w");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide w" << std::endl;
+                        DebugStop();
+                    }
+                    REAL w = std::atof(char_container);
+                    pars[5] = w;
+                    
+                    char_container = sub_container->Attribute("x0");
+                    if (!char_container) {
+                        std::cout << "DSModel::Please provide x0" << std::endl;
+                        DebugStop();
+                    }
+                    REAL x0 = std::atof(char_container);
+                    pars[6] = x0;
+                }
+                    break;
+                default:
+                {
+                    std::cout << "PlasticityModel::Please provide a plasticity model example {plasticity_model, n_parameters, cohesion, friction}." << std::endl;
+                    DebugStop();
+                }
+                    break;
+            }
+            plasticity_pars.SetParameters(pars);
+            
+        }
         
         // Assigning values to tuple using make_tuple()
         chunk = make_tuple(u_pars, poro_pars, phi_pars, kappa_pars, plasticity_pars);
@@ -459,14 +600,16 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     }
     // End:: Regions and materials parameters
     
+
+    // Begin:: BC for Geomechanic Simulator
+    this->LoadBoundaryConditionsGeomechanics();
     
-    // Begin:: Regions and materials parameters of Reservoir Simulator
-    this->LoadBoundaryConditionsReservoirs();
+    std::pair<int, std::string > bc_id_to_type_chunk_geo;
+    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_geo;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_geo;
     
-    std::pair<int, std::string > bc_id_to_type_chunk_reser;
-    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_reser;
-    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_reser;
-    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditionReservoirs").FirstChild("BoundaryConditionReservoir").ToElement();
+    // Undrained condition
+    container = doc_handler.FirstChild("CaseData").FirstChild("BCUndrainedGeomechanics").FirstChild("UndrainedGeomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
         
@@ -475,51 +618,44 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         
         char_container = container->Attribute("type");
         std::string condition(char_container);
-        chunk_reser = m_condition_type_to_index_value_names_reser.find(condition);
-        bool bc_condition_not_available_Q = chunk_reser == m_condition_type_to_index_value_names_reser.end();
+        chunk_geo = m_condition_type_to_index_value_names_geo.find(condition);
+        
+        bool bc_condition_not_available_Q = chunk_geo == m_condition_type_to_index_value_names_geo.end();
         if (bc_condition_not_available_Q)
         {
             std::cout << " Geometry dimension =  " << dimension << std::endl;
             std::cout << " The boundary " << condition << " are not available " << std::endl;
-            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
             DebugStop();
         }
         
         // Association bc type with numerical values
-        bc_id_to_values_chunk_reser.first = bc_id;
-        bc_id_to_values_chunk_reser.second.resize(0);
-        int n_data = chunk_reser->second.second.size();
+        bc_id_to_values_chunk_geo.first = bc_id;
+        bc_id_to_values_chunk_geo.second.resize(0);
+        int n_data = chunk_geo->second.second.size();
         for (int i = 0; i < n_data; i++)
         {
-            char_container = container->Attribute(chunk_reser->second.second[i].c_str());
+            char_container = container->Attribute(chunk_geo->second.second[i].c_str());
             if (!char_container)
             {
-                std::cout << " the boundary " << condition << "  needs the value " << chunk_reser->second.second[i] << std::endl;
-                std::cout << " Please review the boundary conditions for Reservoir Module. " << std::endl;
+                std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
+                std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                 DebugStop();
             }
             REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk_reser.second.push_back(bc_value);
+            bc_id_to_values_chunk_geo.second.push_back(bc_value);
         }
-        m_bc_id_to_values_reser.insert(bc_id_to_values_chunk_reser);
-
+        m_bc_id_to_values_geo_un.insert(bc_id_to_values_chunk_geo);
+        
         // Association bc identifier with bc type
-        bc_id_to_type_chunk_reser.first = bc_id;
-        bc_id_to_type_chunk_reser.second = condition;
-        m_bc_id_to_type_reser.insert(bc_id_to_type_chunk_reser);
+        bc_id_to_type_chunk_geo.first = bc_id;
+        bc_id_to_type_chunk_geo.second = condition;
+        m_bc_id_to_type_geo_un.insert(bc_id_to_type_chunk_geo);
         
     }
-    // End:: Regions and materials parameters of Reservoir Simulator
     
-    
-    
-    // Begin:: Regions and materials parameters of Geomechanic Simulator
-    this->LoadBoundaryConditionsGeomechanics();
-    
-    std::pair<int, std::string > bc_id_to_type_chunk_geo;
-    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_geo;
-    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_geo;
-    container = doc_handler.FirstChild("CaseData").FirstChild("BoundaryConditionGeomechanics").FirstChild("BoundaryConditionGeomechanic").ToElement();
+    // Recurrent condition
+    container = doc_handler.FirstChild("CaseData").FirstChild("BCGeomechanics").FirstChild("Geomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
         
@@ -564,6 +700,57 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         
     }
     // End:: Regions and materials parameters of Geomechanic Simulator
+    
+    // Begin:: Regions and materials parameters of Reservoir Simulator
+    this->LoadBoundaryConditionsReservoirs();
+    
+    std::pair<int, std::string > bc_id_to_type_chunk_reser;
+    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_reser;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_reser;
+    container = doc_handler.FirstChild("CaseData").FirstChild("BCReservoirs").FirstChild("Reservoir").ToElement();
+    for( ; container; container=container->NextSiblingElement())
+    {
+        
+        char_container = container->Attribute("bc_id");
+        int bc_id = std::atoi(char_container);
+        
+        char_container = container->Attribute("type");
+        std::string condition(char_container);
+        chunk_reser = m_condition_type_to_index_value_names_reser.find(condition);
+        bool bc_condition_not_available_Q = chunk_reser == m_condition_type_to_index_value_names_reser.end();
+        if (bc_condition_not_available_Q)
+        {
+            std::cout << " Geometry dimension =  " << dimension << std::endl;
+            std::cout << " The boundary " << condition << " are not available " << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
+        
+        // Association bc type with numerical values
+        bc_id_to_values_chunk_reser.first = bc_id;
+        bc_id_to_values_chunk_reser.second.resize(0);
+        int n_data = chunk_reser->second.second.size();
+        for (int i = 0; i < n_data; i++)
+        {
+            char_container = container->Attribute(chunk_reser->second.second[i].c_str());
+            if (!char_container)
+            {
+                std::cout << " the boundary " << condition << "  needs the value " << chunk_reser->second.second[i] << std::endl;
+                std::cout << " Please review the boundary conditions for Reservoir Module. " << std::endl;
+                DebugStop();
+            }
+            REAL bc_value = std::atof(char_container);
+            bc_id_to_values_chunk_reser.second.push_back(bc_value);
+        }
+        m_bc_id_to_values_reser.insert(bc_id_to_values_chunk_reser);
+        
+        // Association bc identifier with bc type
+        bc_id_to_type_chunk_reser.first = bc_id;
+        bc_id_to_type_chunk_reser.second = condition;
+        m_bc_id_to_type_reser.insert(bc_id_to_type_chunk_reser);
+        
+    }
+    // End:: Regions and materials parameters of Reservoir Simulator
     
     // Begin:: Apply uniform refinement
     this->UniformRefinement();
@@ -850,6 +1037,18 @@ void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
     }
     
     return;
+}
+
+void TPZSimulationData::ReadRegionsAndMaterials(){
+    DebugStop();
+}
+
+void TPZSimulationData::ReadBCForGeomechanicSimulator(){
+    DebugStop();
+}
+
+void TPZSimulationData::ReadBCForReservoirSimulator(){
+    DebugStop();
 }
 
 void TPZSimulationData::UniformRefinement() {

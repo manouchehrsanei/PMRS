@@ -18,7 +18,7 @@ TPMRSKappaParameters::TPMRSKappaParameters(){
 TPMRSKappaParameters::TPMRSKappaParameters(const TPMRSKappaParameters & other){
     m_model         = other.m_model;
     m_parameters    =   other.m_parameters;
-    Initialize();
+    m_name_to_kappa_model = other.m_name_to_kappa_model;
 }
 
 const TPMRSKappaParameters & TPMRSKappaParameters::operator=(const TPMRSKappaParameters & other){
@@ -30,8 +30,7 @@ const TPMRSKappaParameters & TPMRSKappaParameters::operator=(const TPMRSKappaPar
     
     m_model         = other.m_model;
     m_parameters    =   other.m_parameters;
-    Initialize();
-    
+    m_name_to_kappa_model = other.m_name_to_kappa_model;
     return *this;
 }
 
@@ -55,7 +54,7 @@ void TPMRSKappaParameters::Print(std::ostream &out) const{
 }
 
 
-void TPMRSKappaParameters::ConfigurateModel(std::string model, std::vector<REAL> & parameters){
+void TPMRSKappaParameters::SetModel(std::string model){
     
     switch (m_name_to_kappa_model[model])
     {
@@ -65,23 +64,16 @@ void TPMRSKappaParameters::ConfigurateModel(std::string model, std::vector<REAL>
             break;
         case k_petunin : {
             m_model = k_petunin;
-            if (parameters.size()!=1) {
-                DebugStop();
-            }
         }
             break;
         case k_davies : {
             m_model = k_davies;
-            if (parameters.size()!=1) {
-                DebugStop();
-            }
         }
             break;
         default : {
             DebugStop();
         }
     }
-    m_parameters = parameters;
     
 }
 
@@ -90,8 +82,6 @@ void TPMRSKappaParameters::Initialize()
     m_name_to_kappa_model["none"] = k_none;
     m_name_to_kappa_model["Petunin"] = k_petunin;
     m_name_to_kappa_model["Davies"] = k_davies;
-    
-//    std::cout << "TPMRSKappaParameters::Initialization." << std::endl;
 }
 
 void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0){
@@ -130,6 +120,6 @@ std::vector<REAL> & TPMRSKappaParameters::GetParameters(){
     return m_parameters;
 }
 
-EKappaModel TPMRSKappaParameters::GetModel(){
+TPMRSKappaParameters::EKappaModel TPMRSKappaParameters::GetModel(){
     return m_model;
 }

@@ -16,13 +16,12 @@
 #include "pzreal.h"
 #include "pzerror.h"
 
-/// Enumerate defining the plastic model
-enum EEPModel { ep_none = 0, ep_mc = 1, ep_ds = 2, ep_cc = 3, ep_dp = 4 };
-
-// Map to associate the strings with the enum values
-static std::map<std::string, EEPModel> m_name_to_ep_model;
-
 class TPMRSPlasticityParameters {
+    
+public:
+    
+    /// Enumerate defining the plastic model
+    enum EEPModel { ep_none = 0, ep_mc = 1, ep_ds = 2, ep_cc = 3, ep_dp = 4 };
     
 private:
     
@@ -32,9 +31,8 @@ private:
     /// model parameters
     std::vector<REAL> m_parameters;
     
-    /// Initialization for names_to_ep_model map
-    static void Initialize();
-    
+    // Map to associate the strings with the enum values
+    std::map<std::string, EEPModel> m_name_to_ep_model;
     
 public:
     
@@ -56,8 +54,11 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    /// Configurate the model according to the string and number of parameters
-    void ConfigurateModel(std::string model, std::vector<REAL> & parameters);
+    /// Initialization for names_to_ep_model map
+    void Initialize();
+    
+    /// Configurate the model according to the string
+    void SetModel(std::string model);
     
     /// Set the parameters
     void SetParameters(std::vector<REAL> parameters);
