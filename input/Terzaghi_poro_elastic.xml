@@ -25,7 +25,7 @@
     <FEM>
         <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
-        <Elasticity p_order="1" />
+        <Elasticity p_order="2" />
         <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
@@ -61,7 +61,7 @@
             <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30" friction="0.1"/>            
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30" friction="10.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

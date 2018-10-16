@@ -11,6 +11,7 @@
 TPMRSPhiParameters::TPMRSPhiParameters(){
     m_model = p_none;
     m_parameters.resize(0);
+    m_K = 0;
     Initialize();
 }
 
@@ -18,6 +19,7 @@ TPMRSPhiParameters::TPMRSPhiParameters(const TPMRSPhiParameters & other){
     m_model         = other.m_model;
     m_parameters    = other.m_parameters;
     m_name_to_p_model = other.m_name_to_p_model;
+    m_K = other.m_K;
 }
 
 
@@ -31,6 +33,7 @@ const TPMRSPhiParameters & TPMRSPhiParameters::operator=(const TPMRSPhiParameter
     m_model         = other.m_model;
     m_parameters    = other.m_parameters;
     m_name_to_p_model = other.m_name_to_p_model;
+    m_K               = other.m_K;
     return *this;
     
 }
@@ -49,7 +52,7 @@ void TPMRSPhiParameters::Print(std::ostream &out) const{
     for (int i  = 0; i < m_parameters.size(); i++) {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
-    
+    out << "m_K = " << m_K << std::endl;
 }
 
 void TPMRSPhiParameters::SetModel(std::string model){
@@ -70,7 +73,7 @@ void TPMRSPhiParameters::SetModel(std::string model){
     }
 }
 
-void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &eps_v, REAL &eps_v_0, REAL &alpha, REAL &Se){
+void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha, REAL &Se){
     
     switch (m_model)
     {
@@ -80,8 +83,8 @@ void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p
         }
             break;
         case p_linear : {
-            phi = phi_0 + alpha * (eps_v-eps_v_0) + Se * (p - p_0);
-            dphi_dp = Se;
+            phi = phi_0 + (alpha/m_K) * (sigma_v-sigma_v_0) + (Se + (alpha*alpha)/m_K) * (p - p_0);
+            dphi_dp = (Se + (alpha*alpha)/m_K);
         }
             break;
         default : {

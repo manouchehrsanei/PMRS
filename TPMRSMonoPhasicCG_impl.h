@@ -9,7 +9,7 @@
 #include "TPMRSMonoPhasicCG.h"
 
 template <class TMEM>
-TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(){
+TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG() : m_phi_model(), m_kappa_model(){
     m_simulation_data   = NULL;
     m_dimension         = 0;
     m_c                 = 0;
@@ -19,8 +19,13 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(){
 }
 
 template <class TMEM>
-TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(int mat_id, int dimension) : TPZMatWithMem<TMEM>(mat_id){
+TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(int mat_id, int dimension) :  TPZMatWithMem<TMEM>(mat_id), m_phi_model(), m_kappa_model(){
+    m_simulation_data   = NULL;
     m_dimension = dimension;
+    m_c                 = 0;
+    m_eta               = 0;
+    m_rho_0             = 0;
+    m_scale_factor      = 1;
 }
 
 template <class TMEM>
@@ -31,6 +36,8 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(const TPMRSMonoPhasicCG & other){
     m_eta               = other.m_eta;
     m_rho_0             = other.m_rho_0;
     m_scale_factor      = other.m_scale_factor;
+    m_phi_model         = other.m_phi_model;
+    m_kappa_model       = other.m_kappa_model;
 }
 
 template <class TMEM>
@@ -47,6 +54,8 @@ TPMRSMonoPhasicCG<TMEM> & TPMRSMonoPhasicCG<TMEM>::operator=(const TPMRSMonoPhas
     m_eta               = other.m_eta;
     m_rho_0             = other.m_rho_0;
     m_scale_factor      = other.m_scale_factor;
+    m_phi_model         = other.m_phi_model;
+    m_kappa_model       = other.m_kappa_model;
     return *this;
 }
 
@@ -65,6 +74,8 @@ void TPMRSMonoPhasicCG<TMEM>::Print(std::ostream &out){
     out << " Fluid viscosity : " << m_eta << "\n";
     out << " Fluid density : " << m_rho_0 << "\n";
     out << " Scale factor  : " << m_scale_factor << "\n";
+    m_phi_model.Print(out);
+    m_kappa_model.Print(out);
     out << "\t Base class print:\n";
     TPZMaterial::Print(out);
     
@@ -349,32 +360,19 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     
     TMEM & memory = this->MemItem(gp_index);
     
-    REAL phi_0 = memory.phi_0();
-    //    phi = phi_0;
-    //    phi_n = phi_0;
-    //    dphi_ndp = 0.0;
-    //    this->MemItem(gp_index).Setphi(phi);
-    //    return;
-    
-    DebugStop();
-    REAL nu =0.0;// m_simulation_data->Get_nu();
-    REAL E =0.0;// m_simulation_data->Get_young();
-    REAL Kdr = E/(3.0*(1.0-2.0*nu));
-    
     REAL alpha = memory.GetAlpha();
     REAL Se = memory.GetSe();
+    REAL phi_0 = memory.phi_0();
     
     REAL p_0 = memory.p_0();
     REAL p = memory.p();
     REAL p_n = memory.p_n();
-    
     REAL sigma_v_0 = memory.GetSigma_0().I1()/3;
     REAL sigma_v = memory.GetSigma().I1()/3;
     REAL sigma_v_n = memory.GetSigma_n().I1()/3;
     
-    phi     = phi_0 + (Se + (alpha*alpha)/Kdr)*(p-p_0) + (alpha/Kdr)*(sigma_v-sigma_v_0);
-    phi_n   = phi_0 + (Se + (alpha*alpha)/Kdr)*(p_n-p_0) + (alpha/Kdr)*(sigma_v_n-sigma_v_0);
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_v, sigma_v_0, alpha, Se);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_v_n, sigma_v_0, alpha, Se);
     
-    dphi_ndp = (Se + (alpha*alpha)/Kdr);
     this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

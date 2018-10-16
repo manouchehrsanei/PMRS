@@ -8,7 +8,7 @@
 #include "TPMRSMonoPhasic.h"
 
 template <class TMEM>
-TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(){
+TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic() : m_phi_model(), m_kappa_model(){
     m_simulation_data   = NULL;
     m_dimension         = 0;
     m_c                 = 0;
@@ -18,8 +18,13 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(){
 }
 
 template <class TMEM>
-TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(int mat_id, int dimension) : TPZMatWithMem<TMEM>(mat_id){
+TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(int mat_id, int dimension) : TPZMatWithMem<TMEM>(mat_id), m_phi_model(), m_kappa_model(){
+    m_simulation_data   = NULL;
     m_dimension = dimension;
+    m_c                 = 0;
+    m_eta               = 0;
+    m_rho_0             = 0;
+    m_scale_factor      = 1;
 }
 
 template <class TMEM>
@@ -30,6 +35,8 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(const TPMRSMonoPhasic & other) : TPZMatWi
     m_eta               = other.m_eta;
     m_rho_0             = other.m_rho_0;
     m_scale_factor      = other.m_scale_factor;
+    m_phi_model         = other.m_phi_model;
+    m_kappa_model       = other.m_kappa_model;
 }
 
 template <class TMEM>
@@ -46,6 +53,8 @@ TPMRSMonoPhasic<TMEM> & TPMRSMonoPhasic<TMEM>::operator=(const TPMRSMonoPhasic &
     m_eta               = other.m_eta;
     m_rho_0             = other.m_rho_0;
     m_scale_factor      = other.m_scale_factor;
+    m_phi_model         = other.m_phi_model;
+    m_kappa_model       = other.m_kappa_model;
     return *this;
 }
 
@@ -64,6 +73,8 @@ void TPMRSMonoPhasic<TMEM>::Print(std::ostream &out){
     out << " Fluid viscosity : " << m_eta << "\n";
     out << " Fluid density : " << m_rho_0 << "\n";
     out << " Scale factor  : " << m_scale_factor << "\n";
+    m_phi_model.Print(out);
+    m_kappa_model.Print(out);
     out << "\t Base class print:\n";
     TPZMaterial::Print(out);
     
@@ -469,36 +480,22 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
 
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
-    
-    TMEM & memory = this->MemItem(gp_index);//this->GetMemory().get()->operator[](gp_index);
-    
-    REAL phi_0 = memory.phi_0();
-//    phi = phi_0;
-//    phi_n = phi_0;
-//    dphi_ndp = 0.0;
-//    this->GetMemory().get()->operator[](gp_index).Setphi(phi);
-//    return;
-    
-    DebugStop();
-    
-    REAL nu = 0.0;//m_simulation_data->Get_nu();
-    REAL E = 0.0;//m_simulation_data->Get_young();
-    REAL Kdr = E/(3.0*(1.0-2.0*nu));
+
+    TMEM & memory = this->MemItem(gp_index);
     
     REAL alpha = memory.GetAlpha();
     REAL Se = memory.GetSe();
+    REAL phi_0 = memory.phi_0();
     
     REAL p_0 = memory.p_0();
     REAL p = memory.p();
     REAL p_n = memory.p_n();
-
     REAL sigma_v_0 = memory.GetSigma_0().I1()/3;
     REAL sigma_v = memory.GetSigma().I1()/3;
     REAL sigma_v_n = memory.GetSigma_n().I1()/3;
+
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_v, sigma_v_0, alpha, Se);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_v_n, sigma_v_0, alpha, Se);
     
-    phi     = phi_0 + (Se + (alpha*alpha)/Kdr)*(p-p_0) + (alpha/Kdr)*(sigma_v-sigma_v_0);
-    phi_n   = phi_0 + (Se + (alpha*alpha)/Kdr)*(p_n-p_0) + (alpha/Kdr)*(sigma_v_n-sigma_v_0);
-    
-    dphi_ndp = (Se + (alpha*alpha)/Kdr);
     this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

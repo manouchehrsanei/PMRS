@@ -15,6 +15,8 @@
 #include "pzaxestools.h"
 #include "TPZSimulationData.h"
 #include "TPMRSMonoPhasicMemory.h"
+#include "TPMRSPhiParameters.h"
+#include "TPMRSKappaParameters.h"
 
 template <class TMEM>
 class TPMRSMonoPhasicCG : public TPZMatWithMem<TMEM> {
@@ -36,6 +38,12 @@ class TPMRSMonoPhasicCG : public TPZMatWithMem<TMEM> {
     
     /// Scale factor to use numerically balance the penalty number
     STATE m_scale_factor;
+    
+    /// Defines the porosity model
+    TPMRSPhiParameters m_phi_model;
+    
+    /// Defines the permeability model
+    TPMRSKappaParameters m_kappa_model;
     
 public:
     
@@ -195,6 +203,22 @@ public:
     }
     
     void porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi);
+    
+    void SetPorosityParameters(TPMRSPhiParameters phi_model){
+        m_phi_model = phi_model;
+    }
+    
+    TPMRSPhiParameters GetPorosityParameters(){
+        return m_phi_model;
+    }
+    
+    void SetPermeabilityParameters(TPMRSKappaParameters kappa_model){
+        m_kappa_model = kappa_model;
+    }
+    
+    TPMRSKappaParameters GetPermeabilityParameters(){
+        return m_kappa_model;
+    }
     
 };
 

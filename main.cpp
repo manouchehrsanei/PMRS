@@ -119,9 +119,11 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
 TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
 // Mixed mesh
 TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh);
 
 // CG mesh for pressure
 TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data);
+// Configurate and insert volumetric materials
 
 
 // Geomechanic Simulator
@@ -310,7 +312,7 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
     if (sim_data->Get_is_dual_formulation_Q()) {
         segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }else{
-        segregated_analysis->ConfigurateAnalysis(ELDLt, ELDLt, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+        segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }
 
     segregated_analysis->ExecuteTimeEvolution();
@@ -394,6 +396,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
 
 TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh){
     
+    int dim = sim_data->Dimension();
     
     std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
     
@@ -401,7 +404,10 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
     std::vector<REAL> e_pars = poro_parameters.GetParameters();
     REAL E = e_pars[0];
-    REAL nu = pars[1];
+    REAL nu = e_pars[1];
+    
+    // Updating bulk modulus for porosity model
+    std::get<2>(sim_data->MaterialProps()[index]).SetBulkModulus(E, nu);
     
     TPZElasticResponse ER;
     ER.SetUp(E, nu);
@@ -410,26 +416,49 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
     std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
     
-    // Mohr Coulomb data
-    REAL mc_cohesion    = 1.0e8;//23.30000;//25.0;//25.0*1.0e10;
-    REAL mc_phi         = (80.73346*M_PI/180);//(90.0*M_PI/180);//(10.0*M_PI/180);
-    REAL mc_psi         = mc_phi; // because MS do not understand
-    
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-
-    LEMC.SetElasticResponse(ER);
-    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
-    
-    
-    TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
-    material->SetDimension(dim);
-    material->SetPlasticIntegrator(LEMC);
-    
-    material->SetSimulationData(sim_data);
-    cmesh->InsertMaterialObject(material);
-    
-    return material;
-    
+    if (p_pars.size() == 0) {
+        // Elastic material
+        TPZElasticCriterion Elastic;
+        Elastic.SetElasticResponse(ER);
+        
+        TPMRSElastoPlastic<TPZElasticCriterion, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZElasticCriterion, TPMRSMemory>(matid);
+        material->SetDimension(dim);
+        material->SetPlasticIntegrator(Elastic);
+        material->SetSimulationData(sim_data);
+        cmesh->InsertMaterialObject(material);
+        return material;
+        
+    }else{
+        // Elastoplastic material
+        switch (plasticity_parameters.GetModel()) {
+            case plasticity_parameters.ep_mc: {
+                // Mohr Coulomb data
+                REAL cohesion    = p_pars[0];
+                REAL phi         = (p_pars[1]*M_PI/180);
+                REAL psi         = phi;
+                
+                TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+                LEMC.SetElasticResponse(ER);
+                LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                
+                TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
+                material->SetDimension(dim);
+                material->SetPlasticIntegrator(LEMC);
+                
+                material->SetSimulationData(sim_data);
+                cmesh->InsertMaterialObject(material);
+                return material;
+            }
+            break;
+            default:{
+                TPZMaterial * material = NULL;
+                std::cout << "Material not implemented. " << std::endl;
+                DebugStop();
+                return material;
+            }
+                break;
+        }
+    }
 }
 
 void RuningMonophasic(TPZSimulationData * sim_data){
@@ -623,13 +652,6 @@ TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
 
 TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
     
-    /// Constant fluid properties
-    STATE eta = sim_data->Get_eta();
-    STATE rho_0 = sim_data->Get_rho_f();
-    STATE c = 0.0*0.000000145038;
-    STATE s = 1.0e-6;
-    
-    
     mesh_vector[0] = CMesh_Flux(sim_data);
     mesh_vector[1] = CMesh_PorePressure_disc(sim_data);
     
@@ -645,11 +667,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPMRSMonoPhasic<TPMRSMemory> * material = new TPMRSMonoPhasic<TPMRSMemory>(matid,dim);
-        material->SetSimulationData(sim_data);
-        material->SetFluidProperties(rho_0, eta, c);
-        material->SetScaleFactor(s);
-        cmesh->InsertMaterialObject(material);
+        TPZMaterial * material = ConfigurateAndInsertVolumetricMaterialsRes(true, iregion, matid, sim_data, cmesh);
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.second.size();
@@ -691,12 +709,6 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
 }
 
 TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
-
-    /// Constant fluid properties
-    STATE eta = sim_data->Get_eta();
-    STATE rho_0 = sim_data->Get_rho_f();
-    STATE c = 0.0*0.000000145038;
-    STATE s = 1.0e-6;
     
     int dim = sim_data->Dimension();
     TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
@@ -710,11 +722,7 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPMRSMonoPhasicCG<TPMRSMemory> * material = new TPMRSMonoPhasicCG<TPMRSMemory>(matid,dim);
-        material->SetSimulationData(sim_data);
-        material->SetFluidProperties(rho_0, eta, c);
-        material->SetScaleFactor(s);
-        cmesh->InsertMaterialObject(material);
+        TPZMaterial * material = ConfigurateAndInsertVolumetricMaterialsRes(false, iregion, matid, sim_data, cmesh);
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.second.size();
@@ -751,6 +759,42 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
     return cmesh;
 }
 
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh){
+    
+    REAL s = 1.0e-6;
+    REAL c = 0.0;
+    int dim = sim_data->Dimension();
+    
+    std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
+    
+    // Reservoir parameters
+    TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+    std::vector<REAL> res_pars = poro_parameters.GetParameters();
+    REAL eta = res_pars[4];
+    REAL rho_0 = res_pars[5];
+
+    if (IsMixedQ) {
+        TPMRSMonoPhasic<TPMRSMemory> * material = new TPMRSMonoPhasic<TPMRSMemory>(matid,dim);
+        material->SetSimulationData(sim_data);
+        material->SetFluidProperties(rho_0, eta, c);
+        material->SetScaleFactor(s);
+        material->SetPorosityParameters(std::get<2>(chunk));
+        material->SetPermeabilityParameters(std::get<3>(chunk));
+        cmesh->InsertMaterialObject(material);
+        return material;
+    }else{
+        TPMRSMonoPhasicCG<TPMRSMemory> * material = new TPMRSMonoPhasicCG<TPMRSMemory>(matid,dim);
+        material->SetSimulationData(sim_data);
+        material->SetFluidProperties(rho_0, eta, c);
+        material->SetScaleFactor(s);
+        material->SetPorosityParameters(std::get<2>(chunk));
+        material->SetPermeabilityParameters(std::get<3>(chunk));
+        cmesh->InsertMaterialObject(material);
+        return material;
+    }
+
+}
+
 TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
@@ -773,28 +817,29 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
 
         TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
 
-        int kmodel = 0;
-        REAL Ey_r = sim_data->Get_young();
-        REAL nu_r = sim_data->Get_nu();
-        REAL porosity = sim_data->Get_porosity();
-        REAL k = sim_data->Get_k();
-        REAL alpha_r = sim_data->Get_alpha();
-        REAL Se = sim_data->Get_Se();
-        REAL eta = sim_data->Get_eta();
-        REAL rho_f = sim_data->Get_rho_f();
-        REAL rho_s = sim_data->Get_rho_s();
-        REAL MC_coh = sim_data->Get_mc_coh();
-        REAL MC_phi = sim_data->Get_mc_phi();
-        REAL MC_psi = sim_data->Get_mc_psi();
-        
-        material->SetSimulationData(sim_data);
-        material->SetPorolasticParametersEngineer(Ey_r, nu_r);
-        material->SetBiotParameters(alpha_r, Se);
-        material->SetParameters(k, porosity, eta);
-        material->SetKModel(kmodel);
-        material->SetDensityFluidRock(rho_f, rho_s);
-        material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
-        cmesh->InsertMaterialObject(material);
+        DebugStop();
+//        int kmodel = 0;
+//        REAL Ey_r = sim_data->Get_young();
+//        REAL nu_r = sim_data->Get_nu();
+//        REAL porosity = sim_data->Get_porosity();
+//        REAL k = sim_data->Get_k();
+//        REAL alpha_r = sim_data->Get_alpha();
+//        REAL Se = sim_data->Get_Se();
+//        REAL eta = sim_data->Get_eta();
+//        REAL rho_f = sim_data->Get_rho_f();
+//        REAL rho_s = sim_data->Get_rho_s();
+//        REAL MC_coh = sim_data->Get_mc_coh();
+//        REAL MC_phi = sim_data->Get_mc_phi();
+//        REAL MC_psi = sim_data->Get_mc_psi();
+//        
+//        material->SetSimulationData(sim_data);
+//        material->SetPorolasticParametersEngineer(Ey_r, nu_r);
+//        material->SetBiotParameters(alpha_r, Se);
+//        material->SetParameters(k, porosity, eta);
+//        material->SetKModel(kmodel);
+//        material->SetDensityFluidRock(rho_f, rho_s);
+//        material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
+//        cmesh->InsertMaterialObject(material);
         
         DebugStop();
         // Inserting boundary conditions
