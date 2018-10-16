@@ -292,7 +292,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     T elasto_plastic_integrator(this->m_plasticity_model);
     elasto_plastic_integrator.SetState(point_memory.fPlasticState);
     TPZElasticResponse ER;
-    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
+    DebugStop();
+//    ER.SetUp(m_SimulationData->Get_young(), m_SimulationData->Get_nu());
     elasto_plastic_integrator.SetElasticResponse(ER);
     
     

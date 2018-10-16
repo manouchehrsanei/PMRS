@@ -479,8 +479,10 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
 //    this->GetMemory().get()->operator[](gp_index).Setphi(phi);
 //    return;
     
-    REAL nu = m_simulation_data->Get_nu();
-    REAL E = m_simulation_data->Get_young();
+    DebugStop();
+    
+    REAL nu = 0.0;//m_simulation_data->Get_nu();
+    REAL E = 0.0;//m_simulation_data->Get_young();
     REAL Kdr = E/(3.0*(1.0-2.0*nu));
     
     REAL alpha = memory.GetAlpha();

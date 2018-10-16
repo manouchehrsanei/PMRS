@@ -416,47 +416,6 @@ public:
     
     /** @brief Get crank nicolson directive for time derivative (false Euler method)  */
     bool Get_is_crank_nicolson_Q() { return m_is_crank_nicolson_Q; }
-   
-    // Begin::  Block that define the material parameters
-    /** @brief Get the young modulus */
-    REAL Get_young() { return m_young; }
-    
-    /** @brief Get the poision ratio */
-    REAL Get_nu() { return m_nu; }
-    
-    /** @brief Get the initial porosity */
-    REAL Get_porosity() { return m_porosity; }
-    
-    /** @brief Get the initial permeability */
-    REAL Get_k() { return m_k_0; }
-    
-    /** @brief Get the biot coefficient */
-    REAL Get_alpha() { return m_alpha; }
-    
-    /** @brief Get the source coefficient */
-    REAL Get_Se() { return m_Se; }
-    
-    /** @brief Get the dynamic viscosity */
-    REAL Get_eta() { return m_eta; }
-    
-    /** @brief Get the density of fluid */
-    REAL Get_rho_f() { return m_rho_f; }
-    
-    /** @brief Get the density of solid */
-    REAL Get_rho_s() { return m_rho_s; }
-    
-    /** @brief Get the cohesion of Mohr-Coloumb */
-    REAL Get_mc_coh() { return mc_coh; }
-    
-    /** @brief Get the friction of Mohr-Coloumb */
-    REAL Get_mc_phi() { return mc_phi; }
-    
-    /** @brief Get the dilation of Mohr-Coloumb */
-    REAL Get_mc_psi() { return mc_psi; }
-    
-    // End::  Block that define the material parameters
-    /** @brief the property of material  */
-
     
     
 private:

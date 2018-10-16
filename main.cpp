@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <fstream>
+#include <tuple>
 #include <cmath>
 #include <iostream>
 #include <math.h>
@@ -82,6 +83,11 @@
 
 // Simulation data structure
 #include "TPZSimulationData.h"
+#include "TPMRSUndrainedParameters.h"
+#include "TPMRSPoroMechParameters.h"
+#include "TPMRSPhiParameters.h"
+#include "TPMRSKappaParameters.h"
+#include "TPMRSPlasticityParameters.h"
 
 // ElastoPlastic Materials
 #include "TPZPMRSCouplPoroElast.h"
@@ -121,6 +127,8 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data);
 // Geomechanic Simulator
 // H1 mesh for displacements
 TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data);
+// Configurate and insert volumetric materials
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh);
 
 // Method that makes the poroelastic full coupling
 void RuningFullCoupling(TPZSimulationData * sim_data);
@@ -331,25 +339,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     
     // Getting mesh dimension
     int dim = sim_data->Dimension();
-    
-    // Constant parameters
-    // MC Mohr Coloumb PV
-    
-    // Elastic predictor
-    TPZElasticResponse ER;
-    REAL nu = sim_data->Get_nu();
-    REAL E = sim_data->Get_young();
-    
-    // Mohr Coulomb data
-    REAL mc_cohesion    = 1.0e8;//23.30000;//25.0;//25.0*1.0e10;
-    REAL mc_phi         = (80.73346*M_PI/180);//(90.0*M_PI/180);//(10.0*M_PI/180);
-    REAL mc_psi         = mc_phi; // because MS do not understand
-    
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-    ER.SetUp(E, nu);
-    LEMC.SetElasticResponse(ER);
-    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
-    
+
     TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
@@ -361,11 +351,8 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
         int matid = material_ids[iregion].first;
-        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
-        material->SetDimension(dim);
-        material->SetPlasticIntegrator(LEMC);
-        material->SetSimulationData(sim_data);
-        cmesh->InsertMaterialObject(material);
+        
+        TPZMaterial  * material = ConfigurateAndInsertVolumetricMaterialsGeo(iregion,matid,sim_data,cmesh);
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.first.size();
@@ -402,6 +389,46 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     cmesh->Print(out);
 #endif
     return cmesh;
+    
+}
+
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh){
+    
+    
+    std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
+    
+    // Elastic predictor
+    TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+    std::vector<REAL> e_pars = poro_parameters.GetParameters();
+    REAL E = e_pars[0];
+    REAL nu = pars[1];
+    
+    TPZElasticResponse ER;
+    ER.SetUp(E, nu);
+
+    // Plastic corrector
+    TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
+    std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
+    
+    // Mohr Coulomb data
+    REAL mc_cohesion    = 1.0e8;//23.30000;//25.0;//25.0*1.0e10;
+    REAL mc_phi         = (80.73346*M_PI/180);//(90.0*M_PI/180);//(10.0*M_PI/180);
+    REAL mc_psi         = mc_phi; // because MS do not understand
+    
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+
+    LEMC.SetElasticResponse(ER);
+    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
+    
+    
+    TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
+    material->SetDimension(dim);
+    material->SetPlasticIntegrator(LEMC);
+    
+    material->SetSimulationData(sim_data);
+    cmesh->InsertMaterialObject(material);
+    
+    return material;
     
 }
 
