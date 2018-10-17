@@ -76,7 +76,7 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="0.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
