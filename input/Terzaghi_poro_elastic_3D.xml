@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
+        <StepSize dt="0.01" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -23,7 +23,7 @@
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -76,7 +76,7 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duz" uz="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
