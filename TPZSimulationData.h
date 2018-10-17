@@ -40,6 +40,9 @@ class TPZSimulationData
     
 protected:
     
+    /** @brief update pressure from undrain condition */
+    bool m_update_pressure_from_undrain_solution_Q;
+    
     /** @brief Directive that states if the last memory solution is being transferred to the current memory solution */
     bool m_transfer_current_to_last_solution_Q;
     
@@ -187,6 +190,7 @@ public:
     TPZSimulationData(const TPZSimulationData & other)
     {
         DebugStop();
+        m_update_pressure_from_undrain_solution_Q = other.m_update_pressure_from_undrain_solution_Q;
         m_transfer_current_to_last_solution_Q            = other.m_transfer_current_to_last_solution_Q;
         m_h_level                           = other.m_h_level;
         m_elasticity_order                  = other.m_elasticity_order;
@@ -222,6 +226,7 @@ public:
         DebugStop();
         if (this != & other) // prevent self-assignment
         {
+            m_update_pressure_from_undrain_solution_Q = other.m_update_pressure_from_undrain_solution_Q;
             m_transfer_current_to_last_solution_Q = other.m_transfer_current_to_last_solution_Q;
             m_h_level                           = other.m_h_level;
             m_elasticity_order                  = other.m_elasticity_order;
@@ -259,9 +264,15 @@ public:
     /** @brief Read the xml input file */
     void ReadSimulationFile(char *simulation_file);
     
+    /** @brief Set the update pressure from undrain condition */
+    void SetupdatePressureFromUndrainSolutionQ(bool update_pressure_from_undrain_solution_Q) { m_update_pressure_from_undrain_solution_Q = update_pressure_from_undrain_solution_Q; }
+    
     /** @brief Set the directive that states if the current memory solution is being transferred to the last memory solution */
     void SetTransferCurrentToLastQ(bool transfer_current_to_last_solution_Q) { m_transfer_current_to_last_solution_Q = transfer_current_to_last_solution_Q; }
 
+    /** @brief Get the update pressure from undrain condition */
+    bool GetupdatePressureFromUndrainSolutionQ() { return m_update_pressure_from_undrain_solution_Q; }
+    
     /** @brief Get the directive that states if the current memory solution is being transferred to the last memory solution */
     bool GetTransferCurrentToLastQ() { return m_transfer_current_to_last_solution_Q; }
     

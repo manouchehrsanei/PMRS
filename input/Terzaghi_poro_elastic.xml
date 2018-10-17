@@ -25,8 +25,8 @@
     <FEM>
         <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -57,8 +57,8 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="29269.0" nu_u="0.20300" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PoroMechUndrainedParameters Eyoung_u="39269.0" nu_u="0.30300" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="0.5" Se="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0"/>
             <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30" friction="10.0"/>            
@@ -76,12 +76,12 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-100.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Duy" uy="0.0" />
-        <Geomechanic bc_id="3" type="Ntn" tn="-100.0" />
+        <Geomechanic bc_id="3" type="Ntn" tn="-10.0" />
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>

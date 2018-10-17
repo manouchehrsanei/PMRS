@@ -9,10 +9,17 @@
 #define TPMRSSegregatedAnalysis_h
 
 #include <stdio.h>
+#include "pzbndcond.h"
 #include "TPZMatWithMem.h"
 #include "TPMRSMemory.h"
 #include "TPMRSGeomechanicAnalysis.h"
 #include "TPMRSMonoPhasicAnalysis.h"
+#include "TPZElasticResponse.h"
+#include "TPZElasticCriterion.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZSandlerExtended.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPMRSElastoPlastic.h"
 
 class TPMRSSegregatedAnalysis {
     
@@ -66,6 +73,14 @@ public:
     
     /// Update solution state x = x_n
     void UpdateState();
+    
+    /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
+    void ConfigurateBConditions(bool IsInitialConditionsQ);
+    
+    /// Execute initial problem
+    void ExecuteStaticSolution();
+    
+
     
 };
 

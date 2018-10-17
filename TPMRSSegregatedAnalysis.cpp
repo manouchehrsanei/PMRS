@@ -207,7 +207,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::string file_geo("Geomechanic.vtk");
     
     int n_max_fss_iterations = 20; // @TODO:: MS, please to xml file structure
-    int n_enforced_fss_iterations = 10; // @TODO:: MS, please to xml file structure
+    int n_enforced_fss_iterations = 3; // @TODO:: MS, please to xml file structure
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
@@ -237,4 +237,133 @@ void TPMRSSegregatedAnalysis::UpdateState(){
     m_reservoir_analysis->UpdateState();
     m_geomechanic_analysis->UpdateState();
     
+}
+
+void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
+    
+    TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
+    if (!cmesh) {
+        DebugStop();
+    }
+    
+    int n_regions = m_simulation_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
+    
+    std::map<int, std::string>::iterator it_bc_id_to_type;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
+    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        
+        TPZMaterial  * material = cmesh->FindMaterial(matid);
+        
+        // Update the elastic response
+        {
+            std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    m_simulation_data->MaterialProps()[iregion];
+            
+            REAL E,nu;
+            
+            // Elastic predictor
+            if (IsInitialConditionsQ) {
+                TPMRSUndrainedParameters undrained_parameters(std::get<0>(chunk));
+                std::vector<REAL> u_pars = undrained_parameters.GetParameters();
+                E = u_pars[0];
+                nu = u_pars[1];
+            }else{
+                TPMRSPoroMechParameters poroperm_parameters(std::get<1>(chunk));
+                std::vector<REAL> poroperm_pars = poroperm_parameters.GetParameters();
+                E = poroperm_pars[0];
+                nu = poroperm_pars[1];
+            }
+            
+            // Updating bulk modulus for porosity model
+            std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
+            
+            TPZElasticResponse ER;
+            ER.SetUp(E, nu);
+            
+            // Plastic corrector
+            TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
+            std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
+            
+            if (p_pars.size() == 0) {
+                // Elastic material
+                TPZElasticCriterion Elastic;
+                Elastic.SetElasticResponse(ER);
+                
+                TPMRSElastoPlastic<TPZElasticCriterion, TPMRSMemory> * vol_material = dynamic_cast< TPMRSElastoPlastic<TPZElasticCriterion, TPMRSMemory> * >(material);
+                vol_material->SetPlasticIntegrator(Elastic);
+                
+            }else{
+                // Elastoplastic material
+                switch (plasticity_parameters.GetModel()) {
+                    case plasticity_parameters.ep_mc: {
+                        
+                        // Mohr Coulomb data
+                        REAL cohesion    = p_pars[0];
+                        REAL phi         = (p_pars[1]*M_PI/180);
+                        REAL psi         = phi;
+                        
+                        TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+                        LEMC.SetElasticResponse(ER);
+                        LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                        
+                        TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * vol_material = dynamic_cast< TPMRSElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * >(material);
+                        vol_material->SetPlasticIntegrator(LEMC);
+                    }
+                        break;
+                    default:{
+                        std::cout << "Material not implemented. " << std::endl;
+                        DebugStop();
+                    }
+                        break;
+                }
+            }
+        }
+        
+        // Inserting boundary conditions
+        int n_bc = material_ids[iregion].second.first.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second.first [ibc];
+            
+            if (IsInitialConditionsQ) {
+                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeGeomechanicsUndrained().find(bc_id);
+                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesGeomechanicsUndrained().find(bc_id);
+            }else{
+                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeGeomechanics().find(bc_id);
+                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesGeomechanics().find(bc_id);
+            }
+            
+            
+            it_condition_type_to_index_value_names = m_simulation_data->ConditionTypeToBCIndexGeomechanics().find(it_bc_id_to_type->second);
+            
+            int bc_index = it_condition_type_to_index_value_names->second.first;
+            int n_bc_values = it_bc_id_to_values->second.size();
+        
+            TPZMaterial * bc_mat = cmesh->FindMaterial(bc_id);
+            if (!bc_mat) {
+                DebugStop();
+            }
+            TPZBndCond * bc = dynamic_cast<TPZBndCond *>(bc_mat);
+            if (!bc) {
+                DebugStop();
+            }
+            
+            bc->SetType(bc_index);
+            for (int i = 0; i < n_bc_values; i++) {
+                REAL value = it_bc_id_to_values->second[i];
+                bc->Val2()(i,0) = value;
+            }
+        }
+        
+    }
+    
+    
+}
+
+void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
+    DebugStop();
 }
