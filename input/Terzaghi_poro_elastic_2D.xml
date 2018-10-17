@@ -23,7 +23,7 @@
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -32,7 +32,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_Cricular_2D.vtk" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
         <OutputControlsGeo>
             <Var s_name="e_x" />
             <Var s_name="e_y" />
@@ -57,8 +57,8 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="35947.9" nu_u="0.499999" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="0.5" Se="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PoroMechUndrainedParameters Eyoung_u="36495.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="0.5" Se="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0"/>
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="30" friction="10.0"/>            
@@ -76,7 +76,7 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>

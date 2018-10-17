@@ -94,9 +94,40 @@ void TPMRSMonoPhasicCG<TMEM>::FillBoundaryConditionDataRequirement(int type, TPZ
     data.fNeedsNormal = true;
 }
 
+template <class TMEM>
+void TPMRSMonoPhasicCG<TMEM>::UndrainedContribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    // Getting weight functions
+    TPZFMatrix<REAL>  & phi_p     =  data.phi;
+    int n_phi_p = phi_p.Rows();
+    STATE p_n                  = data.sol[0][0];
+    
+    // Get the pressure at the integrations points
+    long gp_index = data.intGlobPtIndex;
+    TMEM & memory = this->MemItem(gp_index);
+    STATE p_0      = memory.p_0();
+    
+    for (int ip = 0; ip < n_phi_p; ip++)
+    {
+        ef(ip) +=  weight * ( p_n - p_0 ) * phi_p(ip,0) ;
+        
+        for (int jp = 0; jp < n_phi_p; jp++)
+        {
+            ek(ip,jp) +=  weight * phi_p(jp,0) * phi_p(ip,0);
+        }
+        
+    }
+    
+}
 
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    // Undarined contribute
+    if(m_simulation_data->IsInitialStateQ()){
+        this->UndrainedContribute(data, weight, ek, ef);
+        return;
+    }
     
     // Getting weight functions
     TPZFMatrix<REAL>  & phi_p     =  data.phi;
@@ -231,7 +262,8 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    if (!m_simulation_data->IsCurrentStateQ()) {
+    // Undarined contribute
+    if(m_simulation_data->IsInitialStateQ()){
         return;
     }
     
@@ -367,12 +399,12 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     REAL p_0 = memory.p_0();
     REAL p = memory.p();
     REAL p_n = memory.p_n();
-    REAL sigma_v_0 = memory.GetSigma_0().I1()/3;
-    REAL sigma_v = memory.GetSigma().I1()/3;
-    REAL sigma_v_n = memory.GetSigma_n().I1()/3;
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) ;//- alpha * p_0;
+    REAL sigma_t_v = (memory.GetSigma().I1()/3) ;//- alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3) ;//- alpha * p;
     
-    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_v, sigma_v_0, alpha, Se);
-    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_v_n, sigma_v_0, alpha, Se);
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
     this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

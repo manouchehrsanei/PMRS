@@ -195,7 +195,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     // Time
     STATE dt = m_simulation_data->dt();
-    TPZManVector<STATE,3> q    = datavec[q_b].sol[0];
+    TPZManVector<STATE,3> q   = datavec[q_b].sol[0];
     STATE p_n                  = datavec[p_b].sol[0][0];
     
     STATE p_0      = memory.p_0();
@@ -490,12 +490,12 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     REAL p_0 = memory.p_0();
     REAL p = memory.p();
     REAL p_n = memory.p_n();
-    REAL sigma_v_0 = memory.GetSigma_0().I1()/3;
-    REAL sigma_v = memory.GetSigma().I1()/3;
-    REAL sigma_v_n = memory.GetSigma_n().I1()/3;
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
+    REAL sigma_t_v = (memory.GetSigma().I1()/3) - alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3) - alpha * p_n;
 
-    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_v, sigma_v_0, alpha, Se);
-    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_v_n, sigma_v_0, alpha, Se);
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
     this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
 }

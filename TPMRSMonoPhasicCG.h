@@ -147,6 +147,8 @@ public:
     
     void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    void UndrainedContribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
     /// Set Fluid compressibility
     void Setc(STATE c_f)
     {

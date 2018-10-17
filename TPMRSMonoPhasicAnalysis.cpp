@@ -209,6 +209,20 @@ void TPMRSMonoPhasicAnalysis::LoadMemorySolution(){
 }
 
 
+void TPMRSMonoPhasicAnalysis::ExecuteUndrainedResponseStep(){
+    
+    m_X_n.Zero();
+    m_simulation_data->SetInitialStateQ(true);
+    ExecuteNewtonInteration();
+    m_X_n += Solution();
+    LoadCurrentState();
+    AssembleResidual();
+    REAL norm = Norm(Rhs());
+    std::cout << "TPMRSMonoPhasicAnalysis:: Undrained initial pressure projectd with residual norm = " << norm << std::endl;
+    m_X = m_X_n;
+    m_simulation_data->SetInitialStateQ(false);
+}
+
 void TPMRSMonoPhasicAnalysis::LoadCurrentState(){
     LoadSolution(m_X_n);
     if(m_simulation_data->Get_is_dual_formulation_Q()){

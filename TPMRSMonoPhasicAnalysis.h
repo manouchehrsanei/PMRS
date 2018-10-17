@@ -75,6 +75,9 @@ public:
     /// Execute the evolution for a single time step
     void ExecuteOneTimeStep();
     
+    /// Project the undrained initial pressure over the pressure space 
+    void ExecuteUndrainedResponseStep();
+    
     /// Post-processing the variables for a single time step
     void PostProcessTimeStep(std::string & file);
     

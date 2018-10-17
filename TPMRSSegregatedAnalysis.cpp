@@ -203,8 +203,10 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
-    std::string file_res("ReservoirFlow.vtk");
-    std::string file_geo("Geomechanic.vtk");
+    // vtk files
+    std::string name = m_simulation_data->name_vtk_file();
+    std::string file_geo = name + "_geo.vtk";
+    std::string file_res = name + "_res.vtk";
     
     int n_max_fss_iterations = 20; // @TODO:: MS, please to xml file structure
     int n_enforced_fss_iterations = 3; // @TODO:: MS, please to xml file structure
@@ -219,7 +221,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             this->ExecuteOneTimeStep();
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
             dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
-            
+//            this->PostProcessTimeStep(file_geo, file_res);
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) || dx_stop_criterion_Q) {
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
@@ -365,13 +367,19 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
 }
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
-    std::string file_geo("UndrainedResponseGeo.vtk");
-    std::string file_res("UndrainedResponseRes.vtk");
+    std::cout << std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Opening for initialization process." <<std::endl;
+    std::string name = m_simulation_data->name_vtk_file();
+    std::string file_geo = name + "_geo.vtk";
+    std::string file_res = name + "_res.vtk";
     m_geomechanic_analysis->ExecuteUndrainedResponseStep();
-    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
     m_geomechanic_analysis->UpdateState();
-    UpdateInitialSigmaAndPressure();
+    this->UpdateInitialSigmaAndPressure();
+    m_reservoir_analysis->ExecuteUndrainedResponseStep();
     m_reservoir_analysis->PostProcessTimeStep(file_res);
+    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    std::cout << "TPMRSSegregatedAnalysis:: Ending for initialization process." <<std::endl;
+    std::cout << std::endl << std::endl;
 }
 
 void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
@@ -405,13 +413,17 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
-            TPZTensor<REAL> sigma_0 = memory_vector.get()->operator [](i).GetSigma_n();
-            memory_vector.get()->operator [](i).SetSigma_0(sigma_0);
-            TPZTensor<REAL> sigma_p = memory_vector.get()->operator [](i).GetSigma_0();
-            REAL p_0 = -(0.5)*(sigma_0.I1()/3);
+            // Because we reused the same memory items
+            TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
+            REAL p_0 = -(sigma_total_0.I1()/3);
             memory_vector.get()->operator [](i).Setp_0(p_0);
             memory_vector.get()->operator [](i).Setp(p_0);
             memory_vector.get()->operator [](i).Setp_n(p_0);
+            sigma_total_0.Zero();// Converted to effecttive because initial deformation is Zero.
+            memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
+            memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
+            memory_vector.get()->operator [](i).SetSigma_n(sigma_total_0);
+
         }
         
     }
