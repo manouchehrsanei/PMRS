@@ -74,6 +74,9 @@ public:
     /// Update solution state x = x_n
     void UpdateState();
     
+    /// Update the initial solution for sigma and pressure
+    void UpdateInitialSigmaAndPressure();
+    
     /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
     void ConfigurateBConditions(bool IsInitialConditionsQ);
     

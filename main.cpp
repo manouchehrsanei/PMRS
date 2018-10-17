@@ -310,13 +310,13 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
  
     TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
     if (sim_data->Get_is_dual_formulation_Q()) {
-        segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+        segregated_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }else{
-        segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+        segregated_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }
 
     segregated_analysis->ConfigurateBConditions(true);
-//    segregated_analysis->ExecuteStaticSolution();
+    segregated_analysis->ExecuteStaticSolution();
     segregated_analysis->ConfigurateBConditions(false);
     segregated_analysis->ExecuteTimeEvolution();
 }

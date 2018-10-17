@@ -72,6 +72,9 @@ public:
     /// Execute the evolution for a single pseudo time step
     void ExecuteOneTimeStep();
     
+    /// Execute the undrained respose and update the initial sigma and pressure
+    void ExecuteUndrainedResponseStep();
+    
     /// Post-processing the variables for a single pseudo time step
     void PostProcessTimeStep(std::string & file);
     

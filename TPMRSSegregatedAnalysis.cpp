@@ -365,5 +365,55 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
 }
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
-    DebugStop();
+    std::string file_geo("UndrainedResponseGeo.vtk");
+    std::string file_res("UndrainedResponseRes.vtk");
+    m_geomechanic_analysis->ExecuteUndrainedResponseStep();
+    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    m_geomechanic_analysis->UpdateState();
+    UpdateInitialSigmaAndPressure();
+    m_reservoir_analysis->PostProcessTimeStep(file_res);
+}
+
+void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
+    
+    TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
+    
+    if (!m_simulation_data || !cmesh) {
+        DebugStop();
+    }
+    
+    
+    int n_regions = m_simulation_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
+    TPZManVector<int,10> volumetric_mat_id(n_regions);
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        volumetric_mat_id[iregion] = matid;
+        
+        TPZMaterial * material = cmesh->FindMaterial(matid);
+        if (!material) {
+            DebugStop();
+        }
+        
+        TPZMatWithMem<TPMRSMemory> * mat_with_memory = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material);
+        if (!material) {
+            DebugStop();
+        }
+        
+        std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
+        
+        int ndata = memory_vector->NElements();
+        for (int i = 0; i < ndata; i++) {
+            TPZTensor<REAL> sigma_0 = memory_vector.get()->operator [](i).GetSigma_n();
+            memory_vector.get()->operator [](i).SetSigma_0(sigma_0);
+            TPZTensor<REAL> sigma_p = memory_vector.get()->operator [](i).GetSigma_0();
+            REAL p_0 = -(0.5)*(sigma_0.I1()/3);
+            memory_vector.get()->operator [](i).Setp_0(p_0);
+            memory_vector.get()->operator [](i).Setp(p_0);
+            memory_vector.get()->operator [](i).Setp_n(p_0);
+        }
+        
+    }
+    
 }

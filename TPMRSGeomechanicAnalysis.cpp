@@ -164,6 +164,50 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     }
 }
 
+void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
+    
+    // The process will update just the current state
+    m_simulation_data->SetCurrentStateQ(true);
+    TPZFMatrix<STATE> dx(Solution());
+    bool residual_stop_criterion_Q = false;
+    bool correction_stop_criterion_Q = false;
+    REAL norm_res, norm_dx;
+    REAL r_norm = m_simulation_data->epsilon_res();
+    REAL dx_norm = m_simulation_data->epsilon_cor();
+    int n_it = m_simulation_data->n_iterations();
+    
+    for (int i = 1; i <= n_it; i++) {
+        this->ExecuteNewtonInteration();
+        dx += Solution();
+        norm_dx  = Norm(Solution());
+        LoadSolution(dx);
+        LoadMemorySolution();
+        norm_res = Norm(this->Rhs());
+        residual_stop_criterion_Q   = norm_res < r_norm;
+        correction_stop_criterion_Q = norm_dx  < dx_norm;
+        
+        m_k_iterations = i;
+        m_error = norm_res;
+        m_dx_norm = norm_dx;
+        
+        if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
+#ifdef PZDEBUG
+            std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
+            std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
+            std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
+#endif
+            
+            break;
+        }
+    }
+    
+    if (residual_stop_criterion_Q == false) {
+        std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+    }
+    
+}
+
+
 void TPMRSGeomechanicAnalysis::UpdateState(){
     m_simulation_data->SetTransferCurrentToLastQ(true);
     LoadMemorySolution();
