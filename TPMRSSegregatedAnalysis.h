@@ -52,6 +52,9 @@ public:
     /// Configurate internal analysis objects and linked them through the memory shared pointer
     void ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPZSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec);
     
+    /// Fill Memory with alpha, phi_0, k_0 and Se
+    void FillMemory(TPZCompMesh * cmesh);
+    
     /// Execute the evolution for a single time step
     void ExecuteOneTimeStep();
     

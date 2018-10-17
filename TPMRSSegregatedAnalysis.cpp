@@ -82,7 +82,58 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     m_reservoir_analysis->ConfigurateAnalysis(decompose_res, mesh_vec, m_simulation_data);
     
     // Loading spatial properties
+    FillMemory(m_reservoir_analysis->Mesh());
 
+}
+
+void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
+    
+    if (!m_simulation_data || !cmesh) {
+        DebugStop();
+    }
+    
+    
+    int n_regions = m_simulation_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
+    TPZManVector<int,10> volumetric_mat_id(n_regions);
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        volumetric_mat_id[iregion] = matid;
+        
+        TPZMaterial * material = cmesh->FindMaterial(matid);
+        if (!material) {
+            DebugStop();
+        }
+        
+        TPZMatWithMem<TPMRSMemory> * mat_with_memory = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material);
+        if (!material) {
+            DebugStop();
+        }
+        
+        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    m_simulation_data->MaterialProps()[iregion];
+        
+        TPMRSUndrainedParameters udrained_parameters(std::get<0>(chunk));
+        TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+        std::vector<REAL> undrained_pars = udrained_parameters.GetParameters();
+        std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
+
+        REAL phi_0 = undrained_pars[2];
+        REAL kappa_0 = undrained_pars[3];
+        REAL alpha = poroperm_pars[2];
+        REAL Se = poroperm_pars[3];
+        
+        std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
+        
+        int ndata = memory_vector->NElements();
+        for (int i = 0; i < ndata; i++) {
+            memory_vector.get()->operator [](i).Setphi_0(phi_0);
+            memory_vector.get()->operator [](i).Setkappa_0(kappa_0);
+            memory_vector.get()->operator [](i).SetAlpha(alpha);
+            memory_vector.get()->operator [](i).SetSe(Se);
+        }
+        
+    }
 }
 
 

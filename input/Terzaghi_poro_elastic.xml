@@ -57,7 +57,7 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="29269.0" nu_u="0.20300" phi_0="0.25" kappa_0="5.0e-9" />            
+            <PoroMechUndrainedParameters Eyoung_u="29269.0" nu_u="0.20300" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0"/>
