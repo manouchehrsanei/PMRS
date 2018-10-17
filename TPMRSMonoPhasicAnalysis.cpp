@@ -121,20 +121,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 
 void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
-    if (m_simulation_data->IsInitialStateQ()) {
-        m_X = Solution();
-    }
-    
-    
-//    m_simulation_data->SetCurrentStateQ(false);
-//    LoadMemorySolution();
-//
-////    // Initial guess
-////    m_X_n = m_X;
-    
     // The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-//    this->LoadMemorySolution();
+    LoadCurrentState();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
@@ -150,8 +139,6 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         norm_dx  = Norm(dx);
         m_X_n += dx;
         LoadMemorySolution();
-//        LoadCurrentState();
-//        AssembleResidual();
         norm_res = Norm(Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
