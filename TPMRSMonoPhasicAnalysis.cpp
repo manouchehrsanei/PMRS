@@ -150,6 +150,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         norm_dx  = Norm(dx);
         m_X_n += dx;
         LoadMemorySolution();
+//        LoadCurrentState();
+//        AssembleResidual();
         norm_res = Norm(Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
