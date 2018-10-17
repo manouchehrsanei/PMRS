@@ -149,6 +149,8 @@ public:
     
     void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
+    void UndrainedContribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
 
     /// Set Fluid compressibility
     void Setc(STATE c_f)
@@ -214,6 +216,8 @@ public:
     TPMRSPhiParameters GetPorosityParameters(){
         return m_phi_model;
     }
+    
+    void permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0);
     
     void SetPermeabilityParameters(TPMRSKappaParameters kappa_model){
         m_kappa_model = kappa_model;

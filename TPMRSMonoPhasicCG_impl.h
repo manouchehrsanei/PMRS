@@ -406,5 +406,14 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
-    this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
+    this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it to phi_n
+}
+
+template <class TMEM>
+void TPMRSMonoPhasicCG<TMEM>::permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
+    
+    TMEM & memory = this->MemItem(gp_index);
+    REAL kappa_0 = memory.kappa();
+    m_kappa_model.Permeability(kappa, dkappa_ndphi, kappa_0, phi, phi_0);
+    this->MemItem(gp_index).Setkappa(kappa); // Current kappa, please rename it to kappa_n
 }

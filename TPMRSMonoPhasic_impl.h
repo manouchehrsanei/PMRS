@@ -175,7 +175,53 @@ void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &d
 }
 
 template <class TMEM>
+void TPMRSMonoPhasic<TMEM>::UndrainedContribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    unsigned int q_b = 0;
+    unsigned int p_b = 1;
+    
+    TPZFNMatrix<100,STATE> phi_ps       = datavec[p_b].phi;
+    int nphi_q       = datavec[q_b].fVecShapeIndex.NElements();
+    int nphi_p       = phi_ps.Rows();
+    int firstq       = 0;
+    int firstp       = nphi_q + firstq;
+    
+    // Get the pressure at the integrations points
+    long gp_index = datavec[q_b].intGlobPtIndex;
+    TMEM & memory = this->MemItem(gp_index);
+    
+    STATE p_n                  = datavec[p_b].sol[0][0];
+    STATE p_0      = memory.p_0();
+    
+    for (int iq = 0; iq < nphi_q; iq++)
+    {
+        ef(iq + firstq) =  0.0;
+        ek(iq + firstq,iq + firstq)  = 1.0;        
+    }
+    
+    for (int ip = 0; ip < nphi_p; ip++)
+    {
+        
+        ef(ip + firstp) += weight * ( p_n - p_0 ) * phi_ps(ip,0);
+        
+        for (int jp = 0; jp < nphi_p; jp++)
+        {
+            ek(ip + firstp, jp + firstp) += weight * phi_ps(jp,0) * phi_ps(ip,0);
+        }
+        
+    }
+    
+    
+}
+
+template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    
+    // Undarined contribute
+    if(m_simulation_data->IsInitialStateQ()){
+        this->UndrainedContribute(datavec, weight, ek, ef);
+        return;
+    }
     
     unsigned int q_b = 0;
     unsigned int p_b = 1;
@@ -190,8 +236,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     jac_det = datavec[q_b].detjac;
     
     // Get the pressure at the integrations points
-    long gp_index = datavec[0].intGlobPtIndex;
-    TMEM & memory = this->MemItem(gp_index);//this->GetMemory().get()->operator[](gp_index);
+    long gp_index = datavec[q_b].intGlobPtIndex;
+    TMEM & memory = this->MemItem(gp_index);
     
     // Time
     STATE dt = m_simulation_data->dt();
@@ -201,7 +247,16 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
     
+    STATE phi_n,dphi_ndp,phi;
+    REAL phi_0 = memory.phi_0();
+    this->porosity(gp_index,phi_n,dphi_ndp,phi);
+    
     TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3);
+    REAL kappa_0 = memory.kappa_0();
+    REAL kappa_n;
+    REAL dkappa_ndphi,dkappa_ndp;
+    this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
+    dkappa_ndp = dkappa_ndphi * dphi_ndp;
     
     K.Zero();
     K(0,0) = memory.kappa();
@@ -224,14 +279,17 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     STATE lambda = rho_n/m_eta;
     
     // Defining local variables
-    TPZFNMatrix<3,STATE> Kl_inv_q(3,1),Kdldp_inv_q(3,1),Kl_inv_phi_q_j(3,1);
+    TPZFNMatrix<3,STATE> Kl_inv_q(3,1),dK_invdp_q(3,1),Kl_inv_phi_q_j(3,1);
     
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
+        STATE dK_invdpdot = 0.0;
         for (int j =0; j < Dimension(); j++) {
             dot    += Kinv(i,j)*q[j];
+            dK_invdpdot    += -(dkappa_ndp/(memory.kappa()*memory.kappa()))*q[j];
         }
         Kl_inv_q(i,0)     = (1.0/lambda) * dot;
+        dK_invdp_q(i,0)   = (1.0/lambda) * dK_invdpdot;
     }
     
     // Integration point contribution
@@ -250,11 +308,11 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         s_i = datavec[q_b].fVecShapeIndex[iq].second;
         
         STATE Kl_inv_dot_q = 0.0;
-        STATE Kdldp_inv_dot_q = 0.0;
+        STATE dK_invdp_dot_q = 0.0;
         for (int i = 0; i < Dimension(); i++) {
             phi_q_i(i,0) = phi_qs(s_i,0) * datavec[q_b].fNormalVec(i,v_i);
             Kl_inv_dot_q    += Kl_inv_q(i,0)*phi_q_i(i,0);
-            Kdldp_inv_dot_q    += Kdldp_inv_q(i,0)*phi_q_i(i,0);
+            dK_invdp_dot_q    += dK_invdp_q(i,0)*phi_q_i(i,0);
         }
         
         ef(iq + firstq) +=  weight * ( m_scale_factor * Kl_inv_dot_q - (1.0/jac_det) * (p_n) * div_on_master(iq,0) );
@@ -282,15 +340,12 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + firstq, jp + firstp) += weight * (- (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
         }
         
     }
     
     STATE div_q = (grad_q_axes(0,0) + grad_q_axes(1,1) + grad_q_axes(2,2));
-    STATE phi_n,dphi_ndp,phi;
-    this->porosity(gp_index,phi_n,dphi_ndp,phi);
-    
     
     for (int ip = 0; ip < nphi_p; ip++)
     {
@@ -349,7 +404,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    if (!m_simulation_data->IsCurrentStateQ()) {
+    // Undarined contribute
+    if(m_simulation_data->IsInitialStateQ()){
         return;
     }
     
@@ -498,4 +554,13 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
     this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it ot phi_n
+}
+
+template <class TMEM>
+void TPMRSMonoPhasic<TMEM>::permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
+    
+    TMEM & memory = this->MemItem(gp_index);
+    REAL kappa_0 = memory.kappa();
+    m_kappa_model.Permeability(kappa, dkappa_ndphi, kappa_0, phi, phi_0);
+    this->MemItem(gp_index).Setkappa(kappa); // Current kappa, please rename it to kappa_n
 }

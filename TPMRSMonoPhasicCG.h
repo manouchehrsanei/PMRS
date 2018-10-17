@@ -214,6 +214,8 @@ public:
         return m_phi_model;
     }
     
+    void permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0);
+    
     void SetPermeabilityParameters(TPMRSKappaParameters kappa_model){
         m_kappa_model = kappa_model;
     }

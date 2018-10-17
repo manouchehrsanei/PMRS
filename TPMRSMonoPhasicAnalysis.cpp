@@ -102,6 +102,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     // @TODO:: MS, please transfer from xml file
     m_var_names.Push("p");
     m_var_names.Push("phi");
+    m_var_names.Push("kappa");
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
     
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
