@@ -150,17 +150,26 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
     
-    TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3);
+    STATE phi_n,dphi_ndp,phi;
+    REAL phi_0 = memory.phi_0();
+    this->porosity(gp_index,phi_n,dphi_ndp,phi);
+    
+    REAL kappa_n;
+    REAL dkappa_ndphi,dkappa_ndp;
+    this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
+    dkappa_ndp = dkappa_ndphi * dphi_ndp;
+    
+    TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3);
     
     K.Zero();
     K(0,0) = memory.kappa();
     K(1,1) = memory.kappa();
     K(2,2) = memory.kappa();
     
-    Kinv.Zero();
-    Kinv(0,0) = 1.0/memory.kappa();
-    Kinv(1,1) = 1.0/memory.kappa();
-    Kinv(2,2) = 1.0/memory.kappa();
+    dKdp.Zero();
+    dKdp(0,0) = dkappa_ndp;
+    dKdp(1,1) = dkappa_ndp;
+    dKdp(2,2) = dkappa_ndp;
     
     STATE rho = m_rho_0 * (1 + m_c*(p-p_0));
     STATE rho_n = m_rho_0 * (1 + m_c*(p_n-p_0));
@@ -168,13 +177,16 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     STATE lambda = rho_n/m_eta;
     
     // Defining local variables
-    TPZFNMatrix<3,STATE> Kl_grad_p_(3,1);
+    TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
+        STATE dKdpdot = 0.0;
         for (int j =0; j < Dimension(); j++) {
             dot    += K(i,j)*grad_p(j,0);
+            dKdpdot    += dKdp(i,j)*grad_p(j,0);
         }
         Kl_grad_p_(i,0)     = lambda * dot;
+        dKdpl_grad_p_(i,0)     = lambda * dKdpdot;
     }
     
     // Integration point contribution
@@ -184,16 +196,15 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         return;
     }
     
-    STATE phi_n,dphi_ndp,phi;
-    this->porosity(gp_index,phi_n,dphi_ndp,phi);
-    
     TPZFNMatrix<3,STATE> Kl_grad_phi_j_(3,1);
     for (int ip = 0; ip < n_phi_p; ip++)
     {
         
         STATE Kl_grad_p_dot_grad_phi = 0.0;
+        STATE dKdpl_grad_p_dot_grad_phi = 0.0;
         for (int i = 0; i < Dimension(); i++) {
-            Kl_grad_p_dot_grad_phi    += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
+            Kl_grad_p_dot_grad_phi      += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
+            dKdpl_grad_p_dot_grad_phi   += dKdpl_grad_p_(i,0)*grad_phi_p(i,ip);
             
         }
         
@@ -216,7 +227,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
                 
             }
             
-            ek(ip,jp) +=  weight * ( Kl_grad_phi_j_dot_grad_phi_j + m_scale_factor * (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
+            ek(ip,jp) +=  weight * ( Kl_grad_phi_j_dot_grad_phi_j + dKdpl_grad_p_dot_grad_phi + m_scale_factor * (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
         }
         
     }
