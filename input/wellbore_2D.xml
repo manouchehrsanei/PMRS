@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating poroelastoplastic case -->
+    <!-- Example 1: Simulating a case similar to SEST2D -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.1" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -32,7 +32,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <PostProcessing vtk_file="SEST_2D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
         <OutputControlsGeo>
             <Var s_name="e_x" />
             <Var s_name="e_y" />
@@ -56,7 +56,7 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
+        <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
             <PoroMechUndrainedParameters Eyoung_u="36495.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-11" />            
             <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
@@ -66,27 +66,32 @@
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
             </GeoBoundaries>
             <ResBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
             </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
-        <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-50.0" />
+        <UndrainedGeomechanic bc_id="2" type="Ntn" tn="-40.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-40.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
+        <UndrainedGeomechanic bc_id="5" type="Duy" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Duy" uy="0.0" />
+        <Geomechanic bc_id="2" type="Ntn" tn="0.0" />
         <Geomechanic bc_id="3" type="Ntn" tn="0.0" />
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
+        <Geomechanic bc_id="5" type="Duy" uy="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Nq" qn="0.0" />
-        <Reservoir bc_id="3" type="Dp" p="0.0" />
-        <Reservoir bc_id="4" type="Nq" qn="0.0" />
+        <Reservoir bc_id="2" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="3" type="Dp" p="40.0e6" />
+        <Reservoir bc_id="4" type="Dp" p="40.0e6" />
+        <Reservoir bc_id="5" type="Dp" p="40.0e6" />
     </BCReservoirs>     
 </CaseData>

@@ -208,7 +208,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteUndrainedResponseStep(){
     LoadCurrentState();
     AssembleResidual();
     REAL norm = Norm(Rhs());
-    std::cout << "TPMRSMonoPhasicAnalysis:: Undrained initial pressure projectd with residual norm = " << norm << std::endl;
+    std::cout << "TPMRSMonoPhasicAnalysis:: Undrained initial pressure projected with residual norm = " << norm << std::endl;
     m_X = m_X_n;
     m_simulation_data->SetInitialStateQ(false);
 }
