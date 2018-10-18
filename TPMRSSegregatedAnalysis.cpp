@@ -390,7 +390,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         DebugStop();
     }
     
-    
+    TPZManVector<REAL,3> u_null(3,0.0);
     int n_regions = m_simulation_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
     TPZManVector<int,10> volumetric_mat_id(n_regions);
@@ -423,6 +423,14 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma_n(sigma_total_0);
+            // Cleaning u
+            memory_vector.get()->operator [](i).Setu_0(u_null);
+            memory_vector.get()->operator [](i).Setu(u_null);
+            memory_vector.get()->operator [](i).Setu_n(u_null);
+            // Cleaning elasto-plastic states
+            memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
+            memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
+            memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
 
         }
         

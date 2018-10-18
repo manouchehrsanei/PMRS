@@ -8,7 +8,7 @@
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.01" />
-        <StepNumber n_time_steps="10" />
+        <StepNumber n_time_steps="100" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -32,7 +32,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_Cricular_2D.vtk" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <PostProcessing vtk_file="Terzaghi_3D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
         <OutputControlsGeo>
             <Var s_name="e_x" />
             <Var s_name="e_y" />
@@ -60,7 +60,7 @@
             <PoroMechUndrainedParameters Eyoung_u="36495.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-11" />            
             <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Davies" n_parameters="1" c="2.0"/>
+            <KappaParameters kappa_model="Davies" n_parameters="1" c="0.02"/>
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="30" friction="10.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
@@ -76,8 +76,8 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duz" uz="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-50.0" />
-        <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
+        <UndrainedGeomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Duz" uz="0.0" />
