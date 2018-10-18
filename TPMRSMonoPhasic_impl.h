@@ -291,14 +291,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     TPZFNMatrix<3,STATE> Kl_inv_q(3,1),dK_invdp_q(3,1),Kl_inv_phi_q_j(3,1);
     
     for (int i = 0; i < Dimension(); i++) {
-        STATE dot = 0.0;
-        STATE dK_invdpdot = 0.0;
-        for (int j =0; j < Dimension(); j++) {
-            dot    += Kinv(i,j)*q[j];
-            dK_invdpdot    += dKinvdp(i,j)*q[j];
-        }
-        Kl_inv_q(i,0)     = (1.0/lambda) * dot;
-        dK_invdp_q(i,0)   = (1.0/lambda) * dK_invdpdot;
+        Kl_inv_q(i,0)     = (1.0/lambda) * (1.0/kappa_n) * q[i];
+        dK_invdp_q(i,0)   = (1.0/lambda) * (-dkappa_ndp/(kappa_n*kappa_n)) * q[i];
     }
     
     // Integration point contribution
@@ -335,11 +329,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             STATE Kl_inv_phi_q_j_dot_phi_q_j = 0.0;
             for (int j = 0; j < Dimension(); j++) {
                 phi_q_j(j,0) = phi_qs(s_j,0) * datavec[q_b].fNormalVec(j,v_j);
-                STATE dot = 0.0;
-                for (int k = 0; k < Dimension(); k++) {
-                    dot += Kinv_c(j,k)*phi_q_j(k,0);
-                }
-                Kl_inv_phi_q_j(j,0) = (1.0/lambda) * dot;
+                Kl_inv_phi_q_j(j,0) = (1.0/lambda) * (1.0/kappa_n) * phi_q_j(j,0);
                 Kl_inv_phi_q_j_dot_phi_q_j += Kl_inv_phi_q_j(j,0)*phi_q_i(j,0);
             }
             
@@ -349,7 +339,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + firstq, jp + firstp) += weight * (0.0*m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
         }
         
     }
