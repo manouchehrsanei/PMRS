@@ -140,7 +140,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         norm_dx  = Norm(dx);
         m_X_n += dx;
         LoadMemorySolution();
+        m_X_n.Print("x_n = ",std::cout, EMathematicaInput);
         norm_res = Norm(Rhs());
+        
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
         

@@ -61,7 +61,7 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     }
     
     this->SetSimulationData(simulation_data);
-    bool mustOptimizeBandwidth = true;
+    bool mustOptimizeBandwidth = false;
 
     if (simulation_data->ElasticityOrder()==simulation_data->DiffusionOrder() && simulation_data->Get_is_dual_formulation_Q()) {
         this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);

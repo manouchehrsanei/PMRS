@@ -251,31 +251,31 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL phi_0 = memory.phi_0();
     this->porosity(gp_index,phi_n,dphi_ndp,phi);
     
-    TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3),Kinv_c(3,3),dKinvdp(3,3);
+//    TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3),Kinv_c(3,3),dKinvdp(3,3);
     REAL kappa_n;
     REAL dkappa_ndphi,dkappa_ndp;
     this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
     dkappa_ndp = dkappa_ndphi * dphi_ndp;
     
-    K.Zero();
-    K(0,0) = kappa_n;
-    K(1,1) = kappa_n;
-    K(2,2) = kappa_n;
-    
-    Kinv.Zero();
-    Kinv(0,0) = 1.0/kappa_n;
-    Kinv(1,1) = 1.0/kappa_n;
-    Kinv(2,2) = 1.0/kappa_n;
-    
-    Kinv_c.Zero();
-    Kinv_c(0,0) = 1.0/memory.kappa_0();
-    Kinv_c(1,1) = 1.0/memory.kappa_0();
-    Kinv_c(2,2) = 1.0/memory.kappa_0();
-    
-    dKinvdp.Zero();
-    dKinvdp(0,0) = -dkappa_ndp/(kappa_n*kappa_n);
-    dKinvdp(1,1) = -dkappa_ndp/(kappa_n*kappa_n);
-    dKinvdp(2,2) = -dkappa_ndp/(kappa_n*kappa_n);
+//    K.Zero();
+//    K(0,0) = kappa_n;
+//    K(1,1) = kappa_n;
+//    K(2,2) = kappa_n;
+//    
+//    Kinv.Zero();
+//    Kinv(0,0) = 1.0/kappa_n;
+//    Kinv(1,1) = 1.0/kappa_n;
+//    Kinv(2,2) = 1.0/kappa_n;
+//    
+//    Kinv_c.Zero();
+//    Kinv_c(0,0) = 1.0/memory.kappa_0();
+//    Kinv_c(1,1) = 1.0/memory.kappa_0();
+//    Kinv_c(2,2) = 1.0/memory.kappa_0();
+//    
+//    dKinvdp.Zero();
+//    dKinvdp(0,0) = -dkappa_ndp/(kappa_n*kappa_n);
+//    dKinvdp(1,1) = -dkappa_ndp/(kappa_n*kappa_n);
+//    dKinvdp(2,2) = -dkappa_ndp/(kappa_n*kappa_n);
     
     int nphi_q       = datavec[q_b].fVecShapeIndex.NElements();
     int nphi_p       = phi_ps.Rows();
