@@ -251,22 +251,31 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL phi_0 = memory.phi_0();
     this->porosity(gp_index,phi_n,dphi_ndp,phi);
     
-    TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3);
-    REAL kappa_0 = memory.kappa_0();
+    TPZFNMatrix<9,REAL> K(3,3),Kinv(3,3),Kinv_c(3,3),dKinvdp(3,3);
     REAL kappa_n;
     REAL dkappa_ndphi,dkappa_ndp;
     this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
     dkappa_ndp = dkappa_ndphi * dphi_ndp;
     
     K.Zero();
-    K(0,0) = memory.kappa();
-    K(1,1) = memory.kappa();
-    K(2,2) = memory.kappa();
+    K(0,0) = kappa_n;
+    K(1,1) = kappa_n;
+    K(2,2) = kappa_n;
     
     Kinv.Zero();
-    Kinv(0,0) = 1.0/memory.kappa();
-    Kinv(1,1) = 1.0/memory.kappa();
-    Kinv(2,2) = 1.0/memory.kappa();
+    Kinv(0,0) = 1.0/kappa_n;
+    Kinv(1,1) = 1.0/kappa_n;
+    Kinv(2,2) = 1.0/kappa_n;
+    
+    Kinv_c.Zero();
+    Kinv_c(0,0) = 1.0/memory.kappa_0();
+    Kinv_c(1,1) = 1.0/memory.kappa_0();
+    Kinv_c(2,2) = 1.0/memory.kappa_0();
+    
+    dKinvdp.Zero();
+    dKinvdp(0,0) = -dkappa_ndp/(kappa_n*kappa_n);
+    dKinvdp(1,1) = -dkappa_ndp/(kappa_n*kappa_n);
+    dKinvdp(2,2) = -dkappa_ndp/(kappa_n*kappa_n);
     
     int nphi_q       = datavec[q_b].fVecShapeIndex.NElements();
     int nphi_p       = phi_ps.Rows();
@@ -286,7 +295,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         STATE dK_invdpdot = 0.0;
         for (int j =0; j < Dimension(); j++) {
             dot    += Kinv(i,j)*q[j];
-            dK_invdpdot    += -(dkappa_ndp/(memory.kappa()*memory.kappa()))*q[j];
+            dK_invdpdot    += dKinvdp(i,j)*q[j];
         }
         Kl_inv_q(i,0)     = (1.0/lambda) * dot;
         dK_invdp_q(i,0)   = (1.0/lambda) * dK_invdpdot;
@@ -328,7 +337,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
                 phi_q_j(j,0) = phi_qs(s_j,0) * datavec[q_b].fNormalVec(j,v_j);
                 STATE dot = 0.0;
                 for (int k = 0; k < Dimension(); k++) {
-                    dot += Kinv(j,k)*phi_q_j(k,0);
+                    dot += Kinv_c(j,k)*phi_q_j(k,0);
                 }
                 Kl_inv_phi_q_j(j,0) = (1.0/lambda) * dot;
                 Kl_inv_phi_q_j_dot_phi_q_j += Kl_inv_phi_q_j(j,0)*phi_q_i(j,0);
@@ -340,7 +349,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+            ek(iq + firstq, jp + firstp) += weight * (0.0*m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
         }
         
     }

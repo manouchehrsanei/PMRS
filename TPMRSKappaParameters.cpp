@@ -80,6 +80,7 @@ void TPMRSKappaParameters::SetModel(std::string model){
 void TPMRSKappaParameters::Initialize()
 {
     m_name_to_kappa_model["none"] = k_none;
+    m_name_to_kappa_model["Constant"] = k_constant;
     m_name_to_kappa_model["Petunin"] = k_petunin;
     m_name_to_kappa_model["Davies"] = k_davies;
 }
