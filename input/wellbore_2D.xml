@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="10.0" />
+        <StepSize dt="1.0" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -61,7 +61,7 @@
             <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-8" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Davies" n_parameters="1" c="0.1"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="1" cohesion="30" friction="10.0"/>            
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30" friction="1.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -83,7 +83,7 @@
         <UndrainedGeomechanic bc_id="5" type="Duy" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" tn="-10.0" />
+        <Geomechanic bc_id="2" type="Ntn" tn="0.0" />
         <Geomechanic bc_id="3" type="Ntn" tn="-50.0" />
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
         <Geomechanic bc_id="5" type="Duy" uy="0.0" />
