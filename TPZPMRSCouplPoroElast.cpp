@@ -25,7 +25,7 @@ static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
 
 
 
-/** @brief default costructor */
+/// Brief default costructor
 TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = 3;
@@ -38,7 +38,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemoryPoroEl
     m_k_model = 0;
 }
 
-/** @brief costructor based on a material id */
+/// Brief costructor based on a material id
 TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = dim;
@@ -51,40 +51,40 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<T
     m_k_model = 0;
 }
 
-/** @brief default destructor */
+/// Brief default destructor
 TPZPMRSCouplPoroElast::~TPZPMRSCouplPoroElast()
 {
 }
 
 
-/** @brief copy constructor $ */
+/// Brief copy constructor
 TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(const TPZPMRSCouplPoroElast& other)
 {
-    this->m_Dim    = other.m_Dim;
+    this->m_Dim               = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
 }
 
 
-/** @brief Copy assignemnt operator $ */
+/// Brief Copy assignemnt operator
 TPZPMRSCouplPoroElast& TPZPMRSCouplPoroElast::operator = (const TPZPMRSCouplPoroElast& other)
 {
     
     if (this != & other) // prevent self-assignment
     {
-        this->m_Dim    = other.m_Dim;
+        this->m_Dim               = other.m_Dim;
         this->m_SimulationData    = other.m_SimulationData;
     }
     return *this;
 }
 
 
-/** @brief number of state variables */
+/// Brief number of state variables
 int TPZPMRSCouplPoroElast::NStateVariables()
 {
     return 2;
 }
 
-/** @brief permeability coupling models  */
+/// Brief permeability coupling models
 REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
 {
     switch (m_k_model)
@@ -95,25 +95,25 @@ REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
         }
             break;
             
-        case 1: // Petunin et al. (2011), A = 2.0
+        case 1: /// Petunin et al. (2011), A = 2.0
         {
             k = m_k_0*pow((phi/m_porosity_0),2.0);
         }
             break;
             
-        case 2: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
+        case 2: /// Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 4.60
         {
             k = m_k_0*pow((phi/m_porosity_0),2.44);
         }
             break;
             
-        case 3: // Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
+        case 3: /// Santos et al. (2014): Unloading/Reloading, Virgin Loading: A = 7.19
         {
             k = m_k_0*pow((phi/m_porosity_0),4.62);
         }
             break;
             
-        case 4: // Davies and Davies (2001): Exponential function: C = 1;
+        case 4: /// Davies and Davies (2001): Exponential function: C = 1;
         {
             k = m_k_0*exp((phi/m_porosity_0)-1);
         }
@@ -130,17 +130,17 @@ REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
     return k;
 }
 
-/** @brief Poroelastic porosity correction */
+/// Brief Poroelastic porosity correction
 REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
+    /// Getting the space functions
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
@@ -150,7 +150,7 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datav
     
     TPZFNMatrix<6,REAL> Grad_u(2,2,0.0);
     
-    // Computing Gradient of the Solution
+    /// Computing Gradient of the Solution
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(1,0) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
     
@@ -165,17 +165,17 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datav
 }
 
 
-/** @brief Poroelastic porosity correction */
+/// Brief Poroelastic porosity correction
 REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
+    /// Getting the space functions
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,3> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
@@ -184,7 +184,7 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datav
     
     TPZFNMatrix<9,REAL> Grad_u(3,3,0.0);
     
-    // Computing Gradient of the Solution
+    /// Computing Gradient of the Solution
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
     Grad_u(1,0) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
     Grad_u(2,0) = du(0,0)*axes_u(0,2)+du(1,0)*axes_u(1,2)+du(2,0)*axes_u(2,2); // dux/dz
@@ -205,7 +205,7 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datav
 }
 
 
-/** @brief of contribute of BC */
+/// Brief of contribute of BC
 void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
 
@@ -222,14 +222,14 @@ void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
 
 
-/** @brief of contribute in 2 dimensional */
+/// Brief of contribute in 2 dimensional
 void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
+    /// Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
     
@@ -239,7 +239,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
@@ -257,7 +257,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     int first_u = 0;
     int first_p = 2*nphi_u;
     
-    // Compute porosity poroelastic correction
+    /// Compute porosity poroelastic correction
     REAL phi_poro = porosity_corrected_2D(datavec);
     
     REAL dt = m_SimulationData->dt();
@@ -265,7 +265,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     {
         
 
-        // Darcy mono-phascis flow
+        /// Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++)
         {
             
@@ -280,7 +280,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     m_b[0] = rho_avg*m_SimulationData->Gravity()[0];
     m_b[1] = rho_avg*m_SimulationData->Gravity()[1];
 
-    // Computing Gradient of the Solution
+    /// Computing Gradient of the Solution
     TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1); // dux/dy
@@ -288,7 +288,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     Grad_u(1,0) = du(0,1)*axes_u(0,0)+du(1,1)*axes_u(1,0); // duy/dx
     Grad_u(1,1) = du(0,1)*axes_u(0,1)+du(1,1)*axes_u(1,1); // duy/dy
     
-    // Get the solution at the integrations points
+    /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
     TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
@@ -309,11 +309,11 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     
     Sigma_0.Zero();
-    S -= Sigma_0; // Applying prestress
+    S -= Sigma_0; /// Applying prestress
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
-        // Computing Gradient of the test function for each component
+        /// Computing Gradient of the test function for each component
         Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvx/dx
         Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvx/dy
         
@@ -327,7 +327,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
         for (int ju = 0; ju < nphi_u; ju++) {
             
            
-            // Computing Gradient of the test function
+            /// Computing Gradient of the test function
             Grad_vx_j(0,0) = grad_phi_u(0,ju)*axes_u(0,0)+grad_phi_u(1,ju)*axes_u(1,0); // dvx/dx
             Grad_vx_j(1,0) = grad_phi_u(0,ju)*axes_u(0,1)+grad_phi_u(1,ju)*axes_u(1,1); // dvx/dy
             
@@ -346,12 +346,12 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFNMatrix<6,REAL> dv(2,1,0.0);
     
-    //	Matrix -Qc
-    //	Coupling matrix
+    ///	Matrix -Qc
+    ///	Coupling matrix
     for(int iu = 0; iu < nphi_u; iu++ )
     {
         
-        // Computing Gradient of the test function for each component
+        /// Computing Gradient of the test function for each component
         Grad_vx_i(0,0) = grad_phi_u(0,iu)*axes_u(0,0)+grad_phi_u(1,iu)*axes_u(1,0); // dvx/dx
         Grad_vx_i(1,0) = grad_phi_u(0,iu)*axes_u(0,1)+grad_phi_u(1,iu)*axes_u(1,1); // dvx/dy
         
@@ -366,8 +366,8 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
         }
     }
     
-    //	Matrix QcˆT
-    //	Coupling matrix transpose
+    ///	Matrix QcˆT
+    ///	Coupling matrix transpose
     for(int ip = 0; ip < nphi_p; ip++ )
     {
         
@@ -383,8 +383,8 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
         }
     }
     
-    /** @brief Rudnicki diffusion coefficient */
-    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+    /// Brief Rudnicki diffusion coefficient
+    /// J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986
     REAL k = 0.0;
     m_k_model = 1;
     k_permeability(phi_poro,k);
@@ -392,7 +392,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     REAL c = (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
 
-    // Darcy mono-phascis flow
+    /// Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
    {
         
@@ -427,15 +427,14 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
 }
 
 
-// Contribute Methods being used
-
+/// Contribute Methods being used
 void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
+    /// Getting the space functions
     TPZFMatrix<REAL>    &phiu   =   datavec[u_b].phi;
     TPZFMatrix<REAL>    &phip   =   datavec[p_b].phi;
     
@@ -445,7 +444,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,3> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
@@ -464,14 +463,14 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     int first_u = 0;
     int first_p = 3*nphi_u;
     
-    // Compute porosity poroelastic correction
+    /// Compute porosity poroelastic correction
     REAL phi_poro = porosity_corrected_3D(datavec);
     
     REAL dt = m_SimulationData->dt();
     if (!m_SimulationData->IsCurrentStateQ()) {
         
         
-        // Darcy mono-phascis flow
+        /// Darcy mono-phascis flow
         for (int ip = 0; ip < nphi_p; ip++) {
             
             ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
@@ -487,7 +486,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     m_b[2] = rho_avg*m_SimulationData->Gravity()[2];
 
     
-    // Computing Gradient of the Solution
+    /// Computing Gradient of the Solution
     TPZFNMatrix<9,REAL> Grad_u(3,3,0.0),Grad_u_n,e_e,e_p,S;
     Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0)+du(2,0)*axes_u(2,0); // dux/dx
     Grad_u(0,1) = du(0,0)*axes_u(0,1)+du(1,0)*axes_u(1,1)+du(2,0)*axes_u(2,1); // dux/dy
@@ -501,7 +500,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     Grad_u(2,1) = du(0,2)*axes_u(0,1)+du(1,2)*axes_u(1,1)+du(2,2)*axes_u(2,1); // duz/dy
     Grad_u(2,2) = du(0,2)*axes_u(0,2)+du(1,2)*axes_u(1,2)+du(2,2)*axes_u(2,2); // duz/dz
     
-    // Get the solution at the integrations points
+    /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
     TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
     TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
@@ -531,12 +530,12 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
     
     Sigma_0.Zero();
-    S -= Sigma_0; // Applying prestress
+    S -= Sigma_0; /// Applying prestress
     
     for (int iu = 0; iu < nphi_u; iu++)
     {
         
-        // Computing Gradient of the test function for each component
+        /// Computing Gradient of the test function for each component
         for (int d = 0; d < m_Dim; d++)
         {
             Grad_vx_i(d,0) = grad_phi_u(d,iu);
@@ -567,7 +566,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
         for (int ju = 0; ju < nphi_u; ju++)
         {
             
-            // Computing Gradient of the test function for each component
+            /// Computing Gradient of the test function for each component
             for (int d = 0; d < m_Dim; d++)
             {
                 Grad_vx_j(d,0) = grad_phi_u(d,ju);
@@ -610,8 +609,8 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFNMatrix<9,REAL> dv(3,1,0.0);
     
-    //    Matrix -Qc
-    //    Coupling matrix
+    ///    Matrix -Qc
+    ///   Coupling matrix
     for(int iu = 0; iu < nphi_u; iu++ )
     {
         
@@ -637,8 +636,8 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
         }
     }
     
-    //    Matrix QcˆT
-    //    Coupling matrix transpose
+    ///    Matrix QcˆT
+    ///    Coupling matrix transpose
     for(int ip = 0; ip < nphi_p; ip++ )
     {
         
@@ -658,15 +657,15 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     }
     
     
-    /** @brief Rudnicki diffusion coefficient */
-    /** J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986. */
+    /// Brief Rudnicki diffusion coefficient
+    /// J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986
     REAL k = 0.0;
     m_k_model = 1;
     k_permeability(phi_poro,k);
     m_lambdau = 1.1 * m_lambda;
     REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
     
-    // Darcy mono-phascis flow
+    /// Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
     {
         
@@ -704,7 +703,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
 
 
 
-/** @brief of contribute  */
+/// Brief of contribute
 void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
@@ -712,7 +711,7 @@ void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
 }
 
-/** @brief of contribute of BC */
+/// Brief of contribute of BC
 void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
@@ -733,7 +732,7 @@ void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL w
 }
 
 
-/** @brief of contribute of BC_2D */
+/// Brief of contribute of BC_2D
 void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 
@@ -743,19 +742,17 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
     TPZFMatrix<REAL>  &phiu = datavec[u_b].phi;
     TPZFMatrix<REAL>  &phip = datavec[p_b].phi;
 
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,2> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
 
     int phru = phiu.Rows();
     int phrp = phip.Rows();
     short in,jn;
-
     
-    
-    // Boundaries
+    /// Boundaries
 
-    // Dirichlet in Pressure
+    /// Dirichlet in Pressure
     switch (bc.Type())
     {
 
@@ -1251,10 +1248,10 @@ void TPZPMRSCouplPoroElast::Print(std::ostream &out)
     
 }
 
-/** Returns the variable index associated with the name */
+/// Returns the variable index associated with the name
 int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
 {
-    //	Total Strain Variables
+    ///	Total Strain Variables
     if(!strcmp("et_v",name.c_str()))             return	18;
     if(!strcmp("et_x",name.c_str()))             return	19;
     if(!strcmp("et_y",name.c_str()))             return	20;
@@ -1263,7 +1260,7 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     if(!strcmp("et_xz",name.c_str()))            return	23;
     if(!strcmp("et_yz",name.c_str()))            return	24;
     
-    //	Elastic Strain Variables
+    ///	Elastic Strain Variables
     if(!strcmp("e_v",name.c_str()))             return	25;
     if(!strcmp("e_x",name.c_str()))             return	26;
     if(!strcmp("e_y",name.c_str()))             return	27;
@@ -1272,7 +1269,7 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     if(!strcmp("e_xz",name.c_str()))            return	30;
     if(!strcmp("e_yz",name.c_str()))            return	31;
     
-    //	Plastic Strain Variables
+    ///	Plastic Strain Variables
     if(!strcmp("ep_v",name.c_str()))            return	32;
     if(!strcmp("ep_x",name.c_str()))            return	33;
     if(!strcmp("ep_y",name.c_str()))            return	34;
@@ -1281,10 +1278,10 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     if(!strcmp("ep_xz",name.c_str()))           return	37;
     if(!strcmp("ep_yz",name.c_str()))           return	38;
     
-    //	Displacement Variables
+    ///	Displacement Variables
     if(!strcmp("u",name.c_str()))				return	39;
     
-    //	Diffusion Variables
+    ///	Diffusion Variables
     if(!strcmp("p",name.c_str()))				return	40;
     if(!strcmp("v",name.c_str()))				return	41;
     if(!strcmp("phi",name.c_str()))				return	42;
@@ -1292,7 +1289,7 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     if(!strcmp("k_y",name.c_str()))				return	44;
     if(!strcmp("k_z",name.c_str()))				return	45;
     
-    //	Total Stress Variables
+    ///	Total Stress Variables
     if(!strcmp("s_x",name.c_str()))             return	46;
     if(!strcmp("s_y",name.c_str()))             return	47;
     if(!strcmp("s_z",name.c_str()))             return	48;
@@ -1300,10 +1297,10 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     if(!strcmp("t_xz",name.c_str()))            return	50;
     if(!strcmp("t_yz",name.c_str()))            return	51;
     
-    //	Stress Ratio Variable
+    ///	Stress Ratio Variable
     if(!strcmp("K_0",name.c_str()))             return	52;
     
-    //	Yield Surface Variable
+    ///	Yield Surface Variable
     if(!strcmp("YS_1",name.c_str()))             return	53;
     if(!strcmp("YS_2",name.c_str()))             return	54;
     if(!strcmp("YS_3",name.c_str()))             return	55;
@@ -1355,7 +1352,7 @@ int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
     return TPZMaterial::NSolutionVariables(var);
 }
 
-//	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
+///	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     
@@ -1364,11 +1361,11 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     int u_b = 0;
     int p_b = 1;
     
-    // Getting the space functions
+    /// Getting the space functions
     TPZFNMatrix <9,REAL>	&axes_u	=	datavec[u_b].axes;
     TPZFNMatrix <9,REAL>	&axes_p	=	datavec[p_b].axes;
     
-    // Getting the solutions and derivatives
+    /// Getting the solutions and derivatives
     TPZManVector<REAL,3> u = datavec[u_b].sol[0];
     TPZManVector<REAL,1> p = datavec[p_b].sol[0];
     
@@ -1380,11 +1377,11 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     REAL to_Darcy   = 1; // 1.01327e+12; // 1.013249966e+12;
     
     
-    // Computing Gradient of the Solution
+    /// Computing Gradient of the Solution
     TPZFNMatrix<9,REAL> Grad_p(3,1,0.0),Grad_u(3,3,0.0),Grad_u_n(3,3,0.0),e_e(3,3,0.0),e_p(3,3,0.0),S;
     
     
-    // Computing Gradient of deformation in 2D for corrector_DP function
+    /// Computing Gradient of deformation in 2D for corrector_DP function
     if (m_Dim != 3)
     {
         Grad_u(0,0) = du(0,0)*axes_u(0,0)+du(1,0)*axes_u(1,0); // dux/dx
@@ -1774,8 +1771,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 }
 
 
-
-/** @brief computation of effective sigma */
+/// Brief computation of effective sigma
 void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
 {
     
@@ -1806,7 +1802,7 @@ void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatri
     TPZFNMatrix<9,REAL> Grad_du, Grad_du_Transpose = Grad_u, delta_e;
     
     Grad_u_n = Grad_u;
-    Grad_du = Grad_u_n; // Linear case
+    Grad_du = Grad_u_n; /// Linear case
     Grad_du.Transpose(&Grad_du_Transpose);
     delta_e = Grad_du + Grad_du_Transpose;
     delta_e *= 0.5;
@@ -1815,18 +1811,18 @@ void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatri
     TPZFNMatrix<9,REAL> S_tn,s_tn, I(delta_e.Rows(),delta_e.Cols(),0.0);
     I.Identity();
     
-    /** Total strain */
+    /// Total strain
     e_t = e_e + e_p;
     e_tn = e_t + delta_e;
 
-    /** Total stress */
+    /// Total stress
     REAL trace = (e_tn(0,0) + e_tn(1,1) + e_tn(2,2));
     s_tn = 2.0 * m_mu * e_tn + m_lambda * trace * I;
     
-    // Convert to principal stresses
+    /// Convert to principal stresses
     Principal_Stress(s_tn, S_tn);
     
-    /** Update the parameters */
+    /// Update the parameters
     e_e = e_tn;
     S = s_tn;
     
@@ -1834,7 +1830,7 @@ void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatri
     
 }
 
-/** @brief Principal Stress */
+/// Brief Principal Stress
 void TPZPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
 {
     
@@ -1869,7 +1865,7 @@ void TPZPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL
     r[1] = A*cos((1.0/3.0) * (C+2.0*M_PI))+B;
     r[2] = A*cos((1.0/3.0) * (C+4.0*M_PI))+B;
     
-    // Sorting of Stress
+    /// Sorting of Stress
     REAL s1 = std::max(r[0], std::max(r[1], r[2]));
     REAL s3 = std::min(r[0], std::min(r[1], r[2]));
     REAL s2 = 0.0;

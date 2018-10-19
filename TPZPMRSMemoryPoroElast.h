@@ -22,25 +22,25 @@ class TPZPMRSMemoryPoroElast
     //  Memory : It is written for TPZPMRSMemoryPoroElast
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    // Basis function
+    /// Basis function
     
-    /** @brief Gradient of deformation at at n (last) state */
+    /// Brief Gradient of deformation at at n (last) state
     TPZFNMatrix<9,REAL> m_grad_u_n;
     
-   /** @brief elastic strain at n (last) state */
+   /// Brief elastic strain at n (last) state
     TPZFMatrix<REAL> m_epsilon_e_n;
 
-   /** @brief plastic strain at n (last) state */
+   /// Brief plastic strain at n (last) state
     TPZFMatrix<REAL> m_epsilon_p_n;
     
     
     
 public:
     
-    /** @brief Default constructor */
+    /// Brief Default constructor
     TPZPMRSMemoryPoroElast();
     
-    /** @brief Default destructor */
+    /// Brief Default destructor
     ~TPZPMRSMemoryPoroElast();
     
     TPZPMRSMemoryPoroElast(const TPZPMRSMemoryPoroElast &copy)
@@ -61,47 +61,43 @@ public:
         
         return *this;
     }
-
     
     
-    
-    /** @brief Set Gradient of deformation at n (last) state */
+    /// Brief Set Gradient of deformation at n (last) state
     void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n)
     {
         m_grad_u_n = grad_u_n;
     }
     
-    /** @brief Get Gradient of deformation at n (last) state */
+    /// Brief Get Gradient of deformation at n (last) state
     TPZFMatrix<STATE> & grad_u_n()
     {
         return m_grad_u_n;
     }
     
     
-    /** @brief Set elastic strain at n (last) state */
+    /// Brief Set elastic strain at n (last) state
     void Set_epsilon_e_n(TPZFMatrix<REAL> & epsilon_e_n)
     {
         m_epsilon_e_n = epsilon_e_n;
     }
     
-    /** @brief Get elastic strain at n (last) state */
+    /// Brief Get elastic strain at n (last) state
     TPZFMatrix<REAL> epsilon_e_n()
     {
         return m_epsilon_e_n;
     }
     
-    
-    /** @brief Set plastic strain at n (last) state */
+    /// Brief Set plastic strain at n (last) state
     void Set_epsilon_p_n(TPZFMatrix<REAL> & epsilon_p_n)
     {
         m_epsilon_p_n = epsilon_p_n;
     }
     
-    /** @brief Get plastic strain at n (last) state */
+    /// Brief Get plastic strain at n (last) state
     TPZFMatrix<REAL> epsilon_p_n(){
         return m_epsilon_p_n;
     }
-    
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,12 +105,7 @@ public:
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-    /**
-     Write method not implemented.
-     
-     @param buf TPZStream buffer
-     @param withclassid obsolete
-     */
+    /// Brief Write method
     void Write(TPZStream &buf, int withclassid) const
     {
 //                buf.Write(&m_Pressure_n);
@@ -122,12 +113,7 @@ public:
         DebugStop();
     }
     
-    /**
-     Read method not implemented.
-     
-     @param buf TPZStream buffer
-     @param context obsolete
-     */
+    /// Brief Read method
     void Read(TPZStream &buf, void *context)
     {
         //        buf.Read(&m_Pressure_n);
@@ -143,11 +129,7 @@ public:
     }
 
     
-    /**
-     Class unique identifier
-
-     @return integer class id
-     */
+    /// Brief Class unique identifier
     virtual int ClassId() const;
     
 };

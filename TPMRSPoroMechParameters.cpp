@@ -19,7 +19,7 @@ TPMRSPoroMechParameters::TPMRSPoroMechParameters(const TPMRSPoroMechParameters &
 
 const TPMRSPoroMechParameters & TPMRSPoroMechParameters::operator=(const TPMRSPoroMechParameters & other){
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }

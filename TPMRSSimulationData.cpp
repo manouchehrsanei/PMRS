@@ -8,7 +8,6 @@
 
 #include "TPMRSSimulationData.h"
 
-/** @brief costructor */
 TPMRSSimulationData::TPMRSSimulationData()
 {
     m_dt                                  = 0.0;
@@ -48,13 +47,11 @@ TPMRSSimulationData::TPMRSSimulationData()
     
 }
 
-/** @brief destructor */
 TPMRSSimulationData::~TPMRSSimulationData()
 {
     
 }
 
-/** @brief simulation file reader */
 void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
 {
     
@@ -74,12 +71,12 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     }
     
     
-    // TiXmlElement dummy object
+    /// TiXmlElement dummy object
     TiXmlElement * container;
     const char * char_container;
     TiXmlHandle doc_handler( & document );
     
-    // Begin:: Geometry description
+    /// Begin:: Geometry description
     container = doc_handler.FirstChild("CaseData").FirstChild("Mesh").FirstChild("MeshFile").ToElement();
     const char * geometry_file = container->Attribute("mesh_file");
     m_geometry_file = geometry_file;
@@ -87,10 +84,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     this->ReadGeometry();
     int dimension = m_geometry->Dimension();
     m_dimesion = dimension;
-    // End:: Geometry description
+    /// End:: Geometry description
     
     
-    // Begin:: Time controls
+    /// Begin:: Time controls
     container = doc_handler.FirstChild("CaseData").FirstChild("TimeControls").FirstChild("StepSize").ToElement();
     char_container = container->Attribute("dt");
     REAL dt = std::atof(char_container);
@@ -104,10 +101,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     bool is_crank_nicolson_Q = std::atoi(char_container);
     
     SetTimeControls(n_stpes,dt,is_crank_nicolson_Q);
-    // End:: Time controls
+    /// End:: Time controls
     
     
-    // Begin:: Newton method controls
+    /// Begin:: Newton method controls
     container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("Iterations").ToElement();
     char_container = container->Attribute("n_iterations");
     int n_iterations = std::atoi(char_container);
@@ -121,10 +118,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     REAL epsilon_cor = std::atof(char_container);
     
     SetNumericControls(n_iterations,epsilon_res,epsilon_cor);
-    // End:: Newton method controls
+    /// End:: Newton method controls
     
     
-    // Begin:: Fixed Stress Split Scheme
+    /// Begin:: Fixed Stress Split Scheme
     container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("FssIterations").ToElement();
     char_container = container->Attribute("n_max_fss_iterations");
     int n_fss_iterations = std::atoi(char_container);
@@ -135,18 +132,18 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     
     
     SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
-    // End:: Fixed Stress Split Scheme
+    /// End:: Fixed Stress Split Scheme
 
     
     
-    // Begin:: Parallel controls
+    /// Begin:: Parallel controls
     container = doc_handler.FirstChild("CaseData").FirstChild("ParallelControls").FirstChild("Numthreads").ToElement();
     char_container = container->Attribute("n_threads");
     int n_threads = std::atoi(char_container);
     m_n_threads = n_threads;
-    // End:: Parallel controls
+    /// End:: Parallel controls
     
-    // Begin:: Finite elements
+    /// Begin:: Finite elements
     container = doc_handler.FirstChild("CaseData").FirstChild("FEM").FirstChild("MixedFormulationQ").ToElement();
     char_container = container->Attribute("useQ");
     bool is_mixed_formulation_Q = std::atoi(char_container);
@@ -167,10 +164,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     m_h_level                   = h_level;
     m_elasticity_order          = elasticity_order;
     m_diffusion_order           = diffusion_order;
-    // End:: Finite elements
+    /// End:: Finite elements
     
     
-    // Begin:: Outputs
+    /// Begin:: Outputs
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("OutputFolder").ToElement();
     char_container = container->Attribute("name");
     system(char_container);
@@ -259,11 +256,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         DebugStop();
     }
     
-//    m_vtk_file = vtk_file;
-    // End:: Outputs
+     /// End:: Outputs
     
     
-    // Begin:: Physics
+    /// Begin:: Physics
     container = doc_handler.FirstChild("CaseData").FirstChild("Physics").FirstChild("GravityConstant").ToElement();
     char_container = container->Attribute("gravity");
     REAL g_c = std::atof(char_container);
@@ -284,10 +280,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         m_g[2] = g_c * z_dir;
     }
     
-    // End:: Physics
+    /// End:: Physics
     
     
-    // Begin:: Regions and materials parameters
+    /// Begin:: Regions and materials parameters
     container = doc_handler.FirstChild("CaseData").FirstChild("ReservoirRegions").FirstChild("RegionNumber").ToElement();
     char_container = container->Attribute("n_regions");
     int n_regions = std::atoi(char_container);
@@ -421,7 +417,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         pars[6] = std::atof(char_container);
         poro_pars.SetParameters(pars);
         
-        // Porosity model data
+        /// Porosity model data
         sub_container = container->FirstChild("PhiParameters")->ToElement();
         pars.resize(0);
         char_container = sub_container->Attribute("phi_model");
@@ -437,13 +433,14 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         int n_phi_pars = std::atoi(char_container);
         pars.resize(n_phi_pars);
+        
         /// Reading porosity parameters by case
         if(n_phi_pars!=0){
         }
         phi_pars.SetModel(phi_model);
         phi_pars.SetParameters(pars);
         
-        // Permeability model data
+        /// Permeability model data
         sub_container = container->FirstChild("KappaParameters")->ToElement();
         pars.resize(0);
         char_container = sub_container->Attribute("kappa_model");
@@ -460,12 +457,13 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         int n_kappa_pars = std::atoi(char_container);
         pars.resize(n_kappa_pars);
+        
         /// Reading permeability parameters by case
         if(n_kappa_pars!=0){
             switch (kappa_pars.GetModel()) {
                 case kappa_pars.k_constant:
                     {
-                        // nothing to say
+                        /// nothing to say
                     }
                     break;
                 case kappa_pars.k_petunin:
@@ -501,7 +499,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         kappa_pars.SetParameters(pars);
         
-        // Plasticity model data
+        /// Plasticity model data
         sub_container = container->FirstChild("PlasticityParameters")->ToElement();
         pars.resize(0);
         char_container = sub_container->Attribute("plasticity_model");
@@ -518,6 +516,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         int n_plas_pars = std::atoi(char_container);
         pars.resize(n_plas_pars);
         plasticity_pars.SetModel(plasticity_model);
+        
         /// Reading plasticity parameters by case
         if(n_plas_pars!=0){
             switch (plasticity_pars.GetModel()) {
@@ -616,23 +615,23 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             
         }
         
-        // Assigning values to tuple using make_tuple()
+        /// Assigning values to tuple using make_tuple()
         chunk = make_tuple(u_pars, poro_pars, phi_pars, kappa_pars, plasticity_pars);
         m_mat_props[iregion] = chunk;
         
         iregion++;
     }
-    // End:: Regions and materials parameters
+    /// End:: Regions and materials parameters
     
 
-    // Begin:: BC for Geomechanic Simulator
+    /// Begin:: BC for Geomechanic Simulator
     this->LoadBoundaryConditionsGeomechanics();
     
     std::pair<int, std::string > bc_id_to_type_chunk_geo;
     std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_geo;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_geo;
     
-    // Undrained condition
+    /// Undrained condition
     container = doc_handler.FirstChild("CaseData").FirstChild("BCUndrainedGeomechanics").FirstChild("UndrainedGeomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
@@ -653,7 +652,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
-        // Association bc type with numerical values
+        /// Association bc type with numerical values
         bc_id_to_values_chunk_geo.first = bc_id;
         bc_id_to_values_chunk_geo.second.resize(0);
         int n_data = chunk_geo->second.second.size();
@@ -671,14 +670,14 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         m_bc_id_to_values_geo_un.insert(bc_id_to_values_chunk_geo);
         
-        // Association bc identifier with bc type
+        /// Association bc identifier with bc type
         bc_id_to_type_chunk_geo.first = bc_id;
         bc_id_to_type_chunk_geo.second = condition;
         m_bc_id_to_type_geo_un.insert(bc_id_to_type_chunk_geo);
         
     }
     
-    // Recurrent condition
+    /// Recurrent condition
     container = doc_handler.FirstChild("CaseData").FirstChild("BCGeomechanics").FirstChild("Geomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
@@ -699,7 +698,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
-        // Association bc type with numerical values
+        /// Association bc type with numerical values
         bc_id_to_values_chunk_geo.first = bc_id;
         bc_id_to_values_chunk_geo.second.resize(0);
         int n_data = chunk_geo->second.second.size();
@@ -717,15 +716,15 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         m_bc_id_to_values_geo.insert(bc_id_to_values_chunk_geo);
         
-        // Association bc identifier with bc type
+        /// Association bc identifier with bc type
         bc_id_to_type_chunk_geo.first = bc_id;
         bc_id_to_type_chunk_geo.second = condition;
         m_bc_id_to_type_geo.insert(bc_id_to_type_chunk_geo);
         
     }
-    // End:: Regions and materials parameters of Geomechanic Simulator
+    /// End:: Regions and materials parameters of Geomechanic Simulator
     
-    // Begin:: Regions and materials parameters of Reservoir Simulator
+    /// Begin:: Regions and materials parameters of Reservoir Simulator
     this->LoadBoundaryConditionsReservoirs();
     
     std::pair<int, std::string > bc_id_to_type_chunk_reser;
@@ -750,7 +749,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
-        // Association bc type with numerical values
+        /// Association bc type with numerical values
         bc_id_to_values_chunk_reser.first = bc_id;
         bc_id_to_values_chunk_reser.second.resize(0);
         int n_data = chunk_reser->second.second.size();
@@ -768,20 +767,20 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         m_bc_id_to_values_reser.insert(bc_id_to_values_chunk_reser);
         
-        // Association bc identifier with bc type
+        /// Association bc identifier with bc type
         bc_id_to_type_chunk_reser.first = bc_id;
         bc_id_to_type_chunk_reser.second = condition;
         m_bc_id_to_type_reser.insert(bc_id_to_type_chunk_reser);
         
     }
-    // End:: Regions and materials parameters of Reservoir Simulator
+    /// End:: Regions and materials parameters of Reservoir Simulator
     
-    // Begin:: Apply uniform refinement
+    /// Begin:: Apply uniform refinement
     this->UniformRefinement();
-    // End:: Apply uniform refinement
+    /// End:: Apply uniform refinement
 }
 
-/** @brief Setup reporting times and time step size */
+/// Brief Setup reporting times and time step size
 void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q)
 {
     
@@ -796,7 +795,7 @@ void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicol
     
 }
 
-/** @brief Setup reporting times and time step size */
+/// Brief Setup reporting times and time step size
 void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
 {
     
@@ -806,14 +805,14 @@ void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res,
     
 }
 
-/** @brief Setup fixed stress split schemes */
+/// Brief Setup fixed stress split schemes
 void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations)
 {
     m_n_fss_iterations  =   n_fss_iterations;
     m_n_enf_fss_iterations    =   n_enf_fss_iterations;
 }
 
-/** @brief Print the all members */
+/// Brief Print the all members
 void TPMRSSimulationData::Print()
 {
     DebugStop();
@@ -877,7 +876,7 @@ void TPMRSSimulationData::Print()
 }
 
 
-/** @brief read the geometry */
+/// Brief read the geometry
 void TPMRSSimulationData::ReadGeometry()
 {
     TPZGmshReader Geometry;
@@ -895,7 +894,7 @@ void TPMRSSimulationData::ReadGeometry()
     
 }
 
-/** @brief print the geometry */
+/// Brief print the geometry
 void TPMRSSimulationData::PrintGeometry()
 {
     
@@ -920,20 +919,20 @@ void TPMRSSimulationData::PrintGeometry()
 }
 
 
-/** @brief applying the boundary conditions for reservoir simulator */
+/// Brief applying the boundary conditions for reservoir simulator
 void TPMRSSimulationData::LoadBoundaryConditionsReservoirs()
 {
  
     std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkReser;
 
-        // Dirichlet for for diffusion
+        /// Dirichlet for for diffusion
         chunkReser.first = "Dp"; // name
         chunkReser.second.first = 0; // index
         chunkReser.second.second.push_back("p");
         m_condition_type_to_index_value_names_reser.insert(chunkReser);
         chunkReser.second.second.resize(0);
     
-        // Neumann for diffusion
+        /// Neumann for diffusion
         chunkReser.first = "Nq"; // name
         chunkReser.second.first = 1; // index
         chunkReser.second.second.push_back("qn");
@@ -944,16 +943,16 @@ void TPMRSSimulationData::LoadBoundaryConditionsReservoirs()
 }
 
 
-/** @brief applying the boundary conditions for geomechanics simulator */
+/// Brief applying the boundary conditions for geomechanics simulator
 void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
 {
     std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkGeo;
     
     if (m_dimesion == 2)
     {
-        // 2D conditions
+        /// 2D conditions
         
-        // Dirichlet for elasticity
+        /// Dirichlet for elasticity
         chunkGeo.first = "Du"; // name
         chunkGeo.second.first = 2; // index
         chunkGeo.second.second.push_back("ux");
@@ -961,21 +960,21 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x_direction
+        /// Dirichlet for elasticity in x_direction
         chunkGeo.first = "Dux"; // name
         chunkGeo.second.first = 3; // index
         chunkGeo.second.second.push_back("ux");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y_direction
+        /// Dirichlet for elasticity in y_direction
         chunkGeo.first = "Duy"; // name
         chunkGeo.second.first = 4; // index
         chunkGeo.second.second.push_back("uy");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity
+        /// Neumann for elasticity
         chunkGeo.first = "Nt"; // name
         chunkGeo.second.first = 5; // index
         chunkGeo.second.second.push_back("tx");
@@ -983,7 +982,7 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity
+        /// Neumann for elasticity
         chunkGeo.first = "Ntn"; // name
         chunkGeo.second.first = 6; // index
         chunkGeo.second.second.push_back("tn");
@@ -993,9 +992,9 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         
     }else
     {
-        // 3D conditions
+        /// 3D conditions
         
-        // Dirichlet for elasticity
+        /// Dirichlet for elasticity
         chunkGeo.first = "Du"; // name
         chunkGeo.second.first = 2; // index
         chunkGeo.second.second.push_back("ux");
@@ -1004,21 +1003,21 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x_direction
+        /// Dirichlet for elasticity in x_direction
         chunkGeo.first = "Dux"; // name
         chunkGeo.second.first = 3; // index
         chunkGeo.second.second.push_back("ux");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y_direction
+        /// Dirichlet for elasticity in y_direction
         chunkGeo.first = "Duy"; // name
         chunkGeo.second.first = 4; // index
         chunkGeo.second.second.push_back("uy");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity
+        /// Neumann for elasticity
         chunkGeo.first = "Nt"; // name
         chunkGeo.second.first = 5; // index
         chunkGeo.second.second.push_back("tx");
@@ -1027,21 +1026,21 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Neumann for elasticity
+        /// Neumann for elasticity
         chunkGeo.first = "Ntn"; // name
         chunkGeo.second.first = 6; // index
         chunkGeo.second.second.push_back("tn");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in z_direction
+        /// Dirichlet for elasticity in z_direction
         chunkGeo.first = "Duz"; // name
         chunkGeo.second.first = 7; // index
         chunkGeo.second.second.push_back("uz");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
     
-        // Dirichlet for elasticity in x & y direction
+        /// Dirichlet for elasticity in x & y direction
         chunkGeo.first = "Duxy"; // name
         chunkGeo.second.first = 8; // index
         chunkGeo.second.second.push_back("ux");
@@ -1049,7 +1048,7 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in x & z direction
+        /// Dirichlet for elasticity in x & z direction
         chunkGeo.first = "Duxz"; // name
         chunkGeo.second.first = 9; // index
         chunkGeo.second.second.push_back("ux");
@@ -1057,7 +1056,7 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
-        // Dirichlet for elasticity in y & z direction
+        /// Dirichlet for elasticity in y & z direction
         chunkGeo.first = "Duyz"; // name
         chunkGeo.second.first = 10; // index
         chunkGeo.second.second.push_back("uy");

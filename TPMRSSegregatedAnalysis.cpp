@@ -71,17 +71,17 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
         this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
     }
 
-    // The Geomechanics Simulator
+    /// The Geomechanics Simulator
     m_geomechanic_analysis = new TPMRSGeomechanicAnalysis;
     m_geomechanic_analysis->SetCompMesh(cmesh_geomechanics,mustOptimizeBandwidth);
     m_geomechanic_analysis->ConfigurateAnalysis(decompose_geo, m_simulation_data);
     
-    // The Reservoir Simulator
+    /// The Reservoir Simulator
     m_reservoir_analysis = new TPMRSMonoPhasicAnalysis;
     m_reservoir_analysis->SetCompMesh(cmesh_reservoir,mustOptimizeBandwidth);
     m_reservoir_analysis->ConfigurateAnalysis(decompose_res, mesh_vec, m_simulation_data);
     
-    // Loading spatial properties
+    /// Loading spatial properties
     FillMemory(m_reservoir_analysis->Mesh());
 
 }
@@ -139,7 +139,7 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
 
 void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
-    // Assuming the cmesh_o as directive.
+    /// Assuming the cmesh_o as directive.
     
     cmesh_d->LoadReferences();
     int nel_o = cmesh_o->NElements();
@@ -161,7 +161,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
             continue;
         }
         
-        // Finding the other computational element
+        /// Finding the other computational element
         TPZCompEl * cel_d = gel->Reference();
         if (!cel_d) {
             continue;
@@ -203,7 +203,7 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
-    // vtk files
+    /// vtk files
     std::string name = m_simulation_data->name_vtk_file();
     std::string file_geo = name + "_geo.vtk";
     std::string file_res = name + "_res.vtk";
@@ -261,13 +261,13 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
         
         TPZMaterial  * material = cmesh->FindMaterial(matid);
         
-        // Update the elastic response
+        /// Update the elastic response
         {
             std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    m_simulation_data->MaterialProps()[iregion];
             
             REAL E,nu;
             
-            // Elastic predictor
+            /// Elastic predictor
             if (IsInitialConditionsQ) {
                 TPMRSUndrainedParameters undrained_parameters(std::get<0>(chunk));
                 std::vector<REAL> u_pars = undrained_parameters.GetParameters();
@@ -280,18 +280,18 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 nu = poroperm_pars[1];
             }
             
-            // Updating bulk modulus for porosity model
+            /// Updating bulk modulus for porosity model
             std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
             
             TPZElasticResponse ER;
             ER.SetUp(E, nu);
             
-            // Plastic corrector
+            /// Plastic corrector
             TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
             std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
             
             if (p_pars.size() == 0) {
-                // Elastic material
+                /// Elastic material
                 TPZElasticCriterion Elastic;
                 Elastic.SetElasticResponse(ER);
                 
@@ -299,11 +299,11 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 vol_material->SetPlasticIntegrator(Elastic);
                 
             }else{
-                // Elastoplastic material
+                /// Elastoplastic material
                 switch (plasticity_parameters.GetModel()) {
                     case plasticity_parameters.ep_mc: {
                         
-                        // Mohr Coulomb data
+                        /// Mohr Coulomb data
                         REAL cohesion    = p_pars[0];
                         REAL phi         = (p_pars[1]*M_PI/180);
                         REAL psi         = phi;
@@ -325,7 +325,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             }
         }
         
-        // Inserting boundary conditions
+        /// Inserting boundary conditions
         int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
         {
@@ -413,21 +413,21 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
-            // Because we reused the same memory items
+            /// Because we reused the same memory items
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             REAL p_0 = -(sigma_total_0.I1()/3);
             memory_vector.get()->operator [](i).Setp_0(p_0);
             memory_vector.get()->operator [](i).Setp(p_0);
             memory_vector.get()->operator [](i).Setp_n(p_0);
-            sigma_total_0.Zero();// Converted to effecttive because initial deformation is Zero.
+            sigma_total_0.Zero();/// Converted to effecttive because initial deformation is Zero.
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma_n(sigma_total_0);
-            // Cleaning u
+            /// Cleaning u
             memory_vector.get()->operator [](i).Setu_0(u_null);
             memory_vector.get()->operator [](i).Setu(u_null);
             memory_vector.get()->operator [](i).Setu_n(u_null);
-            // Cleaning elasto-plastic states
+            /// Cleaning elasto-plastic states
             memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();

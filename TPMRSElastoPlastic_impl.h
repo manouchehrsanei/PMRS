@@ -47,21 +47,21 @@ void TPMRSElastoPlastic<T,TMEM>::Print(std::ostream &out, const int memory){
 
 template <class T, class TMEM>
 int TPMRSElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
-    if (!strcmp("ux", name.c_str())) return 0;
-    if (!strcmp("uy", name.c_str())) return 1;
-    if (!strcmp("uz", name.c_str())) return 2;
-    if (!strcmp("sxx", name.c_str())) return 3;
-    if (!strcmp("sxy", name.c_str())) return 4;
-    if (!strcmp("sxz", name.c_str())) return 5;
-    if (!strcmp("syy", name.c_str())) return 6;
-    if (!strcmp("syz", name.c_str())) return 7;
-    if (!strcmp("szz", name.c_str())) return 8;
-    if (!strcmp("exx", name.c_str())) return 9;
-    if (!strcmp("exy", name.c_str())) return 10;
-    if (!strcmp("exz", name.c_str())) return 11;
-    if (!strcmp("eyy", name.c_str())) return 12;
-    if (!strcmp("eyz", name.c_str())) return 13;
-    if (!strcmp("ezz", name.c_str())) return 14;
+    if (!strcmp("ux"  , name.c_str())) return  0;
+    if (!strcmp("uy"  , name.c_str())) return  1;
+    if (!strcmp("uz"  , name.c_str())) return  2;
+    if (!strcmp("sxx" , name.c_str())) return  3;
+    if (!strcmp("sxy" , name.c_str())) return  4;
+    if (!strcmp("sxz" , name.c_str())) return  5;
+    if (!strcmp("syy" , name.c_str())) return  6;
+    if (!strcmp("syz" , name.c_str())) return  7;
+    if (!strcmp("szz" , name.c_str())) return  8;
+    if (!strcmp("exx" , name.c_str())) return  9;
+    if (!strcmp("exy" , name.c_str())) return 10;
+    if (!strcmp("exz" , name.c_str())) return 11;
+    if (!strcmp("eyy" , name.c_str())) return 12;
+    if (!strcmp("eyz" , name.c_str())) return 13;
+    if (!strcmp("ezz" , name.c_str())) return 14;
     if (!strcmp("epxx", name.c_str())) return 15;
     if (!strcmp("epxy", name.c_str())) return 16;
     if (!strcmp("epxz", name.c_str())) return 17;

@@ -73,7 +73,7 @@ public:
         return "TPMRSMonoPhasicCG";
     }
     
-    /// Returns the integrable dimension of the material */
+    /// Returns the integrable dimension of the material
     int Dimension() const {return m_dimension;}
     
     /// Returns the number of state variables associated with the material

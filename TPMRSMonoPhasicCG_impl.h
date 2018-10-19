@@ -97,12 +97,12 @@ void TPMRSMonoPhasicCG<TMEM>::FillBoundaryConditionDataRequirement(int type, TPZ
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::UndrainedContribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    // Getting weight functions
+    /// Getting weight functions
     TPZFMatrix<REAL>  & phi_p     =  data.phi;
     int n_phi_p = phi_p.Rows();
     STATE p_n                  = data.sol[0][0];
     
-    // Get the pressure at the integrations points
+    /// Get the pressure at the integrations points
     long gp_index = data.intGlobPtIndex;
     TMEM & memory = this->MemItem(gp_index);
     STATE p_0      = memory.p_0();
@@ -123,13 +123,13 @@ void TPMRSMonoPhasicCG<TMEM>::UndrainedContribute(TPZMaterialData &data, REAL we
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    // Undarined contribute
+    /// Undarined contribute
     if(m_simulation_data->IsInitialStateQ()){
         this->UndrainedContribute(data, weight, ek, ef);
         return;
     }
     
-    // Getting weight functions
+    /// Getting weight functions
     TPZFMatrix<REAL>  & phi_p     =  data.phi;
     int n_phi_p = phi_p.Rows();
     
@@ -139,16 +139,16 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
     
     
-    // Get the pressure at the integrations points
-    long gp_index = data.intGlobPtIndex;
-    TMEM & memory = this->MemItem(gp_index);
+    /// Get the pressure at the integrations points
+    long gp_index     = data.intGlobPtIndex;
+    TMEM & memory     = this->MemItem(gp_index);
     
-    // Time
-    STATE dt = m_simulation_data->dt();
-    STATE p_n                  = data.sol[0][0];
+    /// Time
+    STATE dt          = m_simulation_data->dt();
+    STATE p_n         = data.sol[0][0];
     
-    STATE p_0      = memory.p_0();
-    STATE p        = memory.p();
+    STATE p_0         = memory.p_0();
+    STATE p           = memory.p();
     
     STATE phi_n,dphi_ndp,phi;
     REAL phi_0 = memory.phi_0();
@@ -176,7 +176,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     STATE drho_ndp_n = m_c;
     STATE lambda = rho_n/m_eta;
     
-    // Defining local variables
+    /// Defining local variables
     TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
     for (int i = 0; i < Dimension(); i++) {
         STATE dot = 0.0;
@@ -189,7 +189,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         dKdpl_grad_p_(i,0)     = lambda * dKdpdot;
     }
     
-    // Integration point contribution
+    /// Integration point contribution
     TPZFNMatrix<3,STATE> phi_q_i(3,1), phi_q_j(3,1);
     
     if(!m_simulation_data->IsCurrentStateQ()){
@@ -273,7 +273,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
 template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    // Undarined contribute
+    /// Undarined contribute
     if(m_simulation_data->IsInitialStateQ()){
         return;
     }
@@ -288,7 +288,7 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
     switch (bc.Type())
     {
   
-        case 0 :    // Dirichlet BC  PD
+        case 0 :    /// Dirichlet BC  PD
         {
             REAL p_D = m_scale_factor * Value;
             for (int ip = 0; ip < n_phi_p; ip++)
@@ -306,7 +306,7 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
             
             break;
             
-        case 1 :    // Neumann BC  Normal flux qn_N
+        case 1 :    /// Neumann BC  Normal flux qn_N
         {
             STATE qn_N = Value;
             for (int ip = 0; ip < n_phi_p; ip++)
@@ -345,19 +345,19 @@ template <class TMEM>
 int TPMRSMonoPhasicCG<TMEM>::NSolutionVariables(int var) {
     switch(var) {
         case 0:
-            return 1; // Scalar
+            return 1; /// Scalar
         case 1:
-            return m_dimension; // Vector
+            return m_dimension; /// Vector
         case 2:
-            return 1; // Scalar
+            return 1; /// Scalar
         case 3:
-            return 1; // Scalar
+            return 1; /// Scalar
         case 4:
-            return 1; // Scalar
+            return 1; /// Scalar
         case 5:
-            return 1; // Scalar
+            return 1; /// Scalar
         case 6:
-            return 1; // Scalar
+            return 1; /// Scalar
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -410,14 +410,14 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     REAL p_0 = memory.p_0();
     REAL p = memory.p();
     REAL p_n = memory.p_n();
-    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) ;//- alpha * p_0;
-    REAL sigma_t_v = (memory.GetSigma().I1()/3) ;//- alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3) ;//- alpha * p;
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3); ///- alpha * p_0;
+    REAL sigma_t_v = (memory.GetSigma().I1()/3) ; ///- alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3); ///- alpha * p;
     
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
-    this->MemItem(gp_index).Setphi(phi); // Current phi, please rename it to phi_n
+    this->MemItem(gp_index).Setphi(phi); /// Current phi, please rename it to phi_n
 }
 
 template <class TMEM>
@@ -426,5 +426,5 @@ void TPMRSMonoPhasicCG<TMEM>::permeability(long gp_index, REAL &kappa, REAL &dka
     TMEM & memory = this->MemItem(gp_index);
     REAL kappa_0 = memory.kappa();
     m_kappa_model.Permeability(kappa, dkappa_ndphi, kappa_0, phi, phi_0);
-    this->MemItem(gp_index).Setkappa(kappa); // Current kappa, please rename it to kappa_n
+    this->MemItem(gp_index).Setkappa(kappa); /// Current kappa, please rename it to kappa_n
 }

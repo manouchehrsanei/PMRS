@@ -19,7 +19,7 @@ TPMRSUndrainedParameters::TPMRSUndrainedParameters(const TPMRSUndrainedParameter
 
 const TPMRSUndrainedParameters & TPMRSUndrainedParameters::operator=(const TPMRSUndrainedParameters & other){
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }

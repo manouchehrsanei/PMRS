@@ -36,149 +36,148 @@ class TPMRSSimulationData
     
 protected:
     
-    /** @brief Time step size */
+    /// Brief Time step size
     REAL m_dt;
     
-    /** @brief Number of time steps */
+    /// Brief Number of time steps
     int m_n_steps;
     
-    /** @brief Store time values to be reported */
+    /// Brief Store time values to be reported
     TPZStack< REAL , 500 > m_reporting_times;
     
-    /** @brief Current time value */
+    /// Brief Current time value
     REAL m_time;
     
-    /** @brief Number of iteration */
+    /// Brief Number of iteration
     int m_n_iteraions;
     
-    /** @brief Residue overal tolerance */
+    //// Brief Residue overal tolerance
     REAL m_epsilon_res;
     
-    /** @brief Correction overal tolerance */
+    /// Brief Correction overal tolerance
     REAL m_epsilon_cor;
     
-    /** @brief Number of iteration for fss scheme*/
+    /// Brief Number of iteration for fss scheme
     int m_n_fss_iterations;
     
-    /** @brief Number of iteration for enforced fss scheme */
+    /// Brief Number of iteration for enforced fss scheme
     int m_n_enf_fss_iterations;
     
-    /** @brief Number of thread */
+    /// Brief Number of thread
     int m_n_threads;
     
-    /** @brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    /// Brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
-    /** @brief Directive that states if the last memory solution is being transferred to the current memory solution */
+    /// Brief Directive that states if the last memory solution is being transferred to the current memory solution
     bool m_transfer_current_to_last_solution_Q;
     
-    /** @brief Spatial refinemenet level */
+    /// Brief Spatial refinemenet level
     int m_h_level;
     
-    /** @brief Polynomial order for elasticity component */
+    /// Brief Polynomial order for elasticity component
     int m_elasticity_order;
     
-    /** @brief Polynomial order for diffusion component */
+    /// Brief Polynomial order for diffusion component
     int m_diffusion_order;
     
-    /** @brief Physical dimension of the domain */
+    /// Brief Physical dimension of the domain
     int m_dimesion;
     
-    /** @brief Name for the Gmsh geometry file being used */
+    /// Brief Name for the Gmsh geometry file being used
     std::string m_geometry_file;
     
-    /** @brief Neopz geometry description */
+    /// Brief Neopz geometry description
     TPZGeoMesh * m_geometry;
     
-    /** @brief Name for the vtk files being postprocessed */
+    /// Brief Name for the vtk files being postprocessed
     std::string m_vtk_file;
     
-    /** @brief Number of vtk resolution during postprocessing */
+    /// Brief Number of vtk resolution during postprocessing
     int m_vtk_resolution;
     
-    /** @brief Number of geomechanics outputs */
+    /// Brief Number of geomechanics outputs
     int m_n_outputs_geo;
     
-    /** @brief Number of reservoir outputs */
+    /// Brief Number of reservoir outputs
     int m_n_outputs_res;
     
-    /** @brief Vector that storage scalar names for reservoir postprocessing */
+    /// Brief Vector that storage scalar names for reservoir postprocessing
     TPZManVector<std::string,50> m_s_names_res;
     
-    /** @brief Vector that storage vectors names for reservoir postprocessing */
+    /// Brief Vector that storage vectors names for reservoir postprocessing
     TPZManVector<std::string,50> m_v_names_res;
     
-    /** @brief Vector that storage scalar names for geomechanics postprocessing */
+    /// Brief Vector that storage scalar names for geomechanics postprocessing
     TPZManVector<std::string,50> m_s_names_geo;
     
-    /** @brief Vector that storage vectors names for geomechanics postprocessing */
+    /// Brief Vector that storage vectors names for geomechanics postprocessing
     TPZManVector<std::string,50> m_v_names_geo;
     
-    /** @brief Vector that storage tensor names for geomechanics postprocessing */
+    /// Brief Vector that storage tensor names for geomechanics postprocessing
     TPZManVector<std::string,50> m_t_names_geo;
     
-    /** @brief Gravity field */
+    /// Brief Gravity field
     TPZManVector<REAL,3> m_g;
     
-    /** @brief Integer that define the number of regions presented in the geometry */
+    /// Brief Integer that define the number of regions presented in the geometry
     int m_n_regions;
     
-    /** @brief Material and boundaries identifiers sorted per region */
+    /// Brief Material and boundaries identifiers sorted per region
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> m_mat_ids;
     
-    /** @brief Material properties sorted per region */
+    /// Brief Material properties sorted per region
     TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters>,12> m_mat_props;
     
-    // Controled by the kernel
+    /// Controled by the kernel
     
-    /** @brief Initial state directive */
+    /// Brief Initial state directive
     bool m_is_initial_state_Q;
     
-    /** @brief Current time directive */
+    /// Brief Current time directive
     bool m_is_current_state_Q;
     
-    /** @brief Use for Crank-Nicolson method directive */
+    /// Brief Use for Crank-Nicolson method directive
     bool m_is_crank_nicolson_Q;
         
-    /** @brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided  */
+    /// Brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided
     std::map<int, std::vector<REAL> > m_bc_id_to_values_geo_un;
     
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    /// Brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> m_bc_id_to_type_geo_un;
     
-    /** @brief Map that storage all the boundary conditions of Geomechanic Simulator supported  */
+    /// Brief Map that storage all the boundary conditions of Geomechanic Simulator supported
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_geo;
     
-    /** @brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided  */
+    /// Brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided
     std::map<int, std::vector<REAL> > m_bc_id_to_values_geo;
     
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    /// Brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> m_bc_id_to_type_geo;
     
-    /** @brief Map that storage all the boundary conditions of Reservoir Simulator supported  */
+    /// Brief Map that storage all the boundary conditions of Reservoir Simulator supported
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_reser;
     
-    /** @brief Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided  */
+    /// Brief Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided
     std::map<int, std::vector<REAL> > m_bc_id_to_values_reser;
     
-    /** @brief Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
+    /// Brief Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
     std::map<int, std::string> m_bc_id_to_type_reser;
     
-    /** @brief Directive that states if the current solution must be accepted inside the memory  */
+    /// Brief Directive that states if the current solution must be accepted inside the memory
     bool m_must_accept_solution_Q;
     
-    /** @brief update pressure from undrain condition */
+    /// Brief update pressure from undrain condition
     bool m_update_pressure_from_undrain_solution_Q;
-    
     
     
 public:
     
     
-    /** @brief default constructor */
+    /// Brief default constructor
     TPMRSSimulationData();
     
-    /** @brief Copy constructor */
+    /// Brief Copy constructor
     TPMRSSimulationData(const TPMRSSimulationData & other)
     {
         m_dt                                      = other.m_dt;
@@ -218,10 +217,10 @@ public:
         m_update_pressure_from_undrain_solution_Q = other.m_update_pressure_from_undrain_solution_Q;
     }
     
-    /** @brief Assignement constructor */
+    /// Brief Assignement constructor
     TPMRSSimulationData &operator=(const TPMRSSimulationData &other)
     {
-        if (this != & other) // prevent self-assignment
+        if (this != & other) /// prevent self-assignment
         {
             m_dt                                      = other.m_dt;
             m_n_steps                                 = other.m_n_steps;
@@ -263,216 +262,212 @@ public:
         return *this;
     }
     
-    /** @brief destructor */
+    /// Brief destructor
     ~TPMRSSimulationData();
     
-    /** @brief Read the xml input file */
+    /// Brief Read the xml input file
     void ReadSimulationFile(char *simulation_file);
     
-    /** @brief Set the update pressure from undrain condition */
+    /// Brief Set the update pressure from undrain condition
     void SetupdatePressureFromUndrainSolutionQ(bool update_pressure_from_undrain_solution_Q) { m_update_pressure_from_undrain_solution_Q = update_pressure_from_undrain_solution_Q; }
     
-    /** @brief Set the directive that states if the current memory solution is being transferred to the last memory solution */
+    /// Brief Set the directive that states if the current memory solution is being transferred to the last memory solution
     void SetTransferCurrentToLastQ(bool transfer_current_to_last_solution_Q) { m_transfer_current_to_last_solution_Q = transfer_current_to_last_solution_Q; }
 
-    /** @brief Get the update pressure from undrain condition */
+    /// Brief Get the update pressure from undrain condition
     bool GetupdatePressureFromUndrainSolutionQ() { return m_update_pressure_from_undrain_solution_Q; }
     
-    /** @brief Get the directive that states if the current memory solution is being transferred to the last memory solution */
+    /// Brief Get the directive that states if the current memory solution is being transferred to the last memory solution
     bool GetTransferCurrentToLastQ() { return m_transfer_current_to_last_solution_Q; }
     
-    /** @brief Set initial state */
+    /// Brief Set initial state
     void SetInitialStateQ(bool state) { m_is_initial_state_Q = state; }
     
-    /** @brief Get initial state */
+    /// Brief Get initial state
     bool IsInitialStateQ() {return m_is_initial_state_Q;}
     
-    /** @brief Set current time state */
+    /// Brief Set current time state
     void SetCurrentStateQ(bool state) { m_is_current_state_Q = state; }
     
-    /** @brief Get current time state */
+    /// Brief Get current time state
     bool IsCurrentStateQ() {return m_is_current_state_Q;}
 
-    /** @brief Setup for reporting times and time step size */
+    /// Brief Setup for reporting times and time step size
     void SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q);
     
-    /** @brief Set the directive that states if the current solution must be accepted inside the memory  */
+    /// Brief Set the directive that states if the current solution must be accepted inside the memory
     bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
         m_must_accept_solution_Q = must_accept_solution_Q;}
     
-    /** @brief Set the the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    /// Brief Set the the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool Set_is_dual_formulation_Q(bool is_dual_formulation_Q){
         m_is_dual_formulation_Q = is_dual_formulation_Q;}
     
-    /** @brief Setup for Newton method controls */
+    /// Brief Setup for Newton method controls
     void SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor);
     
-    /** @brief Setup for fixed stress split schemes */
+    /// Brief Setup for fixed stress split schemes
     void SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations);
     
-    /** @brief Get time values being reported */
+    /// Brief Get time values being reported
     TPZStack< REAL , 500 > ReportingTimes(){
         return m_reporting_times;
     }
     
-    /** @brief Time step size */
+    /// Brief Time step size
     REAL dt() { return m_dt; }
     
-    /** @brief Set the current time value */
+    /// Brief Set the current time value
     void SetTime(REAL time) { m_time = time; }
     
-    /** @brief Get the current time value */
+    /// Brief Get the current time value
     REAL t() { return m_time; }
     
-    /** @brief Get the number of time steps */
+    /// Brief Get the number of time steps
     int n_steps() { return m_n_steps; }
     
-    /** @brief Get the number of iterations steps */
+    /// Brief Get the number of iterations steps
     int n_iterations() { return m_n_iteraions; }
     
-    /** @brief Get the residue overal tolerance */
+    /// Brief Get the residue overal tolerance
     REAL epsilon_res() { return m_epsilon_res; }
     
-    /** @brief Get the correction overal tolerance */
+    /// Brief Get the correction overal tolerance
     REAL epsilon_cor() { return m_epsilon_cor; }
     
-    
-    /** @brief Get the maximum number of fixed stress split scheme  */
+    /// Brief Get the maximum number of fixed stress split scheme
     int n_fss_iterations() { return m_n_fss_iterations; }
     
-    
-    /** @brief Get the number of enforced for fixed stress split scheme  */
+    /// Brief Get the number of enforced for fixed stress split scheme
     int n_enf_fss_iterations() { return m_n_enf_fss_iterations; }
     
-    /** @brief Get the number of threads */
+    /// Brief Get the number of threads
     int n_threads() { return m_n_threads; }
     
-    /** @brief Get Name for the vtk files being postprocessed */
+    /// Brief Get Name for the vtk files being postprocessed
     std::string name_vtk_file() { return m_vtk_file; }
     
-    /** @brief Get Number of vtk resolution during postprocessing */
+    /// Brief Get Number of vtk resolution during postprocessing
     int n_div() { return m_vtk_resolution; }
     
-    /** @brief Get Number of geomechanics output */
+    /// Brief Get Number of geomechanics output
     int num_outputs_geo() { return m_n_outputs_geo; }
     
-    /** @brief Get Number of reservoir output */
+    /// Brief Get Number of reservoir output
     int num_outputs_res() { return m_n_outputs_res; }
     
-    /** @brief Get Vector that storage scalar names for reservoir postprocessing */
+    /// Brief Get Vector that storage scalar names for reservoir postprocessing
     TPZManVector<std::string,50> s_names_res() { return m_s_names_res; }
     
-    /** @brief Get Vector that storage vector names for reservoir postprocessing */
+    /// Brief Get Vector that storage vector names for reservoir postprocessing
     TPZManVector<std::string,50> v_names_res() { return m_v_names_res; }
     
-    /** @brief Get Vector that storage scalar names for geomechanics postprocessing */
+    /// Brief Get Vector that storage scalar names for geomechanics postprocessing
     TPZManVector<std::string,50> s_names_geo() { return m_s_names_geo; }
     
-    /** @brief Get Vector that storage vector names for geomechanics postprocessing */
+    /// Brief Get Vector that storage vector names for geomechanics postprocessing
     TPZManVector<std::string,50> v_names_geo() { return m_v_names_geo; }
     
-    /** @brief Get Vector that storage tensor names for geomechanics postprocessing */
+    /// Brief Get Vector that storage tensor names for geomechanics postprocessing
     TPZManVector<std::string,50> t_names_geo() { return m_t_names_geo; }
     
-    /** @brief Get the gravity field */
+    /// Brief Get the gravity field
     TPZVec<REAL> & Gravity()
     {
         return m_g;
     }
     
-    /** @brief Get the neopz geometry description */
+    /// Brief Get the neopz geometry description
     TPZGeoMesh * Geometry()
     {
         return m_geometry;
     }
     
-    
-    /** @brief dimension of the model: */
+    /// Brief dimension of the model
     int Dimension() const {return m_dimesion;}
 
-    /** @brief Get the number of regions presented in the geometry */
+    /// Brief Get the number of regions presented in the geometry
     int NumberOfRegions() { return m_n_regions; }
     
-    /** @brief Get the material and boundaries identifiers sorted per region */
+    /// Brief Get the material and boundaries identifiers sorted per region
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12> & MaterialIds() { return m_mat_ids; }
     
-    /** @brief Get the material properties sorted per region */
+    /// Brief Get the material properties sorted per region
     TPZManVector<std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters>,12> & MaterialProps() { return m_mat_props; }
     
-    /** @brief Get the physical dimension of the domain */
+    /// Brief Get the physical dimension of the domain
     int Dimension() { return m_dimesion; }
     
-    /** @brief Get the spatial refinemenet level */
+    /// Brief Get the spatial refinemenet level
     int HLevel() { return m_h_level; }
     
-    /** @brief Get the polynomial order for elasticity component */
+    /// Brief Get the polynomial order for elasticity component
     int ElasticityOrder() { return m_elasticity_order; }
     
-    /** @brief Get the polynomial order for diffusion component */
+    /// Brief Get the polynomial order for diffusion component
     int DiffusionOrder() { return m_diffusion_order; }
     
-    /** @brief Print the all members */
+    /// Brief Print the all members
     void Print();
     
-    /** @brief Print the geometry member */
+    /// Brief Print the geometry member
     void PrintGeometry();
     
-    /** @brief Get the map that storage all the boundary conditions of Reservoir Simulator supported  */
+    /// Brief Get the map that storage all the boundary conditions of Reservoir Simulator supported
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexReservoirs() { return m_condition_type_to_index_value_names_reser; }
     
-    /** @brief Get the map that storage the type of boundary condition of Reservoir Simulator with the numerical values provided  */
+    /// Brief Get the map that storage the type of boundary condition of Reservoir Simulator with the numerical values provided
     std::map< int , std::vector<REAL> > & BCIdToBCValuesReservoirs() { return m_bc_id_to_values_reser; }
     
-    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator */
+    /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
     std::map<int, std::string> & BCIdToConditionTypeReservoirs() { return m_bc_id_to_type_reser; }
     
-    /** @brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided  */
+    /// Brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided
     std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanicsUndrained() { return m_bc_id_to_values_geo_un; }
     
-    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> & BCIdToConditionTypeGeomechanicsUndrained() { return m_bc_id_to_type_geo_un; }
     
-    /** @brief Get the map that storage all the boundary conditions of Geomechanic Simulator supported  */
+    /// Brief Get the map that storage all the boundary conditions of Geomechanic Simulator supported
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexGeomechanics() { return m_condition_type_to_index_value_names_geo; }
     
-    /** @brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided  */
+    /// Brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided
     std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanics() { return m_bc_id_to_values_geo; }
     
-    /** @brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator */
+    /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> & BCIdToConditionTypeGeomechanics() { return m_bc_id_to_type_geo; }
     
-    /** @brief Get the directive that states if the current solution must be accepted inside the memory  */
+    /// Brief Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
-    /** @brief Get the the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    /// Brief Get the the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }
     
-    /** @brief Get crank nicolson directive for time derivative (false Euler method)  */
+    //// Brief Get crank nicolson directive for time derivative (false Euler method)
     bool Get_is_crank_nicolson_Q() { return m_is_crank_nicolson_Q; }
     
     
 private:
     
-    /** @brief Read the Gmsh file and set the geometry member */
+    /// Brief Read the Gmsh file and set the geometry member
     void ReadGeometry();
     
-    /** @brief Fillup the map that storage all the boundary conditions of Reservoir Simulator supported */
+    /// Brief Fillup the map that storage all the boundary conditions of Reservoir Simulator supported
     void LoadBoundaryConditionsReservoirs();
     
-    
-    /** @brief Fillup the map that storage all the boundary conditions of Geomechanic Simulator supported */
+    /// Brief Fillup the map that storage all the boundary conditions of Geomechanic Simulator supported
     void LoadBoundaryConditionsGeomechanics();
 
-    /** @brief Apply uniform refinements */
+    /// Brief Apply uniform refinements
     void UniformRefinement();
     
-    /// @TODO:: MS, please implement and comment this function
+    // @TODO:: MS, please implement and comment this function
     void ReadRegionsAndMaterials();
     
-    /// @TODO:: MS, please implement and comment this function
+    // @TODO:: MS, please implement and comment this function
     void ReadBCForGeomechanicSimulator();
     
-    /// @TODO:: MS, please implement and comment this function
+    // @TODO:: MS, please implement and comment this function
     void ReadBCForReservoirSimulator();
     
 };

@@ -20,7 +20,7 @@ TPMRSMemory::TPMRSMemory(const TPMRSMemory & other): TPMRSMonoPhasicMemory(other
 
 const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }

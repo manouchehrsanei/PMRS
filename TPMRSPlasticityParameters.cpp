@@ -24,7 +24,7 @@ TPMRSPlasticityParameters::TPMRSPlasticityParameters(const TPMRSPlasticityParame
 
 const TPMRSPlasticityParameters & TPMRSPlasticityParameters::operator=(const TPMRSPlasticityParameters & other){
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }
@@ -55,10 +55,10 @@ void TPMRSPlasticityParameters::Print(std::ostream &out) const {
 void TPMRSPlasticityParameters::Initialize()
 {
     m_name_to_ep_model["none"] = ep_none;
-    m_name_to_ep_model["MC"] = ep_mc;
-    m_name_to_ep_model["DS"] = ep_ds;
-    m_name_to_ep_model["CC"] = ep_cc;
-    m_name_to_ep_model["DP"] = ep_dp;
+    m_name_to_ep_model["MC"]   = ep_mc;
+    m_name_to_ep_model["DS"]   = ep_ds;
+    m_name_to_ep_model["CC"]   = ep_cc;
+    m_name_to_ep_model["DP"]   = ep_dp;
 }
 
 void TPMRSPlasticityParameters::SetModel(std::string model){

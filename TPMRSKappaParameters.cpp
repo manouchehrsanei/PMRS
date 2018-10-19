@@ -23,7 +23,7 @@ TPMRSKappaParameters::TPMRSKappaParameters(const TPMRSKappaParameters & other){
 
 const TPMRSKappaParameters & TPMRSKappaParameters::operator=(const TPMRSKappaParameters & other){
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }

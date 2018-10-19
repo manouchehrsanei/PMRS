@@ -12,54 +12,54 @@
 #include "TPZPMRSCouplPoroPlast.h"
 #include "TPZElasticCriterion.h"
 
-/** @brief default costructor */
+/// Brief default costructor
 TPZPMRSAnalysis::TPZPMRSAnalysis() : TPZAnalysis()
 {
     
-    /** @brief define the simulation data */
+    /// Brief define the simulation data
     m_SimulationData = NULL;
     
-    /** @brief Vector of compmesh pointers. m_meshvec[0] = flowHdiv, m_meshvec[1] = PressureL2 */
+    /// Brief Vector of compmesh pointers. m_meshvec[0] = flowHdiv, m_meshvec[1] = PressureL2
     m_meshvec.Resize(2);
     
-    /** @brief Part of residue at n+1 (current) state */
+    /// Brief Part of residue at n+1 (current) state
     m_R_n.Resize(0,0);
     
-    /** @brief Part of residue at n (last) state  */
+    /// Brief Part of residue at n (last) state
     m_R.Resize(0,0);
     
-    /** @brief Solution at n+1 (current) state */
+    /// Brief Solution at n+1 (current) state
     m_X_n.Resize(0,0);
     
-    /** @brief memory at n+1 state */
+    /// Brief memory at n+1 state
     m_memory_n.Resize(0);
     
-    /** @brief Solution  at n (last) state */
+    /// Brief Solution  at n (last) state
     m_X.Resize(0,0);
     
-    /** @brief memory at n (past) state */
+    /// Brief memory at n (past) state
     m_memory.Resize(0);
     
-    /** @brief Strain-Stress solution data */
+    /// Brief Strain-Stress solution data
     m_strain_stress_duplets.Resize(0);
     
-    /** @brief Residue error */
+    /// Brief Residue error
     m_error    = 1.0;
     
-    /** @brief Correction variation */
+    /// Brief Correction variation
     m_dx_norm  = 1.0;
     
-    /** @brief number of newton corrections */
+    /// Brief number of newton corrections
     m_k_iterations = 0;
     
 }
 
-/** @brief default destructor $ */
+/// Brief default destructor
 TPZPMRSAnalysis::~TPZPMRSAnalysis(){
     
 }
 
-/** @brief copy constructor $ */
+/// Brief copy constructor
 TPZPMRSAnalysis::TPZPMRSAnalysis(const TPZPMRSAnalysis &copy)
 {
     m_SimulationData = copy.m_SimulationData;
@@ -73,10 +73,10 @@ TPZPMRSAnalysis::TPZPMRSAnalysis(const TPZPMRSAnalysis &copy)
     
 }
 
-/** @brief Copy assignemnt operator $ */
+/// Brief Copy assignemnt operator
 TPZPMRSAnalysis & TPZPMRSAnalysis::operator=(const TPZPMRSAnalysis &other)
 {
-    if (this != & other) {  // prevent self-assignment
+    if (this != & other) {  /// prevent self-assignment
         
         m_SimulationData = other.m_SimulationData;
         m_meshvec        = other.m_meshvec;
@@ -90,7 +90,7 @@ TPZPMRSAnalysis & TPZPMRSAnalysis::operator=(const TPZPMRSAnalysis &other)
     return *this;
 }
 
-/** @brief Resize and fill residue and solution vectors */
+/// Brief Resize and fill residue and solution vectors
 void TPZPMRSAnalysis::AdjustVectors()
 {
     
@@ -143,7 +143,7 @@ void TPZPMRSAnalysis::QuasiNewtonIteration()
     m_X_n += this->Solution(); // update state
     
     
-    // Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
+    /// Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
     if(IsPoroElastic)
     {
         this->Standard_Update_at_n_State();
@@ -162,13 +162,13 @@ void TPZPMRSAnalysis::QuasiNewtonIteration()
 //    m_R_n.Print("Rn = ", std::cout,EMathematicaInput);
 #endif
     
-    m_R_n += m_R; // total residue
+    m_R_n += m_R; /// total residue
     
 #ifdef PZDEBUG
 //    m_R_n.Print("Rt = ", std::cout,EMathematicaInput);
 #endif
     
-    m_error =  Norm(m_R_n); // residue error
+    m_error =  Norm(m_R_n); /// residue error
     
 }
 
@@ -176,7 +176,7 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
     
-    // Check the update state at last state (n) for PMRS_PoroElastic and PMRS_PoroPlastic
+    /// Check the update state at last state (n) for PMRS_PoroElastic and PMRS_PoroPlastic
     if(IsPoroElastic)
     {
         this->Standard_UpdateState();
@@ -191,7 +191,7 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     this->SimulationData()->SetCurrentStateQ(true);
     
     
-    // Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
+    /// Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
     if(IsPoroElastic)
     {
         this->Standard_Update_at_n_State();
@@ -206,7 +206,7 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
     int n  =   this->SimulationData()->n_iterations();
     
-    m_SimulationData->Set_must_accept_solution_Q(true); // For now acceting any solution in the party
+    m_SimulationData->Set_must_accept_solution_Q(true); /// For now acceting any solution in the party
     for (int k = 1; k <= n; k++)
     {
         this->Set_k_ietrarions(k);
@@ -224,21 +224,21 @@ void TPZPMRSAnalysis::ExcecuteOneStep(){
 }
 
 
-/** @brief update last state (at n state) solution for PMRS_PoroElastic */
+/// Brief update last state (at n state) solution for PMRS_PoroElastic
 void TPZPMRSAnalysis::Standard_UpdateState()
 {
     this->LoadSolution(m_X);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
-/** @brief update current state (at n+1 state) solution for PMRS_PoroPlastic */
+/// Brief update current state (at n+1 state) solution for PMRS_PoroPlastic
 void TPZPMRSAnalysis::Standard_Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
-/** @brief update last state (at n state) solution for PMRS_PoroPlastic */
+/// Brief update last state (at n state) solution for PMRS_PoroPlastic
 void TPZPMRSAnalysis::UpdateState()
 {
     this->LoadSolution(m_X);
@@ -250,7 +250,7 @@ void TPZPMRSAnalysis::UpdateState()
         TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
         TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
         
-        if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
+        if (!rock_material) { /// There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
             DebugStop();
         }
         
@@ -263,7 +263,7 @@ void TPZPMRSAnalysis::UpdateState()
     
 }
 
-/** @brief update current state (at n+1 state) solution for PMRS_PoroPlastic */
+/// Brief update current state (at n+1 state) solution for PMRS_PoroPlastic
 void TPZPMRSAnalysis::Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
@@ -275,7 +275,7 @@ void TPZPMRSAnalysis::Update_at_n_State()
         TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
         TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
         
-        if (!rock_material) { // There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
+        if (!rock_material) { /// There is no volumetric material of type TPZPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
             DebugStop();
         }
         
@@ -289,10 +289,10 @@ void TPZPMRSAnalysis::Update_at_n_State()
 }
 
 
-/** @brief the Standard Post process function */
+/// Brief the Standard Post process function
 void TPZPMRSAnalysis::PostProcessStepStandard()
 {
-    // * Post Process when you want to use datavec in your solution or you don't use memory and integration point *
+    /// Post Process when you want to use datavec in your solution or you don't use memory and integration point
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
@@ -311,10 +311,10 @@ void TPZPMRSAnalysis::PostProcessStepStandard()
 }
 
 
-/** @brief the Post process function */
+/// Brief the Post process function
 void TPZPMRSAnalysis::PostProcessStep()
 {
-    // * Post Process when you want to use memory and integration point *
+    /// Post Process when you want to use memory and integration point
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
@@ -326,7 +326,7 @@ void TPZPMRSAnalysis::PostProcessStep()
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
-    // Scalars and vectors in the integration point
+    /// Scalars and vectors in the integration point
     TPZStack<std::string> reservoiroutputs_intPoints;
     TPZStack<std::string> geomechanicoutputs_intPoints;
     
@@ -367,7 +367,7 @@ void TPZPMRSAnalysis::PostProcessStep()
     
 }
 
-/** @brief execute the evolutionary problem */
+/// Brief execute the evolutionary problem
 void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 {
     int n = m_SimulationData->n_steps();
@@ -398,7 +398,7 @@ void TPZPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
     }
 }
 
-/** @brief Compute the strain and the stress at x euclidean point for each time */
+/// Brief Compute the strain and the stress at x euclidean point for each time
 void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 {
     // Finding the geometic element that x bleongs to.
@@ -459,10 +459,10 @@ void TPZPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     m_strain_stress_duplets.Push(duplet);
 }
 
-/** @brief Compute the strain and the Pososity at x euclidean point for each time */
+/// Brief Compute the strain and the Pososity at x euclidean point for each time
 void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 {
-    // Finding the geometic element that x bleongs to.
+    /// Finding the geometic element that x bleongs to
     REAL Tol = 1.0e-4;
     TPZGeoMesh * geometry = this->Mesh()->Reference();
     this->Mesh()->LoadReferences();
@@ -522,11 +522,11 @@ void TPZPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
     m_strain_porosity_duplets.Push(duplet);
 }
 
-/** @brief Compute the strain and the Permeability at x euclidean point for each time */
+/// Brief Compute the strain and the Permeability at x euclidean point for each time
 void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
 {
     
-    // Finding the geometic element that x bleongs to.
+    /// Finding the geometic element that x bleongs to
     REAL Tol = 1.0e-4;
     TPZGeoMesh * geometry = this->Mesh()->Reference();
     this->Mesh()->LoadReferences();
@@ -586,11 +586,11 @@ void TPZPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
    m_strain_permeability_duplets.Push(duplet);
 }
 
-/** @brief Compute the strain and the Permeability at x euclidean point for each time */
+/// Brief Compute the strain and the Permeability at x euclidean point for each time
 void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
 {
     
-    // Finding the geometic element that x bleongs to.
+    /// Finding the geometic element that x bleongs to
     REAL Tol = 1.0e-4;
     TPZGeoMesh * geometry = this->Mesh()->Reference();
     this->Mesh()->LoadReferences();
@@ -649,7 +649,7 @@ void TPZPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
     m_strain_pressure_duplets.Push(duplet);
 }
 
-/** @brief Compute the strain and the stress at x euclidean point for each time */
+/// Brief Compute the strain and the stress at x euclidean point for each time
 void TPZPMRSAnalysis::PlotStrainStress(std::string file_name)
 {
     
@@ -673,7 +673,7 @@ void TPZPMRSAnalysis::PlotStrainStress(std::string file_name)
     }
 }
 
-/** @brief Compute the strain and the Porosity at x euclidean point for each time */
+/// Brief Compute the strain and the Porosity at x euclidean point for each time
 void TPZPMRSAnalysis::PlotStrainPorosity(std::string file_name)
 {
     
@@ -698,7 +698,7 @@ void TPZPMRSAnalysis::PlotStrainPorosity(std::string file_name)
     }
 }
 
-/** @brief Compute the strain and the Porosity at x euclidean point for each time */
+/// Brief Compute the strain and the Porosity at x euclidean point for each time
 void TPZPMRSAnalysis::PlotStrainPermeability(std::string file_name)
 {
     
@@ -723,7 +723,7 @@ void TPZPMRSAnalysis::PlotStrainPermeability(std::string file_name)
     
 }
 
-/** @brief Compute the strain and the Porosity at x euclidean point for each time */
+/// Brief Compute the strain and the Porosity at x euclidean point for each time
 void TPZPMRSAnalysis::PlotStrainPressure(std::string file_name)
 {
     

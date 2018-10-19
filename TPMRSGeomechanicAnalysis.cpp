@@ -126,7 +126,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         m_X = Solution();
     }
 
-    // The process will update just the current state
+    /// The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
     bool residual_stop_criterion_Q = false;
@@ -168,7 +168,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
 
 void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
     
-    // The process will update just the current state
+    /// The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
     bool residual_stop_criterion_Q = false;

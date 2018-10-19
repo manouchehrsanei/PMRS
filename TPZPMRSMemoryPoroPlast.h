@@ -61,14 +61,11 @@ public:
     
     virtual int ClassId() const;
     
-    /**
-     * Total (elastic+plastic) stress
-     */
+    /// Total (elastic+plastic) stress
     TPZTensor<REAL> fSigma;
     
-    /**
-     * Plastic state vars
-     */
+ 
+    /// Plastic state vars
     TPZPlasticState<REAL> fPlasticState;
     
     int fPlasticSteps;

@@ -8,25 +8,25 @@
 
 #include "TPZPMRSMemoryPoroElast.h"
 
-/** @brief Default constructor */
+/// Brief Default constructor
 TPZPMRSMemoryPoroElast::TPZPMRSMemoryPoroElast()
 {
     
-    /** @brief Gradient of deformation at n (last) state */
+    /// Brief Gradient of deformation at n (last) state
     m_grad_u_n.Resize(3, 3);
     m_grad_u_n.Zero();
     
-    /** @brief Elastic strain at n (last) state */
+    /// Brief Elastic strain at n (last) state
     m_epsilon_e_n.Resize(3, 3);
     m_epsilon_e_n.Zero();
     
-    /** @brief Plastic strain at n (last) state */
+    /// Brief Plastic strain at n (last) state
     m_epsilon_p_n.Resize(3, 3);
     m_epsilon_p_n.Zero();
     
 }
 
-/** @brief Default destructor */
+/// Brief Default destructor
 TPZPMRSMemoryPoroElast::~TPZPMRSMemoryPoroElast(){
     
 }

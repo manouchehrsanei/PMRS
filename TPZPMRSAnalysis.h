@@ -25,211 +25,207 @@ class TPZPMRSAnalysis : public TPZAnalysis
     
 private:
     
-    /** @brief whether it is PoroElastic */
+    /// Brief whether it is PoroElastic
     bool IsPoroElastic = false;
     
-    /** @brief define the simulation data */
+    /// Brief define the simulation data
     TPMRSSimulationData * m_SimulationData;
     
-    /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
+    /// Brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2
     TPZManVector<TPZCompMesh * , 2> m_meshvec;
     
-    /** @brief Part of residue at n+1 state  */
+    /// Brief Part of residue at n+1 state
     TPZFMatrix<STATE> m_R_n;
     
-    /** @brief Part of residue at n (past) state  */
+    /// Brief Part of residue at n (past) state
     TPZFMatrix<STATE> m_R;
     
-    /** @brief Solution at n+1 state */
+    /// Brief Solution at n+1 state
     TPZFMatrix<STATE> m_X_n;
     
-    /** @brief memory at n+1 state */
+    /// Brief memory at n+1 state
     TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory_n;
     
-    /** @brief Solution at n (past) state */
+    /// Brief Solution at n (past) state
     TPZFMatrix<STATE> m_X;
     
-    /** @brief memory at n (past) state */
+    /// Brief memory at n (past) state
     TPZAdmChunkVector<TPZPoroElastoPlasticMem> m_memory;
     
-    /** @brief Strain-Stress solution data */
+    /// Brief Strain-Stress solution data
     TPZStack< std::pair<REAL,REAL> > m_strain_stress_duplets;
     
-    /** @brief Strain-Porosity solution data */
+    /// Brief Strain-Porosity solution data
     TPZStack< std::pair<REAL,REAL> > m_strain_porosity_duplets;
     
-    /** @brief Strain-Permeability solution data */
+    /// Brief Strain-Permeability solution data
     TPZStack< std::pair<REAL,REAL> > m_strain_permeability_duplets;
     
-    /** @brief Strain-Pressure solution data */
+    /// Brief Strain-Pressure solution data
     TPZStack< std::pair<REAL,REAL> > m_strain_pressure_duplets;
     
-    /** @brief Residue error */
+    /// Brief Residue error
     STATE m_error;
     
-    /** @brief Correction variation */
+    /// Brief Correction variation
     STATE m_dx_norm;
     
-    /** @brief number of newton corrections */
+    /// Brief number of newton corrections
     int m_k_iterations;
     
     
 public:
     
-    /** @brief default Constructor  */
+    /// Brief default Constructor
     TPZPMRSAnalysis();
     
-    /** @brief default Destructor  */
+    /// Brief default Destructor
     ~TPZPMRSAnalysis();
     
-    /** @brief Copy constructor $ */
+    /// Brief Copy constructor
     TPZPMRSAnalysis(const TPZPMRSAnalysis &copy);
     
-    /** @brief Copy assignemnt operator $ */
+    /// Brief Copy assignemnt operator
     TPZPMRSAnalysis &operator=(const TPZPMRSAnalysis &other);
     
-    /**
-     * @brief    Implements Access methods:
-     */
     
-    
-    /** @brief Set Solution at n+1 (current) state */
+    /// Brief Set Solution at n+1 (current) state
     void SetX_n(TPZFMatrix<STATE> &x)
     {
         m_X_n = x;
     }
     
-    /** @brief Get Solution at n+1 (current) state */
+    /// Brief Get Solution at n+1 (current) state
     TPZFMatrix<STATE> & X_n()
     {
         return m_X_n;
     }
     
-    /** @brief Set memory at n+1 state */
+    /// Brief Set memory at n+1 state
     void SetMemory_n(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
     {
         m_memory_n = memory;
     }
     
-    /** @brief Get memory at n+1 state */
+    /// Brief Get memory at n+1 state
     TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory_n()
     {
         return m_memory_n;
     }
     
-    /** @brief Set Solution at n (last) state */
+    /// Brief Set Solution at n (last) state
     void SetX(TPZFMatrix<STATE> &x)
     {
         m_X = x;
     }
     
-    /** @brief Get Solution at n (last) state */
+    /// Brief Get Solution at n (last) state
     TPZFMatrix<STATE> & X()
     {
         return m_X;
     }
     
-    /** @brief Set memory at n state */
+    /// Brief Set memory at n state
     void SetMemory(TPZAdmChunkVector<TPZPoroElastoPlasticMem> &memory)
     {
         m_memory = memory;
     }
     
-    /** @brief Get memory at n state */
+    /// Brief Get memory at n state
     TPZAdmChunkVector<TPZPoroElastoPlasticMem> & GetMemory()
     {
         return m_memory;
     }
     
-    /** @brief Set the simulation data */
+    /// Brief Set the simulation data
     void SetSimulationData(TPMRSSimulationData * SimulationData)
     {
         m_SimulationData = SimulationData;
         m_meshvec.Resize(2);
     }
     
-    /** @brief Get the space generator */
+    /// Brief Get the space generator
     TPMRSSimulationData * SimulationData()
     {
         return m_SimulationData;
     }
 
-    
-    /** @brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
+    /// Brief Set vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure
     void SetMeshvec(TPZManVector<TPZCompMesh * , 2> &Meshvec)
     {
         m_meshvec = Meshvec;
     }
-    /** @brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure */
+    
+    /// Brief Get Vector of compmesh pointers. fmeshvec[0] = flux, fmeshvec[1] = Pressure
     TPZManVector<TPZCompMesh * , 2> & Meshvec()
     {
         return m_meshvec;
     }
     
-    /** @brief Resize and fill residue and solution vectors */
+    /// Brief Resize and fill residue and solution vectors
     void AdjustVectors();
     
-    /** @brief Set k iterations */
+    /// Brief Set k iterations
     void Set_k_ietrarions(int k)
     {
         m_k_iterations = k;
     }
     
-    /** @brief Get k iterations */
+    /// Brief Get k iterations
     int k_ietrarions()
     {
         return m_k_iterations;
     }
     
-    /** @brief Execute an Euler method step */
+    /// Brief Execute an Euler method step
     void ExcecuteOneStep();
     
-    /** @brief Execute a Quasi Newton iteration  */
+    /// Brief Execute a Quasi Newton iteration
     void QuasiNewtonIteration();
     
-    /** @brief PostProcessStandard results */
+    /// Brief PostProcessStandard results
     void PostProcessStepStandard();
     
-    /** @brief PostProcess results */
+    /// Brief PostProcess results
     void PostProcessStep();
     
-    /** @brief update last (n) state solution for PMRS_PoroElastic*/
+    /// Brief update last (n) state solution for PMRS_PoroElastic
     void Standard_UpdateState();
     
-    /** @brief update current (n+1) state solution for PMRS_PoroElastic */
+    /// Brief update current (n+1) state solution for PMRS_PoroElastic
     void Standard_Update_at_n_State();
     
-    /** @brief update last (n) state solution */
+    /// Brief update last (n) state solution
     void UpdateState();
     
-    /** @brief update current (n+1) state solution */
+    /// Brief update current (n+1) state solution
     void Update_at_n_State();
 
-    /** @brief execute the evolutionary problem */
+    /// Brief execute the evolutionary problem
     void Run_Evolution(TPZVec<REAL> & x);
     
-    /** @brief Compute the strain and the stress at x euclidean point for each time */
+    /// Brief Compute the strain and the stress at x euclidean point for each time
     void AppendStrain_Stress(TPZVec<REAL> & x);
     
-    /** @brief Compute the strain and the Porosity at x euclidean point for each time */
+    /// Brief Compute the strain and the Porosity at x euclidean point for each time
     void AppendStrain_Pososity(TPZVec<REAL> & x);
     
-    /** @brief Compute the strain and the Permeability at x euclidean point for each time */
+    /// Brief Compute the strain and the Permeability at x euclidean point for each time
     void AppendStrain_Permeability(TPZVec<REAL> & x);
     
-    /** @brief Compute the strain and the Pressure at x euclidean point for each time */
+    /// Brief Compute the strain and the Pressure at x euclidean point for each time
     void AppendStrain_Pressure(TPZVec<REAL> & x);
     
-    /** @brief Compute the strain and the stress at x euclidean point for each time */
+    /// Brief Compute the strain and the stress at x euclidean point for each time
     void PlotStrainStress(std::string file_name);
     
-    /** @brief Compute the strain and the Porosity at x euclidean point for each time */
+    /// Brief Compute the strain and the Porosity at x euclidean point for each time
     void PlotStrainPorosity(std::string file_name);
     
-    /** @brief Compute the strain and the Permeability at x euclidean point for each time */
+    /// Brief Compute the strain and the Permeability at x euclidean point for each time
     void PlotStrainPermeability(std::string file_name);
     
-    /** @brief Compute the strain and the Pressure at x euclidean point for each time */
+    /// Brief Compute the strain and the Pressure at x euclidean point for each time
     void PlotStrainPressure(std::string file_name);
     
 };

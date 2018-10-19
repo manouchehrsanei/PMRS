@@ -16,22 +16,22 @@ TPMRSPhiParameters::TPMRSPhiParameters(){
 }
 
 TPMRSPhiParameters::TPMRSPhiParameters(const TPMRSPhiParameters & other){
-    m_model         = other.m_model;
-    m_parameters    = other.m_parameters;
+    m_model           = other.m_model;
+    m_parameters      = other.m_parameters;
     m_name_to_p_model = other.m_name_to_p_model;
-    m_K = other.m_K;
+    m_K               = other.m_K;
 }
 
 
 const TPMRSPhiParameters & TPMRSPhiParameters::operator=(const TPMRSPhiParameters & other){
     
-    // check for self-assignment
+    /// check for self-assignment
     if(&other == this){
         return *this;
     }
     
-    m_model         = other.m_model;
-    m_parameters    = other.m_parameters;
+    m_model           = other.m_model;
+    m_parameters      = other.m_parameters;
     m_name_to_p_model = other.m_name_to_p_model;
     m_K               = other.m_K;
     return *this;

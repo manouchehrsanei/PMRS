@@ -83,8 +83,6 @@ public:
     /// Execute initial problem
     void ExecuteStaticSolution();
     
-
-    
 };
 
 #endif /* TPMRSSegregatedAnalysis_h */

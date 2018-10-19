@@ -39,74 +39,74 @@ class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
     
 private:
 
-    // boolean indicating whether the Young modulus needs to be computed at each point
+    /// boolean indicating whether the Young modulus needs to be computed at each point
     int m_VariableYoung;
     
     
 protected:
     
-    /** @brief define the simulation data */
+    /// Brief brief define the simulation data
     TPMRSSimulationData * m_SimulationData;
     
-    /** @brief Problem dimension */
+    /// Brief Problem dimension
     int m_Dim;
     
-    /** @brief body force */
+    /// Brief body force
     TPZManVector<REAL,3>  m_b;
     
-    /** @brief permeability coupling model  */
+    /// Brief permeability coupling model
     int m_k_model;
     
-    /** @brief Poison coeficient */
+    /// Brief Poison coeficient
     REAL m_nu;
     REAL m_nuu;
     
-    /** @brief first Lame Parameter */
+    /// Brief first Lame Parameter
     REAL m_lambda;
     REAL m_lambdau;
     
-    /** @brief Bulk modulus */
+    /// Brief Bulk modulus
     REAL m_K;
     REAL m_Ku;
     
-    /** @brief Second Lame Parameter */
+    /// Brief Second Lame Parameter
     REAL m_mu;
     
-    /** @brief constants Biot poroelasticity */
+    /// Brief constants Biot poroelasticity
     REAL m_alpha;
     
-    /** @brief Storage coefficient poroelasticity */
+    /// Brief Storage coefficient poroelasticity
     REAL m_Se;
     
-    /** @brief Intact rock porosity */
+    /// Brief Intact rock porosity
     REAL m_porosity_0;
     
-    /** @brief Initial Permeability of the rock */
+    /// Brief Initial Permeability of the rock
     REAL m_k_0;
     
-    /** @brief Fluid viscosity */
+    /// Brief Fluid viscosity
     REAL m_eta;
     
-    /** @brief Fluid density */
+    /// Brief Fluid density
     REAL m_rho_f;
     
-    /** @brief Rock density */
+    /// Brief Rock density
     REAL m_rho_s;
     
-    /** @brief Cohesion of Mohr-Coloumb */
+    /// Brief Cohesion of Mohr-Coloumb
     REAL mc_coh;
     
-    /** @brief Friction of Mohr-Coloumb */
+    /// Brief Friction of Mohr-Coloumb
     REAL mc_phi;
     
-    /** @brief Dilation of Mohr-Coloumb */
+    /// Brief Dilation of Mohr-Coloumb
     REAL mc_psi;
     
     
-    /** @brief new ************************************************ */
+    /// Brief new ************************************************
     bool m_SetRunPlasticity;
 
-    /** @brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU */
+    /// Brief Flag to indicate if should update should zero displacement and EpsTotal. With this you can the solution vector means U, and not DeltaU
     bool m_UpdateToUseFullDiplacement;
     
     
@@ -114,7 +114,7 @@ protected:
 public:
 
     
-    // Default constructor
+    /// Default constructor
     
     TPZPMRSCouplPoroPlast();
     
@@ -122,10 +122,10 @@ public:
     
     virtual ~TPZPMRSCouplPoroPlast();
     
-    /** @brief Copy constructor $ */
+    /// Brief Copy constructor
     TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast& other);
     
-    /** @brief Copy assignemnt operator $ */
+    /// Brief Copy assignemnt operator
     TPZPMRSCouplPoroPlast & operator = (const TPZPMRSCouplPoroPlast& other);
     
     virtual int ClassId() const;
@@ -136,7 +136,7 @@ public:
     
     virtual int NStateVariables();
     
-    /** @brief some functions for plasticity */
+    /// Brief some functions for plasticity
     virtual void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
     virtual void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
     virtual void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
@@ -144,13 +144,13 @@ public:
     virtual void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress);
     
     
-    /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
+    /// Brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call
     void SetUpdateToUseFullU(bool update = true);
     
-    /** @brief permeability correction model */
+    /// Brief permeability correction model
     REAL k_permeability(REAL &phi, REAL &k);
     
-    /** @brief Poroelastic porosity correction from strains and pressure */
+    /// Brief Poroelastic porosity correction from strains and pressure
     REAL porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
     REAL porosity_corrected_3D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure);
     
@@ -158,7 +158,7 @@ public:
     
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
     
-    /** @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation. */
+    /// Brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     virtual void Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     virtual void ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
@@ -213,21 +213,21 @@ public:
         DebugStop();
     }
     
-    // ********* Set and Get some functions ********************************************
+    /// ********* Set and Get some functions ********************************************
     
-    /** @brief Set the simulation data */
+    /// Brief Set the simulation data
     void SetSimulationData(TPMRSSimulationData * SimulationData)
     {
         m_SimulationData = SimulationData;
     }
     
-    /** @brief Get the simulation data */
+    /// Brief Get the simulation data
     TPMRSSimulationData * SimulationData()
     {
         return m_SimulationData;
     }
     
-    /** @brief dimension of the model: */
+    /// Brief dimension of the model
     void SetDimension(int dimension)
     {
         m_Dim = dimension;
@@ -236,20 +236,19 @@ public:
     int Dimension() const {return m_Dim;}
     
     
-    /** @brief set the peremability models: */
+    /// Brief set the peremability models
     void SetKModel(int model)
     {
         m_k_model = model;
     }
     
-    /** @brief return the peremability models: */
+    /// Brief return the peremability models
     int KModel()
     {
         return m_k_model;
     }
     
-    
-    /** @brief Parameters of rock and fluid: */
+    /// Brief Parameters of rock and fluid
     void SetParameters(REAL perm, REAL m_porosity, REAL eta)
     {
         m_k_0 = perm;
@@ -258,7 +257,7 @@ public:
     }
     
     
-    /** @brief Set the porolastic parameters data */
+    /// Brief Set the porolastic parameters data
     void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
     {
         m_lambda = l;
@@ -268,7 +267,7 @@ public:
         m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
-    /** @brief Set the porolastic engineer parameters data */
+    /// Brief Set the porolastic engineer parameters data
     void SetPorolasticParametersEngineer(REAL Ey, REAL nu)
     {
         
@@ -279,7 +278,7 @@ public:
         m_Ku = m_lambdau + (2.0/3.0)*m_mu;
     }
     
-    /** @brief Set the Biot parameters data */
+    /// Brief Set the Biot parameters data
     void SetBiotParameters(REAL alpha, REAL Se)
     {
         if(alpha==0){
@@ -291,7 +290,7 @@ public:
     }
     
     
-    /** @brief Density of fluid and rock: */
+    /// Brief Density of fluid and rock
     void SetDensityFluidRock(REAL rhof, REAL rhos)
     {
         m_rho_f = rhof;
@@ -306,10 +305,9 @@ public:
     }
     
     
-    // ****************************************************************** plasticity ***********************
+    /// ****************************************************************** plasticity ***********************
     
-    /** @brief if IsPlasticity is true, it will calculate the contribution of a plastic material
-     */
+    /// Brief if IsPlasticity is true, it will calculate the contribution of a plastic material
     void SetRunPlasticity(bool IsPlasticity = true);
     
 

@@ -90,39 +90,37 @@ public:
     /// Update solution state x = x_n
     void UpdateState();
     
-    /** @brief Set Residue error */
+    /// Brief Set Residue error
     void Set_error(STATE error)
     {
         m_error = error;
     }
     
-    /** @brief Get Residue error */
+    /// Brief Get Residue error
     STATE Get_error()
     {
         return m_error;
     }
     
-    
-    /** @brief Set Correction variation */
+    /// Brief Set Correction variation
     void Set_dx_norm(STATE dxnorm)
     {
         m_dx_norm = dxnorm;
     }
     
-    /** @brief Get Correction variation */
+    /// Brief Get Correction variation
     STATE Get_dx_norm()
     {
         return m_dx_norm;
     }
     
-    
-    /** @brief Set number of Newton iterations */
+    /// Brief Set number of Newton iterations
     void Set_k_iterations(int kiterations)
     {
         m_k_iterations = kiterations;
     }
     
-    /** @brief Get number of Newton iterations */
+    /// Brief Get number of Newton iterations
     int Get_k_iterations()
     {
         return m_k_iterations;
