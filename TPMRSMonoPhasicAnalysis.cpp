@@ -39,7 +39,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis &
     
 }
 
-void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPZManVector<TPZCompMesh * , 2> & mesh_vec,TPZSimulationData * simulation_data){
+void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPZManVector<TPZCompMesh * , 2> & mesh_vec,TPMRSSimulationData * simulation_data){
     SetSimulationData(simulation_data);
     TPZStepSolver<STATE> step;
     unsigned int number_threads = m_simulation_data->n_threads();

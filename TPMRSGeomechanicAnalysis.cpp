@@ -37,7 +37,7 @@ TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysi
     
 }
 
-void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPZSimulationData * simulation_data){
+void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, TPMRSSimulationData * simulation_data){
     SetSimulationData(simulation_data);
     TPZStepSolver<STATE> step;
     unsigned int number_threads = m_simulation_data->n_threads();
@@ -99,6 +99,8 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
     m_var_names.Push("epxx");
     m_var_names.Push("epyy");
     m_var_names.Push("epzz");
+    
+    
     
     if (m_simulation_data->Dimension() == 3) {
         m_var_names.Push("uz");

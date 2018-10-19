@@ -82,7 +82,7 @@
 #include "pzfstrmatrix.h"
 
 // Simulation data structure
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include "TPMRSUndrainedParameters.h"
 #include "TPMRSPoroMechParameters.h"
 #include "TPMRSPhiParameters.h"
@@ -105,47 +105,47 @@ static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 
 /// PoroElastic Full Coupling
 // L2 mesh for Deformation
-TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data);
 // L2 mesh for Pore Pressure
-TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data);
 // Multiphysics Coupling
-TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data);
 
 
 /// Monophasic Reservoir Simulator
 // Hdiv mesh
-TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Flux(TPMRSSimulationData * sim_data);
 // L2 mesh
-TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_PorePressure_disc(TPMRSSimulationData * sim_data);
 // Mixed mesh
-TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data);
-TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh);
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data);
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh);
 
 // CG mesh for pressure
-TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data);
 // Configurate and insert volumetric materials
 
 
 // Geomechanic Simulator
 // H1 mesh for displacements
-TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data);
+TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data);
 // Configurate and insert volumetric materials
-TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh);
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh);
 
 // Method that makes the poroelastic full coupling
-void RuningFullCoupling(TPZSimulationData * sim_data);
+void RuningFullCoupling(TPMRSSimulationData * sim_data);
 
 
 /// Restructuring implementation of Reservoir Geomechanics Simulator
 
 // Method that makes use of TPMRSMonophasic for parabolic solutions
-void RuningMonophasic(TPZSimulationData * sim_data);
+void RuningMonophasic(TPMRSSimulationData * sim_data);
 
 // Method that makes use of TPMRSElastoPlastic
-void RuningGeomechanics(TPZSimulationData * sim_data);
+void RuningGeomechanics(TPMRSSimulationData * sim_data);
 
 // Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
-void RuningSegregatedSolver(TPZSimulationData * sim_data);
+void RuningSegregatedSolver(TPMRSSimulationData * sim_data);
 
 
 
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
     
     // Simulation data to be configurated
     
-    TPZSimulationData * sim_data = new TPZSimulationData;
+    TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
 //    RuningGeomechanics(sim_data);
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 
 
 
-void RuningFullCoupling(TPZSimulationData * sim_data)
+void RuningFullCoupling(TPMRSSimulationData * sim_data)
 {
   
 #ifdef PZDEBUG
@@ -294,7 +294,7 @@ void RuningFullCoupling(TPZSimulationData * sim_data)
 }
 
 
-void RuningSegregatedSolver(TPZSimulationData * sim_data){
+void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     
     // The Geomechanics Simulator cmesh
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
@@ -323,7 +323,7 @@ void RuningSegregatedSolver(TPZSimulationData * sim_data){
 
 
 // Method that makes use of
-void RuningGeomechanics(TPZSimulationData * sim_data){
+void RuningGeomechanics(TPMRSSimulationData * sim_data){
     
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
     bool mustOptimizeBandwidth = false;
@@ -340,7 +340,7 @@ void RuningGeomechanics(TPZSimulationData * sim_data){
 }
 
 
-TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data){
     
     // Getting mesh dimension
     int dim = sim_data->Dimension();
@@ -397,7 +397,7 @@ TPZCompMesh * CMesh_Geomechanics(TPZSimulationData * sim_data){
     
 }
 
-TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh){
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh){
     
     int dim = sim_data->Dimension();
     
@@ -464,7 +464,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     }
 }
 
-void RuningMonophasic(TPZSimulationData * sim_data){
+void RuningMonophasic(TPMRSSimulationData * sim_data){
     
 #ifdef PZDEBUG
     sim_data->PrintGeometry();
@@ -487,7 +487,7 @@ void RuningMonophasic(TPZSimulationData * sim_data){
 }
 
 
-TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data){
     
     // Getting mesh dimension
     int dim = sim_data->Dimension();
@@ -529,7 +529,7 @@ TPZCompMesh * CMesh_Deformation(TPZSimulationData * sim_data){
 }
 
 
-TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
+TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data)
 {
     
     // Getting mesh dimension
@@ -572,7 +572,7 @@ TPZCompMesh * CMesh_PorePressure(TPZSimulationData * sim_data)
 }
 
 
-TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
+TPZCompMesh * CMesh_Flux(TPMRSSimulationData * sim_data)
 {
     
     // Getting mesh dimension
@@ -613,7 +613,7 @@ TPZCompMesh * CMesh_Flux(TPZSimulationData * sim_data)
     return cmesh;
 }
 
-TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
+TPZCompMesh * CMesh_PorePressure_disc(TPMRSSimulationData * sim_data)
 {
     
     // Getting mesh dimension
@@ -653,7 +653,7 @@ TPZCompMesh * CMesh_PorePressure_disc(TPZSimulationData * sim_data)
     return cmesh;
 }
 
-TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Flux(sim_data);
     mesh_vector[1] = CMesh_PorePressure_disc(sim_data);
@@ -711,7 +711,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSim
     return cmesh;
 }
 
-TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data){
     
     int dim = sim_data->Dimension();
     TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
@@ -762,7 +762,7 @@ TPZCompMesh * CMesh_Primal(TPZSimulationData * sim_data){
     return cmesh;
 }
 
-TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPZSimulationData * sim_data, TPZCompMesh * cmesh){
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh){
     
     REAL s = 1.0e-6;
     REAL c = 0.0;
@@ -798,7 +798,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
 
 }
 
-TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPZSimulationData * sim_data){
+TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
     mesh_vector[1] = CMesh_PorePressure(sim_data);

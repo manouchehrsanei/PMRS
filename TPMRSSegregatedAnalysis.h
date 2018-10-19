@@ -2,7 +2,7 @@
 //  TPMRSSegregatedAnalysis.h
 //  PMRS
 //
-//  Created by Omar Durán on 9/13/18.
+//  Created by Omar and Manouchehr on 9/13/18.
 //
 
 #ifndef TPMRSSegregatedAnalysis_h
@@ -26,7 +26,7 @@ class TPMRSSegregatedAnalysis {
 private:
     
     /// Pointer to Simulation data object
-    TPZSimulationData * m_simulation_data;
+    TPMRSSimulationData * m_simulation_data;
     
     /// Pointer to geomechanic analysis object
     TPMRSGeomechanicAnalysis * m_geomechanic_analysis;
@@ -46,7 +46,7 @@ public:
     TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis & other);
     
     /// Set the pointer of Simulation data object
-    void SetSimulationData(TPZSimulationData * simulation_data){
+    void SetSimulationData(TPMRSSimulationData * simulation_data){
         m_simulation_data = simulation_data;
     }
 
@@ -57,7 +57,7 @@ public:
     void AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d);
     
     /// Configurate internal analysis objects and linked them through the memory shared pointer
-    void ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPZSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec);
+    void ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPMRSSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec);
     
     /// Fill Memory with alpha, phi_0, k_0 and Se
     void FillMemory(TPZCompMesh * cmesh);

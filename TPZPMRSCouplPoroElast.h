@@ -17,7 +17,7 @@
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzvec.h"
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include <iostream>
 #include <cmath>
 #include "pzlog.h"
@@ -30,7 +30,7 @@ class TPZPMRSCouplPoroElast : public TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDis
 protected:
     
     /** @brief define the simulation data */
-    TPZSimulationData * m_SimulationData;
+    TPMRSSimulationData * m_SimulationData;
     
     /** @brief Problem dimension */
     int m_Dim;
@@ -189,13 +189,13 @@ public:
     // ********* Set and Get some functions ********************************************
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZSimulationData * SimulationData)
+    void SetSimulationData(TPMRSSimulationData * SimulationData)
     {
         m_SimulationData = SimulationData;
     }
     
     /** @brief Get the simulation data */
-    TPZSimulationData * SimulationData()
+    TPMRSSimulationData * SimulationData()
     {
         return m_SimulationData;
     }

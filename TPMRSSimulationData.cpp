@@ -1,59 +1,61 @@
 //
-//  TPZSimulationData.cpp
+//  TPMRSSimulationData.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 
 /** @brief costructor */
-TPZSimulationData::TPZSimulationData()
+TPMRSSimulationData::TPMRSSimulationData()
 {
-    
+    m_dt                                  = 0.0;
+    m_n_steps                             = 0  ;
+    m_reporting_times.resize(0);
+    m_time                                = 0.0;
+    m_n_iteraions                         =   0;
+    m_epsilon_res                         = 1.0;
+    m_epsilon_cor                         = 1.0;
+    m_n_fss_iterations                    =   0;
+    m_n_enf_fss_iterations                =   0;
+    m_n_threads                           =   0;
     m_is_dual_formulation_Q               = true;
     m_transfer_current_to_last_solution_Q = false;
-    m_h_level = 0;
-    m_elasticity_order = 0;
-    m_diffusion_order = 0;
-    m_dimesion = 0;
-    m_g.Resize(0);
-//    m_sigma_0.Resize(0, 0);
-    m_n_steps = 0;
-    m_dt = 0.0;
-    m_reporting_times.resize(0);
-    m_n_iteraions = 0;
-    m_epsilon_res = 1.0;
-    m_epsilon_cor = 1.0;
-    m_n_threads = 0;
-    m_geometry_file = "";
-    m_geometry = NULL;
-    m_vtk_file = "";
-    m_vtk_resolution = 0;
+    m_h_level                             =   0;
+    m_elasticity_order                    =   0;
+    m_diffusion_order                     =   0;
+    m_dimesion                            =   0;
+    m_geometry_file                       =  "";
+    m_geometry                            = NULL;
+    m_vtk_file                            =  "";
+    m_vtk_resolution                      =   0;
+    m_n_outputs_geo                       =   0;
+    m_n_outputs_res                       =   0;
     m_s_names_res.Resize(0);
     m_s_names_geo.Resize(0);
     m_v_names_res.Resize(0);
     m_v_names_geo.Resize(0);
     m_t_names_geo.Resize(0);
-    m_n_regions = 0;
+    m_g.Resize(0);
+    m_n_regions                          =  0;
     m_mat_ids.Resize(0);
     m_mat_props.Resize(0);
-    m_is_initial_state_Q = false;
-    m_is_current_state_Q = false;
-    m_time = 0.0;
-    m_is_crank_nicolson_Q = false;
+    m_is_initial_state_Q                 = false;
+    m_is_current_state_Q                 = false;
+    m_is_crank_nicolson_Q                = false;
     
 }
 
 /** @brief destructor */
-TPZSimulationData::~TPZSimulationData()
+TPMRSSimulationData::~TPMRSSimulationData()
 {
     
 }
 
 /** @brief simulation file reader */
-void TPZSimulationData::ReadSimulationFile(char *simulation_file)
+void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
 {
     
     TiXmlDocument document(simulation_file);
@@ -121,6 +123,22 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     SetNumericControls(n_iterations,epsilon_res,epsilon_cor);
     // End:: Newton method controls
     
+    
+    // Begin:: Fixed Stress Split Scheme
+    container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("FssIterations").ToElement();
+    char_container = container->Attribute("n_max_fss_iterations");
+    int n_fss_iterations = std::atoi(char_container);
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("EnfFssIterations").ToElement();
+    char_container = container->Attribute("n_enforce_fss_iterations");
+    int n_enf_fss_iterations = std::atoi(char_container);
+    
+    
+    SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
+    // End:: Fixed Stress Split Scheme
+
+    
+    
     // Begin:: Parallel controls
     container = doc_handler.FirstChild("CaseData").FirstChild("ParallelControls").FirstChild("Numthreads").ToElement();
     char_container = container->Attribute("n_threads");
@@ -170,14 +188,21 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("n_divisions");
     int vtk_resolution = std::atoi(char_container);
+    m_vtk_resolution = vtk_resolution;
+
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("n_outputs_geo");
     int n_outputs_geo = std::atoi(char_container);
+    m_n_outputs_geo = n_outputs_geo;
+
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("n_outputs_res");
     int n_outputs_res = std::atoi(char_container);
+    m_n_outputs_res = n_outputs_res;
+    
+    
 
     int is_r = 0;
     int iv_r = 0;
@@ -234,8 +259,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
         DebugStop();
     }
     
-    m_vtk_file = vtk_file;
-    m_vtk_resolution = vtk_resolution;
+//    m_vtk_file = vtk_file;
     // End:: Outputs
     
     
@@ -758,7 +782,7 @@ void TPZSimulationData::ReadSimulationFile(char *simulation_file)
 }
 
 /** @brief Setup reporting times and time step size */
-void TPZSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q)
+void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q)
 {
     
     m_n_steps    = n_times;
@@ -773,7 +797,7 @@ void TPZSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolso
 }
 
 /** @brief Setup reporting times and time step size */
-void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
+void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
 {
     
     m_n_iteraions  =   n_iterations;
@@ -782,35 +806,43 @@ void TPZSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, R
     
 }
 
+/** @brief Setup fixed stress split schemes */
+void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations)
+{
+    m_n_fss_iterations  =   n_fss_iterations;
+    m_n_enf_fss_iterations    =   n_enf_fss_iterations;
+}
+
 /** @brief Print the all members */
-void TPZSimulationData::Print()
+void TPMRSSimulationData::Print()
 {
     DebugStop();
-    std::cout << " TPZSimulationData class members : " << std::endl;
+    std::cout << " TPMRSSimulationData class members : " << std::endl;
     std::cout << std::endl;
+    std::cout << " m_dt = " << m_dt << std::endl;
+    std::cout << " m_n_steps = " << m_n_steps << std::endl;
+    std::cout << " m_reporting_times = " << m_reporting_times << std::endl;
+    std::cout << " m_time = " << m_time << std::endl;
+    std::cout << " m_n_iteraions = " << m_n_iteraions << std::endl;
+    std::cout << " m_epsilon_res = " << m_epsilon_res << std::endl;
+    std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
+    std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
+    std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
+    std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_is_dual_formulation_Q = " << m_is_dual_formulation_Q << std::endl;
     std::cout << " m_transfer_current_to_last_solution_Q = " << m_transfer_current_to_last_solution_Q << std::endl;
     std::cout << " m_h_level = " << m_h_level << std::endl;
     std::cout << " m_elasticity_order = " << m_elasticity_order << std::endl;
     std::cout << " m_diffusion_order = " << m_diffusion_order << std::endl;
     std::cout << " m_dimesion = " << m_dimesion << std::endl;
-    std::cout << " m_g = " << m_g << std::endl;
-//    std::cout << " m_sigma_0 = " << m_sigma_0 << std::endl;
-    std::cout << " m_n_steps = " << m_n_steps << std::endl;
-    std::cout << " m_dt = " << m_dt << std::endl;
-    std::cout << " m_reporting_times = " << m_reporting_times << std::endl;
-    std::cout << " m_n_iteraions = " << m_n_iteraions << std::endl;
-    std::cout << " m_epsilon_res = " << m_epsilon_res << std::endl;
-    std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
-    std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_geometry_file = " << m_geometry_file << std::endl;
     std::cout << " m_geometry = " << m_geometry << std::endl;
     std::cout << " m_vtk_file = " << m_vtk_file << std::endl;
     std::cout << " m_vtk_resolution = " << m_vtk_resolution << std::endl;
-//    std::cout << " m_reservoiroutputs = " << m_reservoiroutputs << std::endl;
-//    std::cout << " m_geomechanicoutputs = " << m_geomechanicoutputs << std::endl;
+    std::cout << " m_n_outputs_geo = " << m_n_outputs_geo << std::endl;
+    std::cout << " m_n_outputs_res = " << m_n_outputs_res << std::endl;
+    std::cout << " m_g = " << m_g << std::endl;
     std::cout << " m_n_regions = " << m_n_regions << std::endl;
-    
     std::cout << " m_mat_ids = " << std::endl;
     DebugStop();
 //    int n_data = m_mat_ids.size();
@@ -837,10 +869,8 @@ void TPZSimulationData::Print()
 //        }
 //        std::cout << std::endl;
 //    }
-    
     std::cout << " m_is_initial_state_Q = " <<m_is_initial_state_Q << std::endl;
     std::cout << " m_is_current_state_Q = " << m_is_current_state_Q << std::endl;
-    std::cout << " m_time = " << m_time << std::endl;
     std::cout << " ---------------------- " << std::endl;
     std::cout << std::endl;
     
@@ -848,7 +878,7 @@ void TPZSimulationData::Print()
 
 
 /** @brief read the geometry */
-void TPZSimulationData::ReadGeometry()
+void TPMRSSimulationData::ReadGeometry()
 {
     TPZGmshReader Geometry;
     REAL s = 1.0;
@@ -866,7 +896,7 @@ void TPZSimulationData::ReadGeometry()
 }
 
 /** @brief print the geometry */
-void TPZSimulationData::PrintGeometry()
+void TPMRSSimulationData::PrintGeometry()
 {
     
     std::stringstream text_name;
@@ -891,7 +921,7 @@ void TPZSimulationData::PrintGeometry()
 
 
 /** @brief applying the boundary conditions for reservoir simulator */
-void TPZSimulationData::LoadBoundaryConditionsReservoirs()
+void TPMRSSimulationData::LoadBoundaryConditionsReservoirs()
 {
  
     std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkReser;
@@ -915,7 +945,7 @@ void TPZSimulationData::LoadBoundaryConditionsReservoirs()
 
 
 /** @brief applying the boundary conditions for geomechanics simulator */
-void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
+void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
 {
     std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkGeo;
     
@@ -1039,19 +1069,19 @@ void TPZSimulationData::LoadBoundaryConditionsGeomechanics()
     return;
 }
 
-void TPZSimulationData::ReadRegionsAndMaterials(){
+void TPMRSSimulationData::ReadRegionsAndMaterials(){
     DebugStop();
 }
 
-void TPZSimulationData::ReadBCForGeomechanicSimulator(){
+void TPMRSSimulationData::ReadBCForGeomechanicSimulator(){
     DebugStop();
 }
 
-void TPZSimulationData::ReadBCForReservoirSimulator(){
+void TPMRSSimulationData::ReadBCForReservoirSimulator(){
     DebugStop();
 }
 
-void TPZSimulationData::UniformRefinement() {
+void TPMRSSimulationData::UniformRefinement() {
     
     TPZManVector<TPZGeoEl*> sons;
     for(int i=0; i < m_h_level; i++)

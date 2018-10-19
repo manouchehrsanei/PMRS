@@ -13,7 +13,7 @@
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzaxestools.h"
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include "TPMRSMonoPhasicMemory.h"
 #include "TPMRSPhiParameters.h"
 #include "TPMRSKappaParameters.h"
@@ -22,7 +22,7 @@ template <class TMEM>
 class TPMRSMonoPhasic : public TPZMatWithMem<TMEM> {
     
     /// Pointer of Simulation data
-    TPZSimulationData * m_simulation_data;
+    TPMRSSimulationData * m_simulation_data;
     
     /// Dimension
     int m_dimension;
@@ -101,7 +101,7 @@ public:
     
     
     /// Set the pointer of Simulation data object
-    void SetSimulationData(TPZSimulationData * simulation_data){
+    void SetSimulationData(TPMRSSimulationData * simulation_data){
         m_simulation_data = simulation_data;
     }
     

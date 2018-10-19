@@ -1,13 +1,13 @@
 //
-//  TPZSimulationData.h
+//  TPMRSSimulationData.h
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#ifndef TPZSimulationData_h
-#define TPZSimulationData_h
+#ifndef TPMRSSimulationData_h
+#define TPMRSSimulationData_h
 
 #include <stdio.h>
 #include "pzvec.h"
@@ -31,17 +31,43 @@
 #include "TPMRSPlasticityParameters.h"
 
 
-
-
-//@TODO: Rename TPZSimulationData to TPMRSSimulationData
-//@TODO: Rename Update a copy constructor
-class TPZSimulationData
+class TPMRSSimulationData
 {
     
 protected:
     
-    /** @brief update pressure from undrain condition */
-    bool m_update_pressure_from_undrain_solution_Q;
+    /** @brief Time step size */
+    REAL m_dt;
+    
+    /** @brief Number of time steps */
+    int m_n_steps;
+    
+    /** @brief Store time values to be reported */
+    TPZStack< REAL , 500 > m_reporting_times;
+    
+    /** @brief Current time value */
+    REAL m_time;
+    
+    /** @brief Number of iteration */
+    int m_n_iteraions;
+    
+    /** @brief Residue overal tolerance */
+    REAL m_epsilon_res;
+    
+    /** @brief Correction overal tolerance */
+    REAL m_epsilon_cor;
+    
+    /** @brief Number of iteration for fss scheme*/
+    int m_n_fss_iterations;
+    
+    /** @brief Number of iteration for enforced fss scheme */
+    int m_n_enf_fss_iterations;
+    
+    /** @brief Number of thread */
+    int m_n_threads;
+    
+    /** @brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow  */
+    bool m_is_dual_formulation_Q;
     
     /** @brief Directive that states if the last memory solution is being transferred to the current memory solution */
     bool m_transfer_current_to_last_solution_Q;
@@ -57,30 +83,6 @@ protected:
     
     /** @brief Physical dimension of the domain */
     int m_dimesion;
-
-    /** @brief Gravity field */
-    TPZManVector<REAL,3> m_g;
-    
-    /** @brief Number of time steps */
-    int m_n_steps;
-    
-    /** @brief Time step size */
-    REAL m_dt;
-    
-    /** @brief Store time values to be reported */
-    TPZStack< REAL , 500 > m_reporting_times;
-    
-    /** @brief Number of iteration */
-    int m_n_iteraions;
-    
-    /** @brief Residue overal tolerance */
-    REAL m_epsilon_res;
-    
-    /** @brief Correction overal tolerance */
-    REAL m_epsilon_cor;
-    
-    /** @brief Number of thread */
-    int m_n_threads;
     
     /** @brief Name for the Gmsh geometry file being used */
     std::string m_geometry_file;
@@ -93,6 +95,12 @@ protected:
     
     /** @brief Number of vtk resolution during postprocessing */
     int m_vtk_resolution;
+    
+    /** @brief Number of geomechanics outputs */
+    int m_n_outputs_geo;
+    
+    /** @brief Number of reservoir outputs */
+    int m_n_outputs_res;
     
     /** @brief Vector that storage scalar names for reservoir postprocessing */
     TPZManVector<std::string,50> m_s_names_res;
@@ -108,6 +116,9 @@ protected:
     
     /** @brief Vector that storage tensor names for geomechanics postprocessing */
     TPZManVector<std::string,50> m_t_names_geo;
+    
+    /** @brief Gravity field */
+    TPZManVector<REAL,3> m_g;
     
     /** @brief Integer that define the number of regions presented in the geometry */
     int m_n_regions;
@@ -125,9 +136,6 @@ protected:
     
     /** @brief Current time directive */
     bool m_is_current_state_Q;
-    
-    /** @brief Current time value */
-    REAL m_time;
     
     /** @brief Use for Crank-Nicolson method directive */
     bool m_is_crank_nicolson_Q;
@@ -159,107 +167,104 @@ protected:
     /** @brief Directive that states if the current solution must be accepted inside the memory  */
     bool m_must_accept_solution_Q;
     
-    /** @brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow  */
-    bool m_is_dual_formulation_Q;
+    /** @brief update pressure from undrain condition */
+    bool m_update_pressure_from_undrain_solution_Q;
     
-    // Begin::  Block that define the material parameters
-    /** @brief the property of material  */
-    REAL m_young;
-    REAL m_nu;
-    REAL m_porosity;
-    
-    REAL m_k_0;
-    REAL m_alpha;
-    REAL m_Se;
-    REAL m_eta;
-    REAL m_rho_f;
-    REAL m_rho_s;
-    
-    REAL mc_coh;
-    REAL mc_phi;
-    REAL mc_psi;
     
     
 public:
     
     
     /** @brief default constructor */
-    TPZSimulationData();
+    TPMRSSimulationData();
     
     /** @brief Copy constructor */
-    TPZSimulationData(const TPZSimulationData & other)
+    TPMRSSimulationData(const TPMRSSimulationData & other)
     {
-        DebugStop();
+        m_dt                                      = other.m_dt;
+        m_n_steps                                 = other.m_n_steps;
+        m_reporting_times                         = other.m_reporting_times;
+        m_time                                    = other.m_time;
+        m_n_iteraions                             = other.m_n_iteraions;
+        m_epsilon_res                             = other.m_epsilon_res;
+        m_epsilon_cor                             = other.m_epsilon_cor;
+        m_n_fss_iterations                        = other.m_n_fss_iterations;
+        m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+        m_n_threads                               = other.m_n_threads;
+        m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
+        m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
+        m_h_level                                 = other.m_h_level;
+        m_elasticity_order                        = other.m_elasticity_order;
+        m_diffusion_order                         = other.m_diffusion_order;
+        m_dimesion                                = other.m_dimesion;
+        m_geometry_file                           = other.m_geometry_file;
+        m_geometry                                = other.m_geometry;
+        m_vtk_file                                = other.m_vtk_file;
+        m_vtk_resolution                          = other.m_vtk_resolution;
+        m_n_outputs_geo                           = other.m_n_outputs_geo;
+        m_n_outputs_res                           = other.m_n_outputs_res;
+        m_s_names_res                             = other.m_s_names_res;
+        m_s_names_geo                             = other.m_s_names_geo;
+        m_v_names_res                             = other.m_v_names_res;
+        m_v_names_geo                             = other.m_v_names_geo;
+        m_t_names_geo                             = other.m_t_names_geo;
+        m_g                                       = other.m_g;
+        m_n_regions                               = other.m_n_regions;
+        m_mat_ids                                 = other.m_mat_ids;
+        m_mat_props                               = other.m_mat_props;
+        m_is_initial_state_Q                      = other.m_is_initial_state_Q;
+        m_is_current_state_Q                      = other.m_is_current_state_Q;
+        m_is_crank_nicolson_Q                     = other.m_is_crank_nicolson_Q;
         m_update_pressure_from_undrain_solution_Q = other.m_update_pressure_from_undrain_solution_Q;
-        m_transfer_current_to_last_solution_Q            = other.m_transfer_current_to_last_solution_Q;
-        m_h_level                           = other.m_h_level;
-        m_elasticity_order                  = other.m_elasticity_order;
-        m_diffusion_order                   = other.m_diffusion_order;
-        m_dimesion                          = other.m_dimesion;
-        m_g                                 = other.m_g;
-//        m_sigma_0                           = other.m_sigma_0;
-        m_n_steps                           = other.m_n_steps;
-        m_dt                                = other.m_dt;
-        m_reporting_times                   = other.m_reporting_times;
-        m_n_iteraions                       = other.m_n_iteraions;
-        m_epsilon_res                       = other.m_epsilon_res;
-        m_epsilon_cor                       = other.m_epsilon_cor;
-        m_n_threads                         = other.m_n_threads;
-        m_geometry_file                     = other.m_geometry_file;
-        m_geometry                          = other.m_geometry;
-        m_vtk_file                          = other.m_vtk_file;
-        m_vtk_resolution                    = other.m_vtk_resolution;
-//        m_reservoiroutputs                         = other.m_reservoiroutputs;
-//        m_geomechanicoutputs                          = other.m_geomechanicoutputs;
-        m_n_regions                         = other.m_n_regions;
-        m_mat_ids                           = other.m_mat_ids;
-        m_mat_props                         = other.m_mat_props;
-        m_is_initial_state_Q                = other.m_is_initial_state_Q;
-        m_is_current_state_Q                = other.m_is_current_state_Q;
-        m_time                              = other.m_time;
-        m_is_dual_formulation_Q             = other.m_is_dual_formulation_Q;
     }
     
     /** @brief Assignement constructor */
-    TPZSimulationData &operator=(const TPZSimulationData &other)
+    TPMRSSimulationData &operator=(const TPMRSSimulationData &other)
     {
-        DebugStop();
         if (this != & other) // prevent self-assignment
         {
+            m_dt                                      = other.m_dt;
+            m_n_steps                                 = other.m_n_steps;
+            m_reporting_times                         = other.m_reporting_times;
+            m_time                                    = other.m_time;
+            m_n_iteraions                             = other.m_n_iteraions;
+            m_epsilon_res                             = other.m_epsilon_res;
+            m_epsilon_cor                             = other.m_epsilon_cor;
+            m_n_fss_iterations                        = other.m_n_fss_iterations;
+            m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+            m_n_threads                               = other.m_n_threads;
+            m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
+            m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
+            m_h_level                                 = other.m_h_level;
+            m_elasticity_order                        = other.m_elasticity_order;
+            m_diffusion_order                         = other.m_diffusion_order;
+            m_dimesion                                = other.m_dimesion;
+            m_geometry_file                           = other.m_geometry_file;
+            m_geometry                                = other.m_geometry;
+            m_vtk_file                                = other.m_vtk_file;
+            m_vtk_resolution                          = other.m_vtk_resolution;
+            m_n_outputs_geo                           = other.m_n_outputs_geo;
+            m_n_outputs_res                           = other.m_n_outputs_res;
+            m_s_names_res                             = other.m_s_names_res;
+            m_s_names_geo                             = other.m_s_names_geo;
+            m_v_names_res                             = other.m_v_names_res;
+            m_v_names_geo                             = other.m_v_names_geo;
+            m_t_names_geo                             = other.m_t_names_geo;
+            m_g                                       = other.m_g;
+            m_n_regions                               = other.m_n_regions;
+            m_mat_ids                                 = other.m_mat_ids;
+            m_mat_props                               = other.m_mat_props;
+            m_is_initial_state_Q                      = other.m_is_initial_state_Q;
+            m_is_current_state_Q                      = other.m_is_current_state_Q;
+            m_is_crank_nicolson_Q                     = other.m_is_crank_nicolson_Q;
             m_update_pressure_from_undrain_solution_Q = other.m_update_pressure_from_undrain_solution_Q;
-            m_transfer_current_to_last_solution_Q = other.m_transfer_current_to_last_solution_Q;
-            m_h_level                           = other.m_h_level;
-            m_elasticity_order                  = other.m_elasticity_order;
-            m_diffusion_order                   = other.m_diffusion_order;
-            m_dimesion                          = other.m_dimesion;
-            m_g                                 = other.m_g;
-//            m_sigma_0                           = other.m_sigma_0;
-            m_n_steps                           = other.m_n_steps;
-            m_dt                                = other.m_dt;
-            m_reporting_times                   = other.m_reporting_times;
-            m_n_iteraions                       = other.m_n_iteraions;
-            m_epsilon_res                       = other.m_epsilon_res;
-            m_epsilon_cor                       = other.m_epsilon_cor;
-            m_n_threads                         = other.m_n_threads;
-            m_geometry_file                     = other.m_geometry_file;
-            m_geometry                          = other.m_geometry;
-            m_vtk_file                          = other.m_vtk_file;
-            m_vtk_resolution                    = other.m_vtk_resolution;
-//            m_reservoiroutputs                         = other.m_reservoiroutputs;
-//            m_geomechanicoutputs                          = other.m_geomechanicoutputs;
-            m_n_regions                         = other.m_n_regions;
-            m_mat_ids                           = other.m_mat_ids;
-            m_mat_props                         = other.m_mat_props;
-            m_is_initial_state_Q                = other.m_is_initial_state_Q;
-            m_is_current_state_Q                = other.m_is_current_state_Q;
-            m_time                              = other.m_time;
-            m_is_dual_formulation_Q             = other.m_is_dual_formulation_Q;
         }
+
         return *this;
     }
     
     /** @brief destructor */
-    ~TPZSimulationData();
+    ~TPMRSSimulationData();
     
     /** @brief Read the xml input file */
     void ReadSimulationFile(char *simulation_file);
@@ -302,6 +307,9 @@ public:
     /** @brief Setup for Newton method controls */
     void SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor);
     
+    /** @brief Setup for fixed stress split schemes */
+    void SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations);
+    
     /** @brief Get time values being reported */
     TPZStack< REAL , 500 > ReportingTimes(){
         return m_reporting_times;
@@ -328,6 +336,14 @@ public:
     /** @brief Get the correction overal tolerance */
     REAL epsilon_cor() { return m_epsilon_cor; }
     
+    
+    /** @brief Get the maximum number of fixed stress split scheme  */
+    int n_fss_iterations() { return m_n_fss_iterations; }
+    
+    
+    /** @brief Get the number of enforced for fixed stress split scheme  */
+    int n_enf_fss_iterations() { return m_n_enf_fss_iterations; }
+    
     /** @brief Get the number of threads */
     int n_threads() { return m_n_threads; }
     
@@ -336,6 +352,12 @@ public:
     
     /** @brief Get Number of vtk resolution during postprocessing */
     int n_div() { return m_vtk_resolution; }
+    
+    /** @brief Get Number of geomechanics output */
+    int num_outputs_geo() { return m_n_outputs_geo; }
+    
+    /** @brief Get Number of reservoir output */
+    int num_outputs_res() { return m_n_outputs_res; }
     
     /** @brief Get Vector that storage scalar names for reservoir postprocessing */
     TPZManVector<std::string,50> s_names_res() { return m_s_names_res; }
@@ -456,4 +478,4 @@ private:
 };
 
 
-#endif /* TPZSimulationData_h */
+#endif /* TPMRSSimulationData_h */

@@ -23,7 +23,7 @@
 #include "TPZYCMohrCoulombPV.h"
 #include "TPZSandlerDimaggio.h"
 
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 
@@ -46,7 +46,7 @@ private:
 protected:
     
     /** @brief define the simulation data */
-    TPZSimulationData * m_SimulationData;
+    TPMRSSimulationData * m_SimulationData;
     
     /** @brief Problem dimension */
     int m_Dim;
@@ -216,13 +216,13 @@ public:
     // ********* Set and Get some functions ********************************************
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZSimulationData * SimulationData)
+    void SetSimulationData(TPMRSSimulationData * SimulationData)
     {
         m_SimulationData = SimulationData;
     }
     
     /** @brief Get the simulation data */
-    TPZSimulationData * SimulationData()
+    TPMRSSimulationData * SimulationData()
     {
         return m_SimulationData;
     }

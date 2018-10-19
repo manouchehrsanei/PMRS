@@ -15,7 +15,7 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 #include "pzadmchunk.h"
@@ -29,7 +29,7 @@ private:
     bool IsPoroElastic = false;
     
     /** @brief define the simulation data */
-    TPZSimulationData * m_SimulationData;
+    TPMRSSimulationData * m_SimulationData;
     
     /** @brief Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> m_meshvec;
@@ -142,14 +142,14 @@ public:
     }
     
     /** @brief Set the simulation data */
-    void SetSimulationData(TPZSimulationData * SimulationData)
+    void SetSimulationData(TPMRSSimulationData * SimulationData)
     {
         m_SimulationData = SimulationData;
         m_meshvec.Resize(2);
     }
     
     /** @brief Get the space generator */
-    TPZSimulationData * SimulationData()
+    TPMRSSimulationData * SimulationData()
     {
         return m_SimulationData;
     }

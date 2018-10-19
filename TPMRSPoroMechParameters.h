@@ -2,7 +2,7 @@
 //  TPMRSPoroMechParameters.h
 //  PMRS
 //
-//  Created by Omar Durán on 10/14/18.
+//  Created by Omar and Manouchehr on 10/14/18.
 //
 
 #ifndef TPMRSPoroMechParameters_h
@@ -17,9 +17,9 @@
 
 class TPMRSPoroMechParameters {
     
-    // @TODO:: MS, please document this class.
 private:
     
+    /// model parameters
     std::vector<REAL> m_parameters;
     
 public:

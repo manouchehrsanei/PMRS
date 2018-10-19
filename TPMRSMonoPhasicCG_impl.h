@@ -2,7 +2,7 @@
 //  TPMRSMonoPhasicCG_impl.h
 //  PMRS
 //
-//  Created by Omar Durán on 9/22/18.
+//  Created by Omar and Manouchehr on 9/22/18.
 //
 
 
@@ -68,7 +68,7 @@ template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::Print(std::ostream &out){
     
     out << " Material name : " << this->Name() << "\n";
-    out << " Pointer to TPZSimulationData : " << m_simulation_data << "\n";
+    out << " Pointer to TPMRSSimulationData : " << m_simulation_data << "\n";
     out << " Material dimension : " << m_dimension << "\n";
     out << " Fluid compressibility : " << m_c << "\n";
     out << " Fluid viscosity : " << m_eta << "\n";

@@ -3,12 +3,12 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_3D.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_3D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.01" />
-        <StepNumber n_time_steps="100" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -17,6 +17,11 @@
         <Residue res_tolerance="0.000001" />
         <Correction cor_tolerance="0.000001" />
     </NewtonControls>
+    <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="20" />
+        <EnfFssIterations n_enforce_fss_iterations="5" />
+    </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
         <Numthreads n_threads="0" />

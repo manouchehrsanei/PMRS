@@ -2,7 +2,7 @@
 //  TPMRSSegregatedAnalysis.cpp
 //  PMRS
 //
-//  Created by Omar Durán on 9/13/18.
+//  Created by Omar and Manouchehr on 9/13/18.
 //
 
 #include "TPMRSSegregatedAnalysis.h"
@@ -54,7 +54,7 @@ void TPMRSSegregatedAnalysis::ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh
     }
 }
 
-void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPZSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec){
+void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, DecomposeType decompose_res, TPMRSSimulationData * simulation_data, TPZCompMesh * cmesh_geomechanics, TPZCompMesh * cmesh_reservoir, TPZManVector<TPZCompMesh * , 2> & mesh_vec){
 
     if (!simulation_data || !cmesh_geomechanics || !cmesh_reservoir) {
         DebugStop();
@@ -208,8 +208,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::string file_geo = name + "_geo.vtk";
     std::string file_res = name + "_res.vtk";
     
-    int n_max_fss_iterations = 20; // @TODO:: MS, please to xml file structure
-    int n_enforced_fss_iterations = 5; // @TODO:: MS, please to xml file structure
+    int n_max_fss_iterations = m_simulation_data->n_fss_iterations();
+    int n_enforced_fss_iterations = m_simulation_data->n_enf_fss_iterations();
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();

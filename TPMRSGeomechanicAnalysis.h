@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 #include "pzanalysis.h"
-#include "TPZSimulationData.h"
+#include "TPMRSSimulationData.h"
 #include "pzpostprocanalysis.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
@@ -24,7 +24,7 @@ class TPMRSGeomechanicAnalysis : public TPZAnalysis {
 private:
     
     /// Pointer of Simulation data object
-    TPZSimulationData * m_simulation_data;
+    TPMRSSimulationData * m_simulation_data;
     
     /// Solution at n+1 state
     TPZFMatrix<STATE> m_X_n;
@@ -59,12 +59,12 @@ public:
     TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysis & other);
     
     /// Set the pointer of Simulation data object
-    void SetSimulationData(TPZSimulationData * simulation_data){
+    void SetSimulationData(TPMRSSimulationData * simulation_data){
         m_simulation_data = simulation_data;
     }
     
     /// Configurate the solver being used to compute the approximation
-    void ConfigurateAnalysis(DecomposeType decomposition, TPZSimulationData * simulation_data);
+    void ConfigurateAnalysis(DecomposeType decomposition, TPMRSSimulationData * simulation_data);
     
     /// Execute a single newton iteration
     void ExecuteNewtonInteration();

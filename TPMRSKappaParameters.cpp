@@ -2,7 +2,7 @@
 //  TPMRSKappaParameters.cpp
 //  PMRS
 //
-//  Created by Omar Durán on 10/15/18.
+//  Created by Omar and Manouchehr on 10/15/18.
 //
 
 #include "TPMRSKappaParameters.h"
