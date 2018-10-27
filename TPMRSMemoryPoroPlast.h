@@ -1,36 +1,36 @@
 //
-//  TPZPMRSMemoryPoroPlast.h
+//  TPMRSMemoryPoroPlast.h
 //  PMRS
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 
-#ifndef TPZPMRSMemoryPoroPlast_h
-#define TPZPMRSMemoryPoroPlast_h
+#ifndef TPMRSMemoryPoroPlast_h
+#define TPMRSMemoryPoroPlast_h
 
 #include <stdio.h>
 #include "TPZElastoPlasticMem.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Non linear poro mechanich memory: It is written for TPZPMRSMemoryPoroPlast
+//  Non linear poro mechanich memory: It is written for TPMRSMemoryPoroPlast
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class TPZPMRSMemoryPoroPlast : public TPZElastoPlasticMem
+class TPMRSMemoryPoroPlast : public TPZElastoPlasticMem
 {
     
 public:
     
     /// Default constructor
-    TPZPMRSMemoryPoroPlast();
+    TPMRSMemoryPoroPlast();
     
     /// Copy constructor
-    TPZPMRSMemoryPoroPlast(const TPZPMRSMemoryPoroPlast & other);
+    TPMRSMemoryPoroPlast(const TPMRSMemoryPoroPlast & other);
     
     /// Assignement constructor
-    const TPZPMRSMemoryPoroPlast & operator=(const TPZPMRSMemoryPoroPlast & other);
+    const TPMRSMemoryPoroPlast & operator=(const TPMRSMemoryPoroPlast & other);
     
     /// Desconstructor
-    virtual ~TPZPMRSMemoryPoroPlast();
+    virtual ~TPMRSMemoryPoroPlast();
     
     /// Class name
     const std::string Name()const;
@@ -45,7 +45,7 @@ public:
     virtual void Print(std::ostream &out = std::cout)const;
     
     /// Print class attributes
-    friend std::ostream& operator<<( std::ostream& out, const TPZPMRSMemoryPoroPlast & s ){
+    friend std::ostream& operator<<( std::ostream& out, const TPMRSMemoryPoroPlast & s ){
         s.Print(out);
         return out;
     }
@@ -76,4 +76,4 @@ public:
     
 };
 
-#endif /* TPZPMRSMemoryPoroPlast_h */
+#endif /* TPMRSMemoryPoroPlast_h */

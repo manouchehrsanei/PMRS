@@ -1,21 +1,21 @@
 //
-//  TPZPMRSMemoryPoroPlast.cpp
+//  TPMRSMemoryPoroPlast.cpp
 //  PMRS
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 
-#include "TPZPMRSMemoryPoroPlast.h"
+#include "TPMRSMemoryPoroPlast.h"
 
 
-TPZPMRSMemoryPoroPlast::TPZPMRSMemoryPoroPlast() : TPZElastoPlasticMem(){
+TPMRSMemoryPoroPlast::TPMRSMemoryPoroPlast() : TPZElastoPlasticMem(){
     m_pressure = 0;
     m_kappa = 0;
     m_porosity = 0;
 }
 
 /// Copy constructor
-TPZPMRSMemoryPoroPlast::TPZPMRSMemoryPoroPlast(const TPZPMRSMemoryPoroPlast & other){
+TPMRSMemoryPoroPlast::TPMRSMemoryPoroPlast(const TPMRSMemoryPoroPlast & other){
     
     if(&other != this){
         fSigma          = other.fSigma;
@@ -31,7 +31,7 @@ TPZPMRSMemoryPoroPlast::TPZPMRSMemoryPoroPlast(const TPZPMRSMemoryPoroPlast & ot
 }
 
 /// Assignement constructor
-const TPZPMRSMemoryPoroPlast & TPZPMRSMemoryPoroPlast::operator=(const TPZPMRSMemoryPoroPlast & other){
+const TPMRSMemoryPoroPlast & TPMRSMemoryPoroPlast::operator=(const TPMRSMemoryPoroPlast & other){
     // check for self-assignment
     if(&other == this){
         return *this;
@@ -50,17 +50,17 @@ const TPZPMRSMemoryPoroPlast & TPZPMRSMemoryPoroPlast::operator=(const TPZPMRSMe
 }
 
 /// Desconstructor
-TPZPMRSMemoryPoroPlast::~TPZPMRSMemoryPoroPlast(){
+TPMRSMemoryPoroPlast::~TPMRSMemoryPoroPlast(){
     
 }
 
 /// Class name
-const std::string TPZPMRSMemoryPoroPlast::Name()const{
-    return "TPZPMRSMemoryPoroPlast";
+const std::string TPMRSMemoryPoroPlast::Name()const{
+    return "TPMRSMemoryPoroPlast";
 }
 
 /// Write class attributes
-void TPZPMRSMemoryPoroPlast::Write(TPZStream &buf, int withclassid) const{
+void TPMRSMemoryPoroPlast::Write(TPZStream &buf, int withclassid) const{
     TPZElastoPlasticMem::Write(buf,withclassid);
     buf.Write(&m_pressure);
     buf.Write(&m_kappa);
@@ -68,7 +68,7 @@ void TPZPMRSMemoryPoroPlast::Write(TPZStream &buf, int withclassid) const{
 }
 
 /// Read class attributes
-void TPZPMRSMemoryPoroPlast::Read(TPZStream &buf, void *context){
+void TPMRSMemoryPoroPlast::Read(TPZStream &buf, void *context){
     TPZElastoPlasticMem::Read(buf,context);
     buf.Read(&m_pressure);
     buf.Read(&m_kappa);
@@ -76,7 +76,7 @@ void TPZPMRSMemoryPoroPlast::Read(TPZStream &buf, void *context){
 }
 
 /// Print class attributes
-void TPZPMRSMemoryPoroPlast::Print(std::ostream &out) const{
+void TPMRSMemoryPoroPlast::Print(std::ostream &out) const{
     
     out << Name();
     out << "\n Sigma = " << fSigma;
@@ -90,6 +90,6 @@ void TPZPMRSMemoryPoroPlast::Print(std::ostream &out) const{
 }
 
 
-int TPZPMRSMemoryPoroPlast::ClassId() const{
-    return Hash("TPZPMRSMemoryPoroPlast");
+int TPMRSMemoryPoroPlast::ClassId() const{
+    return Hash("TPMRSMemoryPoroPlast");
 }

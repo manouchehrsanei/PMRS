@@ -303,8 +303,8 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute_Biot_Stress(TPZMaterialData &data, R
             dvdx = grad_phi_u(0,iu);
             dvdy = grad_phi_u(1,iu);
             
-            ef(2*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
-            ef(2*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
+            ef(m_dimension*iu+0 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
         }
     }
     else{
@@ -315,13 +315,11 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute_Biot_Stress(TPZMaterialData &data, R
             dvdy = grad_phi_u(1,iu);
             dvdz = grad_phi_u(2,iu);
 
-            ef(m_dimension*iu + first_u)     +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+            ef(m_dimension*iu+0 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
             ef(m_dimension*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
             ef(m_dimension*iu+2 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdz);    // z direction
         }
     }
-    
-
     
 }
 
@@ -354,7 +352,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             dvdx = grad_phi_u(0,iu);
             dvdy = grad_phi_u(1,iu);
             
-            ef(m_dimension*iu + first_u)     +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy);    // x direction
+            ef(m_dimension*iu+0 + first_u)   +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy);    // x direction
             ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy);    // y direction
             
             for(int ju = 0; ju < n_phi_u; ju++)
@@ -405,7 +403,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             dvdy = grad_phi_u(1,iu);
             dvdz = grad_phi_u(2,iu);
             
-            ef(m_dimension*iu + first_u)     +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy + sigma.XZ()*dvdz);    // x direction
+            ef(m_dimension*iu+0 + first_u)   +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy + sigma.XZ()*dvdz);    // x direction
             ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy + sigma.YZ()*dvdz);    // y direction
             ef(m_dimension*iu+2 + first_u)   +=    weight * (sigma.XZ()*dvdx + sigma.YZ()*dvdy + sigma.ZZ()*dvdz);    // z direction
             
@@ -546,24 +544,29 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     
     TPZBndCondWithMem<TPMRSElastoPlasticMemory> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TPMRSElastoPlasticMemory> &>(bc);
     int gp_index = data.intGlobPtIndex;
-    if (m_simulation_data->Get_must_accept_solution_Q()) {
+    if (m_simulation_data->Get_must_accept_solution_Q())
+    {
         
-        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+        if (m_simulation_data->GetTransferCurrentToLastQ())
+        {
             bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n()) ;
             return;
         }
         
-        if (m_simulation_data->IsCurrentStateQ()) {
+        if (m_simulation_data->IsCurrentStateQ())
+        {
             
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
             TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-            for (int i = 0; i < m_dimension; i++) {
+            for (int i = 0; i < m_dimension; i++)
+            {
                 u_n[i] = delta_u[i] + u[i];
             }
             bc_with_memory.MemItem(gp_index).Setu_n(u_n);
             
-        }else{
+        }else
+        {
             TPZManVector<STATE,3> u    = data.sol[0];
             bc_with_memory.MemItem(gp_index).Setu(u);
         }
@@ -573,7 +576,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     TPZManVector<STATE,3> delta_u    = data.sol[0];
     TPZManVector<STATE,3> u_n(m_dimension,0.0);
     TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-    for (int i = 0; i < m_dimension; i++) {
+    for (int i = 0; i < m_dimension; i++)
+    {
         u_n[i] = delta_u[i] + u[i];
     }
     

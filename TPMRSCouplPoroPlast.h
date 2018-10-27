@@ -1,13 +1,13 @@
 //
-//  TPZPMRSCouplPoroPlast.hpp
+//  TPMRSCouplPoroPlast.hpp
 //  PZ
 //
 //  Created by Manouchehr on Jun 27, 2018.
 //
 //
 
-#ifndef TPZPMRSCouplPoroPlast_H
-#define TPZPMRSCouplPoroPlast_H
+#ifndef TPMRSCouplPoroPlast_H
+#define TPMRSCouplPoroPlast_H
 
 #include <iostream>
 
@@ -27,14 +27,14 @@
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
 
-#include "TPZPMRSMemoryPoroPlast.h"
+#include "TPMRSMemoryPoroPlast.h"
 
 // TPZElastoPlasticMem
 // TPZCouplElasPlastMem
 
 
-template <class T, class TMEM = TPZPMRSMemoryPoroPlast>
-class TPZPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
+template <class T, class TMEM = TPMRSMemoryPoroPlast>
+class TPMRSCouplPoroPlast : public TPZMatElastoPlastic2D<T,TMEM>
 {
     
 private:
@@ -116,23 +116,23 @@ public:
     
     /// Default constructor
     
-    TPZPMRSCouplPoroPlast();
+    TPMRSCouplPoroPlast();
     
-    TPZPMRSCouplPoroPlast(int matid, int dim);
+    TPMRSCouplPoroPlast(int matid, int dim);
     
-    virtual ~TPZPMRSCouplPoroPlast();
+    virtual ~TPMRSCouplPoroPlast();
     
     /// Brief Copy constructor
-    TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast& other);
+    TPMRSCouplPoroPlast(const TPMRSCouplPoroPlast& other);
     
     /// Brief Copy assignemnt operator
-    TPZPMRSCouplPoroPlast & operator = (const TPZPMRSCouplPoroPlast& other);
+    TPMRSCouplPoroPlast & operator = (const TPMRSCouplPoroPlast& other);
     
     virtual int ClassId() const;
     
     void Print(std::ostream & out);
     
-    virtual std::string Name() { return "TPZPMRSCouplPoroPlast"; }
+    virtual std::string Name() { return "TPMRSCouplPoroPlast"; }
     
     virtual int NStateVariables();
     
@@ -317,9 +317,9 @@ public:
 
 
 template <class T, class TMEM>
-int TPZPMRSCouplPoroPlast<T,TMEM>::ClassId() const{
-    return Hash("TPZPMRSCouplPoroPlast") ^ TPZMatElastoPlastic2D<T,TMEM>::ClassId() << 1;
+int TPMRSCouplPoroPlast<T,TMEM>::ClassId() const{
+    return Hash("TPMRSCouplPoroPlast") ^ TPZMatElastoPlastic2D<T,TMEM>::ClassId() << 1;
 }
 
 
-#endif /* TPZPMRSCouplPoroPlast_hpp */
+#endif /* TPMRSCouplPoroPlast_hpp */

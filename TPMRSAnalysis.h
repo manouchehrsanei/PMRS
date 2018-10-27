@@ -1,13 +1,13 @@
 //
-//  TPZPMRSAnalysis.hpp
+//  TPMRSAnalysis.hpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/11/18.
 //
 //
 
-#ifndef TPZPMRSAnalysis_hpp
-#define TPZPMRSAnalysis_hpp
+#ifndef TPMRSAnalysis_hpp
+#define TPMRSAnalysis_hpp
 
 #include <stdio.h>
 
@@ -20,7 +20,7 @@
 #include "pzporoelastoplasticmem.h"
 #include "pzadmchunk.h"
 
-class TPZPMRSAnalysis : public TPZAnalysis
+class TPMRSAnalysis : public TPZAnalysis
 {
     
 private:
@@ -77,16 +77,16 @@ private:
 public:
     
     /// Brief default Constructor
-    TPZPMRSAnalysis();
+    TPMRSAnalysis();
     
     /// Brief default Destructor
-    ~TPZPMRSAnalysis();
+    ~TPMRSAnalysis();
     
     /// Brief Copy constructor
-    TPZPMRSAnalysis(const TPZPMRSAnalysis &copy);
+    TPMRSAnalysis(const TPMRSAnalysis &copy);
     
     /// Brief Copy assignemnt operator
-    TPZPMRSAnalysis &operator=(const TPZPMRSAnalysis &other);
+    TPMRSAnalysis &operator=(const TPMRSAnalysis &other);
     
     
     /// Brief Set Solution at n+1 (current) state
@@ -231,4 +231,4 @@ public:
 };
 
 
-#endif /* TPZPMRSAnalysis_hpp */
+#endif /* TPMRSAnalysis_hpp */

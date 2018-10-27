@@ -1,18 +1,18 @@
 //
-//  TPZPMRSCouplPoroElast.hpp
+//  TPMRSCouplPoroElast.hpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#ifndef TPZPMRSCouplPoroElast_h
-#define TPZPMRSCouplPoroElast_h
+#ifndef TPMRSCouplPoroElast_h
+#define TPMRSCouplPoroElast_h
 
 #include <stdio.h>
 #include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
-#include "TPZPMRSMemoryPoroElast.h"
+#include "TPMRSMemoryPoroElast.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -24,7 +24,7 @@
 
 
 
-class TPZPMRSCouplPoroElast : public TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>
+class TPMRSCouplPoroElast : public TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>
 {
     
 protected:
@@ -91,24 +91,24 @@ protected:
 public:
     
     /// Default constructor
-    TPZPMRSCouplPoroElast();
+    TPMRSCouplPoroElast();
     
     /// Constructor
-    TPZPMRSCouplPoroElast(int matid, int dim);
+    TPMRSCouplPoroElast(int matid, int dim);
     
     /// Destructor
-    ~TPZPMRSCouplPoroElast();
+    ~TPMRSCouplPoroElast();
     
     /// Brief Copy constructor
-    TPZPMRSCouplPoroElast(const TPZPMRSCouplPoroElast& other);
+    TPMRSCouplPoroElast(const TPMRSCouplPoroElast& other);
     
     /// Brief Copy assignemnt operator
-    TPZPMRSCouplPoroElast & operator = (const TPZPMRSCouplPoroElast& other);
+    TPMRSCouplPoroElast & operator = (const TPMRSCouplPoroElast& other);
     
     
     void Print(std::ostream & out);
     
-    std::string Name() { return "TPZPMRSCouplPoroElast"; }
+    std::string Name() { return "TPMRSCouplPoroElast"; }
     
     virtual int NStateVariables();
     
@@ -284,4 +284,4 @@ public:
 };
 
 
-#endif /* TPZPMRSCouplPoroElast_hpp */
+#endif /* TPMRSCouplPoroElast_hpp */

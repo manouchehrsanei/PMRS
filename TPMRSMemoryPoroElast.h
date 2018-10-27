@@ -1,13 +1,13 @@
 //
-//  TPZPMRSMemoryPoroElast.h
+//  TPMRSMemoryPoroElast.h
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/6/16.
 //
 //
 
-#ifndef TPZPMRSMemoryPoroElast_h
-#define TPZPMRSMemoryPoroElast_h
+#ifndef TPMRSMemoryPoroElast_h
+#define TPMRSMemoryPoroElast_h
 
 #include <stdio.h>
 #include "pzreal.h"
@@ -15,11 +15,11 @@
 #include "TPZElastoPlasticMem.h"
 
 
-class TPZPMRSMemoryPoroElast
+class TPMRSMemoryPoroElast
 {
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory : It is written for TPZPMRSMemoryPoroElast
+    //  Memory : It is written for TPMRSMemoryPoroElast
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /// Basis function
@@ -38,12 +38,12 @@ class TPZPMRSMemoryPoroElast
 public:
     
     /// Brief Default constructor
-    TPZPMRSMemoryPoroElast();
+    TPMRSMemoryPoroElast();
     
     /// Brief Default destructor
-    ~TPZPMRSMemoryPoroElast();
+    ~TPMRSMemoryPoroElast();
     
-    TPZPMRSMemoryPoroElast(const TPZPMRSMemoryPoroElast &copy)
+    TPMRSMemoryPoroElast(const TPMRSMemoryPoroElast &copy)
     {
         
         m_grad_u_n    = copy.m_grad_u_n;
@@ -52,7 +52,7 @@ public:
 
     }
     
-    TPZPMRSMemoryPoroElast &operator=(const TPZPMRSMemoryPoroElast &other)
+    TPMRSMemoryPoroElast &operator=(const TPMRSMemoryPoroElast &other)
     {
         
         m_grad_u_n    = other.m_grad_u_n;
@@ -134,11 +134,11 @@ public:
     
 };
 
-inline std::ostream &operator<<(std::ostream &out,const TPZPMRSMemoryPoroElast &mem)
+inline std::ostream &operator<<(std::ostream &out,const TPMRSMemoryPoroElast &mem)
 {
     mem.Print(out);
     return out;
 }
 
 
-#endif /* TPZPMRSMemoryPoroElast_h */
+#endif /* TPMRSMemoryPoroElast_h */

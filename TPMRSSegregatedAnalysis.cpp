@@ -244,7 +244,8 @@ void TPMRSSegregatedAnalysis::UpdateState(){
 void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
     
     TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
-    if (!cmesh) {
+    if (!cmesh)
+    {
         DebugStop();
     }
     
@@ -268,12 +269,14 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             REAL E,nu;
             
             /// Elastic predictor
-            if (IsInitialConditionsQ) {
+            if (IsInitialConditionsQ)
+            {
                 TPMRSUndrainedParameters undrained_parameters(std::get<0>(chunk));
                 std::vector<REAL> u_pars = undrained_parameters.GetParameters();
                 E = u_pars[0];
                 nu = u_pars[1];
-            }else{
+            }else
+            {
                 TPMRSPoroMechParameters poroperm_parameters(std::get<1>(chunk));
                 std::vector<REAL> poroperm_pars = poroperm_parameters.GetParameters();
                 E = poroperm_pars[0];
@@ -290,7 +293,8 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
             std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
             
-            if (p_pars.size() == 0) {
+            if (p_pars.size() == 0)
+            {
                 /// Elastic material
                 TPZElasticCriterion Elastic;
                 Elastic.SetElasticResponse(ER);
@@ -298,10 +302,13 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 TPMRSElastoPlastic<TPZElasticCriterion, TPMRSMemory> * vol_material = dynamic_cast< TPMRSElastoPlastic<TPZElasticCriterion, TPMRSMemory> * >(material);
                 vol_material->SetPlasticIntegrator(Elastic);
                 
-            }else{
+            }else
+            {
                 /// Elastoplastic material
-                switch (plasticity_parameters.GetModel()) {
-                    case plasticity_parameters.ep_mc: {
+                switch (plasticity_parameters.GetModel())
+                {
+                    case plasticity_parameters.ep_mc:
+                    {
                         
                         /// Mohr Coulomb data
                         REAL cohesion    = p_pars[0];
@@ -316,7 +323,8 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                         vol_material->SetPlasticIntegrator(LEMC);
                     }
                         break;
-                    default:{
+                    default:
+                    {
                         std::cout << "Material not implemented. " << std::endl;
                         DebugStop();
                     }

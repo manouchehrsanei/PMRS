@@ -1,12 +1,12 @@
 //
-//  TPZPMRSCouplPoroElast.cpp
+//  TPMRSCouplPoroElast.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#include "TPZPMRSCouplPoroElast.h"
+#include "TPMRSCouplPoroElast.h"
 #include <iostream>
 #include <string>
 #include "pzbndcond.h"
@@ -20,13 +20,13 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroElast"));
+static LoggerPtr logger(Logger::getLogger("pz.TPMRSCouplPoroElast"));
 #endif
 
 
 
 /// Brief default costructor
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPMRSCouplPoroElast::TPMRSCouplPoroElast():TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = 3;
     m_b.resize(3);
@@ -39,7 +39,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast():TPZMatWithMem<TPZPMRSMemoryPoroEl
 }
 
 /// Brief costructor based on a material id
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPZPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPMRSCouplPoroElast::TPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
 {
     m_Dim = dim;
     m_b.resize(3);
@@ -52,13 +52,13 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<T
 }
 
 /// Brief default destructor
-TPZPMRSCouplPoroElast::~TPZPMRSCouplPoroElast()
+TPMRSCouplPoroElast::~TPMRSCouplPoroElast()
 {
 }
 
 
 /// Brief copy constructor
-TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(const TPZPMRSCouplPoroElast& other)
+TPMRSCouplPoroElast::TPMRSCouplPoroElast(const TPMRSCouplPoroElast& other)
 {
     this->m_Dim               = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
@@ -66,7 +66,7 @@ TPZPMRSCouplPoroElast::TPZPMRSCouplPoroElast(const TPZPMRSCouplPoroElast& other)
 
 
 /// Brief Copy assignemnt operator
-TPZPMRSCouplPoroElast& TPZPMRSCouplPoroElast::operator = (const TPZPMRSCouplPoroElast& other)
+TPMRSCouplPoroElast& TPMRSCouplPoroElast::operator = (const TPMRSCouplPoroElast& other)
 {
     
     if (this != & other) // prevent self-assignment
@@ -79,13 +79,13 @@ TPZPMRSCouplPoroElast& TPZPMRSCouplPoroElast::operator = (const TPZPMRSCouplPoro
 
 
 /// Brief number of state variables
-int TPZPMRSCouplPoroElast::NStateVariables()
+int TPMRSCouplPoroElast::NStateVariables()
 {
     return 2;
 }
 
 /// Brief permeability coupling models
-REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
+REAL TPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
 {
     switch (m_k_model)
     {
@@ -131,7 +131,7 @@ REAL TPZPMRSCouplPoroElast::k_permeability(REAL &phi, REAL &k)
 }
 
 /// Brief Poroelastic porosity correction
-REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
+REAL TPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -166,7 +166,7 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_2D(TPZVec<TPZMaterialData> &datav
 
 
 /// Brief Poroelastic porosity correction
-REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
+REAL TPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec)
 {
     
     int u_b = 0;
@@ -206,7 +206,7 @@ REAL TPZPMRSCouplPoroElast::porosity_corrected_3D(TPZVec<TPZMaterialData> &datav
 
 
 /// Brief of contribute of BC
-void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
 
     if (m_Dim == 3)
@@ -223,7 +223,7 @@ void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 
 
 /// Brief of contribute in 2 dimensional
-void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -290,8 +290,8 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
     
     /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
-    TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
+    TPZAdmChunkVector<TPMRSMemoryPoroElast> memory_vec = *GetMemory();
+    TPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -428,7 +428,7 @@ void TPZPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL
 
 
 /// Contribute Methods being used
-void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
     int u_b = 0;
@@ -502,8 +502,8 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
     
     /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZAdmChunkVector<TPZPMRSMemoryPoroElast> memory_vec = *GetMemory();
-    TPZPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
+    TPZAdmChunkVector<TPMRSMemoryPoroElast> memory_vec = *GetMemory();
+    TPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -704,7 +704,7 @@ void TPZPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL
 
 
 /// Brief of contribute
-void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+void TPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
@@ -712,7 +712,7 @@ void TPZPMRSCouplPoroElast::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 }
 
 /// Brief of contribute of BC
-void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     if (!m_SimulationData->IsCurrentStateQ())
@@ -733,7 +733,7 @@ void TPZPMRSCouplPoroElast::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL w
 
 
 /// Brief of contribute of BC_2D
-void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 
     int u_b = 0;
@@ -912,7 +912,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, RE
     }
 
 }
-void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+void TPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     
     int u_b = 0;
@@ -1202,7 +1202,7 @@ void TPZPMRSCouplPoroElast::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, RE
     }
 
 }
-void TPZPMRSCouplPoroElast::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+void TPMRSCouplPoroElast::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
@@ -1216,7 +1216,7 @@ void TPZPMRSCouplPoroElast::FillDataRequirements(TPZVec<TPZMaterialData > &datav
     }
 }
 
-void TPZPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+void TPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
@@ -1227,10 +1227,10 @@ void TPZPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec
     }
 }
 
-void TPZPMRSCouplPoroElast::Print(std::ostream &out)
+void TPMRSCouplPoroElast::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
-    out << "Properties for TPZPMRSCouplPoroElast: \n";
+    out << "Properties for TPMRSCouplPoroElast: \n";
     out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
     out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
     out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;
@@ -1249,7 +1249,7 @@ void TPZPMRSCouplPoroElast::Print(std::ostream &out)
 }
 
 /// Returns the variable index associated with the name
-int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
+int TPMRSCouplPoroElast::VariableIndex(const std::string &name)
 {
     ///	Total Strain Variables
     if(!strcmp("et_v",name.c_str()))             return	18;
@@ -1308,7 +1308,7 @@ int TPZPMRSCouplPoroElast::VariableIndex(const std::string &name)
     return TPZMaterial::VariableIndex(name);
 }
 
-int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
+int TPMRSCouplPoroElast::NSolutionVariables(int var)
 {
     if(var == 18)	return 1;
     if(var == 19)	return 1;
@@ -1353,7 +1353,7 @@ int TPZPMRSCouplPoroElast::NSolutionVariables(int var)
 }
 
 ///	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
-void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
+void TPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout)
 {
     
     Solout.Resize( this->NSolutionVariables(var));
@@ -1772,7 +1772,7 @@ void TPZPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 
 
 /// Brief computation of effective sigma
-void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
+void TPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S)
 {
     
 #ifdef PZDEBUG
@@ -1831,7 +1831,7 @@ void TPZPMRSCouplPoroElast::Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatri
 }
 
 /// Brief Principal Stress
-void TPZPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
+void TPMRSCouplPoroElast::Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S)
 {
     
 #ifdef PZDEBUG

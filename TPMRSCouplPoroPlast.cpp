@@ -1,5 +1,5 @@
 //
-//  TPZPMRSCouplPoroPlast.cpp
+//  TPMRSCouplPoroPlast.cpp
 //  PZ
 //
 //  Created by Manouchehr on Jun 27, 2018.
@@ -7,7 +7,7 @@
 //
 
 
-#include "TPZPMRSCouplPoroPlast.h"
+#include "TPMRSCouplPoroPlast.h"
 #include <iostream>
 #include <string>
 #include "pzelasmat.h"
@@ -23,14 +23,14 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.TPZPMRSCouplPoroPlast"));
+static LoggerPtr logger(Logger::getLogger("pz.TPMRSCouplPoroPlast"));
 #endif
 
 
 
 /// Brief default costructor
 template<class T,class TMEM>
-TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,TMEM>()
+TPMRSCouplPoroPlast<T,TMEM>::TPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,TMEM>()
 {
     m_Dim = 3;
     m_b.resize(3);
@@ -49,7 +49,7 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast():TPZMatElastoPlastic2D<T,T
 
 /// Brief costructor based on a material id
 template<class T,class TMEM>
-TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(int matid, int dim):TPZMatElastoPlastic2D<T,TMEM>(matid,1)
+TPMRSCouplPoroPlast<T,TMEM>::TPMRSCouplPoroPlast(int matid, int dim):TPZMatElastoPlastic2D<T,TMEM>(matid,1)
 {
     m_Dim = dim;
     m_b.resize(3);
@@ -68,14 +68,14 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(int matid, int dim):TPZMatE
 
 /// Brief default destructor
 template<class T,class TMEM>
-TPZPMRSCouplPoroPlast<T,TMEM>::~TPZPMRSCouplPoroPlast()
+TPMRSCouplPoroPlast<T,TMEM>::~TPMRSCouplPoroPlast()
 {
 }
 
 
 /// Brief copy constructor
 template<class T,class TMEM>
-TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast& other)
+TPMRSCouplPoroPlast<T,TMEM>::TPMRSCouplPoroPlast(const TPMRSCouplPoroPlast& other)
 {
     this->m_Dim    = other.m_Dim;
     this->m_SimulationData    = other.m_SimulationData;
@@ -84,7 +84,7 @@ TPZPMRSCouplPoroPlast<T,TMEM>::TPZPMRSCouplPoroPlast(const TPZPMRSCouplPoroPlast
 
 /// Brief Copy assignemnt operator
 template<class T,class TMEM>
-TPZPMRSCouplPoroPlast<T,TMEM> &TPZPMRSCouplPoroPlast<T,TMEM>::operator = (const TPZPMRSCouplPoroPlast& other)
+TPMRSCouplPoroPlast<T,TMEM> &TPMRSCouplPoroPlast<T,TMEM>::operator = (const TPMRSCouplPoroPlast& other)
 {
     if (this != & other) /// prevent self-assignment
     {
@@ -97,21 +97,21 @@ TPZPMRSCouplPoroPlast<T,TMEM> &TPZPMRSCouplPoroPlast<T,TMEM>::operator = (const 
 
 /// Brief number of state variables
 template<class T,class TMEM>
-int TPZPMRSCouplPoroPlast<T,TMEM>::NStateVariables()
+int TPMRSCouplPoroPlast<T,TMEM>::NStateVariables()
 {
     return 2;
 }
 
 /// Brief a computation of strain
 template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain)
+void TPMRSCouplPoroPlast<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain)
 {
     TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(data, Strain);
 }
 
 /// Brief a computation of delta strain
 template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
+void TPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
 {
     TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(data, DeltaStrain);
 }
@@ -119,7 +119,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & d
 
 /// Brief a computation of stress and tangent
 template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
+void TPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 #ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6)
@@ -133,7 +133,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData &
 
 /// Brief a computation of stress
 template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress)
+void TPMRSCouplPoroPlast<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress)
 {
     TPZMatElastoPlastic<T,TMEM>::ComputeStressVector(data,Stress);
 }
@@ -141,7 +141,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ComputeStressVector(TPZMaterialData & data, 
 
 /// Brief a computation of stress
 template <class T, class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
+void TPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress)
 {
 #ifdef PZDEBUG
     if (DeltaStrain.Rows() != 6)
@@ -154,7 +154,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZ
 
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::SetUpdateToUseFullU(bool update)
+void TPMRSCouplPoroPlast<T,TMEM>::SetUpdateToUseFullU(bool update)
 {
     m_UpdateToUseFullDiplacement = update;
 }
@@ -162,7 +162,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetUpdateToUseFullU(bool update)
 
 /// Brief permeability coupling models
 template<class T,class TMEM>
-REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
+REAL TPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
 {
     switch (m_k_model)
     {
@@ -208,7 +208,7 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::k_permeability(REAL &phi, REAL &k)
 
 /// Brief the 2D Poroelastic porosity correction from strains and pressure
 template<class T,class TMEM>
-REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
+REAL TPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
     REAL eps_volumetric = eps_elastic.I1() + eps_plastic.I1();
     REAL phi = m_porosity_0 + m_alpha * eps_volumetric + m_Se * pressure;
     return phi;
@@ -217,7 +217,7 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_2D(TPZTensor<STATE> & eps
 
 /// Brief the 3D Poroelastic porosity correction from strains and pressure
 template<class T,class TMEM>
-REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
+REAL TPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZTensor<STATE> & eps_elastic, TPZTensor<STATE> & eps_plastic, STATE & pressure){
     REAL eps_volumetric = eps_elastic.I1() + eps_plastic.I1();
     REAL phi = m_porosity_0 + m_alpha * eps_volumetric + m_Se * pressure;
     return phi;
@@ -226,7 +226,7 @@ REAL TPZPMRSCouplPoroPlast<T,TMEM>::porosity_corrected_3D(TPZTensor<STATE> & eps
 
 /// Brief of contribute of BC
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     if (m_Dim == 3)
     {
@@ -241,7 +241,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec,
 
 /// Brief of contribute in 2 dimensional
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef)
 {
     int u_b = 0;
     int p_b = 1;
@@ -449,7 +449,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
+        sout << "<<< TPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
         sout << " Resultant rhs vector:\n" << ef;
         sout << " Resultant stiff vector:\n" << ek;
         LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -480,7 +480,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
         if(logger->isDebugEnabled())
         {
             std::stringstream sout;
-            sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
+            sout << "<<< TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
             sout << " Resultant rhs vector:\n" << ef;
             sout << " Resultant stiff vector:\n" << ek;
             LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -493,7 +493,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D(TPZVec<TPZMaterialData> &datav
 
 /// Brief of contribute of plasticity in 2 dimensional
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
     TPZFMatrix<REAL> &phi  = data.phi;
@@ -567,7 +567,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << ">>> TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
+        sout << ">>> TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
@@ -643,7 +643,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D(TPZMaterialData &data, 
 
 /// Contribute Methods being used
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 //    int u_b = 0;
 //    int p_b = 1;
@@ -929,7 +929,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
 //    if(logger->isDebugEnabled())
 //    {
 //        std::stringstream sout;
-//        sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
+//        sout << "<<< TPMRSCouplPoroPlast<T,TMEM>::Contribute_2D ***";
 //        sout << " Resultant rhs vector:\n" << ef;
 //        sout << " Resultant stiff vector:\n" << ek;
 //        LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -960,7 +960,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
 //        if(logger->isDebugEnabled())
 //        {
 //            std::stringstream sout;
-//            sout << "<<< TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
+//            sout << "<<< TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_2D ***";
 //            sout << " Resultant rhs vector:\n" << ef;
 //            sout << " Resultant stiff vector:\n" << ek;
 //            LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -973,7 +973,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute_3D(TPZVec<TPZMaterialData> &datav
 
 /// Brief of contribute of plasticity in 2 dimensional
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
     TPZFMatrix<REAL> &phi  = data.phi;
@@ -1048,7 +1048,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << ">>> TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D ***";
+        sout << ">>> TPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
@@ -1228,7 +1228,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributePlastic_3D(TPZMaterialData &data, 
 
 /// Brief of contribute
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
+void TPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
     
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(datavec, weight, ek_fake, ef);
@@ -1237,7 +1237,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec,
 
 /// Brief of contribute of BC
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPMRSCouplPoroPlast<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     
     if (!m_SimulationData->IsCurrentStateQ())
@@ -1260,7 +1260,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datave
 
 /// Brief of contribute of BC_2D
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     int u_b = 0;
     int p_b = 1;
@@ -1700,7 +1700,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_2D(TPZVec<TPZMaterialData> &dat
 }
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     int u_b = 0;
     int p_b = 1;
@@ -2459,7 +2459,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &dat
 }
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+void TPMRSCouplPoroPlast<T,TMEM>::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 {
     int nref = datavec.size();
@@ -2474,7 +2474,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::FillDataRequirements(TPZVec<TPZMaterialData 
 }
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+void TPMRSCouplPoroPlast<T,TMEM>::FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
 {
     int nref = datavec.size();
     for(int i = 0; i<nref; i++)
@@ -2486,7 +2486,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::FillBoundaryConditionDataRequirement(int typ
 }
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Print(std::ostream &out)
+void TPMRSCouplPoroPlast<T,TMEM>::Print(std::ostream &out)
 {
     out << "Material Name : " << Name() << "\n";
     out << "Properties for this material: \n";
@@ -2509,7 +2509,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Print(std::ostream &out)
 
 /// Returns the variable index associated with the name
 template<class T,class TMEM>
-int TPZPMRSCouplPoroPlast<T,TMEM>::VariableIndex(const std::string &name)
+int TPMRSCouplPoroPlast<T,TMEM>::VariableIndex(const std::string &name)
 {
     /// The VariableIndex must be selected more than 17 because of the previous VariableIndex associated with TPZMatElastoPlastic
     ///	Total Strain Variables
@@ -2570,7 +2570,7 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::VariableIndex(const std::string &name)
 }
 
 template<class T,class TMEM>
-int TPZPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
+int TPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
 {
     if(var == 18)	return 1;
     if(var == 19)	return 1;
@@ -2617,7 +2617,7 @@ int TPZPMRSCouplPoroPlast<T,TMEM>::NSolutionVariables(int var)
 
 ///	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
     int global_point = data.intGlobPtIndex;
     TPZAdmChunkVector<TMEM> memory_vec = *TPZMatWithMem<TMEM>::fMemory;
@@ -2961,7 +2961,7 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
 // ****************************************************************** plasticity ***********************
 
 template<class T,class TMEM>
-void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
+void TPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 {
     m_SetRunPlasticity = IsPlasticity;
 }
@@ -2973,8 +2973,8 @@ void TPZPMRSCouplPoroPlast<T,TMEM>::SetRunPlasticity(bool IsPlasticity)
 //#include "TPZYCMohrCoulombPV.h"
 //#include "TPZSandlerDimaggio.h"
 
-template class TPZPMRSCouplPoroPlast<TPZElasticCriterion , TPZPMRSMemoryPoroPlast>;
-//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
-//template class TPZPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
+template class TPMRSCouplPoroPlast<TPZElasticCriterion , TPMRSMemoryPoroPlast>;
+//template class TPMRSCouplPoroPlast<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
+//template class TPMRSCouplPoroPlast<TPZPlasticStepPV<TPZSandlerExtended,TPZElasticResponse> , TPZPoroElastoPlasticMem>;
 
 

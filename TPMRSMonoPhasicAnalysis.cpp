@@ -103,7 +103,24 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     m_var_names.Push("p");
     m_var_names.Push("phi");
     m_var_names.Push("kappa");
+    
+//    TPZManVector<string,10> s_names;
+//    s_names = m_simulation_data->s_names_res();
+//    
+//    TPZStack< std::string> s_names_stack;
+//    
+//    for (auto& elem : s_names)
+//    {
+//        s_names_stack.push(elem);
+//    }
+//    
+//    TPZVec<std::string> v_names;
+//    v_names = m_simulation_data->v_names_res();
+    
+
+
     m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
+    
     
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
     structmatrix.SetNumThreads(n_threads);

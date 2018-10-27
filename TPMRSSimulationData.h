@@ -440,7 +440,7 @@ public:
     /// Brief Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
-    /// Brief Get the the use of dual (true) or pirmal (false) formulation for monophacic flow
+    /// Brief Get the the use of dual (true) or primal (false) formulation for monophacic flow
     bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }
     
     //// Brief Get crank nicolson directive for time derivative (false Euler method)
@@ -461,13 +461,13 @@ private:
     /// Brief Apply uniform refinements
     void UniformRefinement();
     
-    // @TODO:: MS, please implement and comment this function
+    /// @TODO:: MS, please implement and comment this function
     void ReadRegionsAndMaterials();
     
-    // @TODO:: MS, please implement and comment this function
+    /// @TODO:: MS, please implement and comment this function
     void ReadBCForGeomechanicSimulator();
     
-    // @TODO:: MS, please implement and comment this function
+    /// @TODO:: MS, please implement and comment this function
     void ReadBCForReservoirSimulator();
     
 };

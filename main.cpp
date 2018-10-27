@@ -45,7 +45,7 @@
 // Geomechanics
 #include "TPMRSElastoPlastic_impl.h"
 #include "TPMRSGeomechanicAnalysis.h"
-#include "TPZPMRSMemoryPoroElast.h"
+#include "TPMRSMemoryPoroElast.h"
 #include "TPMRSElastoPlasticMemory.h"
 
 // Segregated solver
@@ -69,7 +69,7 @@
 // Analysis
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
-#include "TPZPMRSAnalysis.h"
+#include "TPMRSAnalysis.h"
 
 
 // Matrix
@@ -90,8 +90,8 @@
 #include "TPMRSPlasticityParameters.h"
 
 // ElastoPlastic Materials
-#include "TPZPMRSCouplPoroElast.h"
-#include "TPZPMRSCouplPoroPlast.h"
+#include "TPMRSCouplPoroElast.h"
+#include "TPMRSCouplPoroPlast.h"
 
 
 #ifdef LOG4CXX
@@ -152,8 +152,8 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data);
 
 /// Shear-enhanced compaction and strain localization:
 // Inelastic deformation and constitutive modeling of four porous sandstones
-
 // This function generate the data associated to the Figure 2a. Darley Dale Sandstone Data for Cap Model
+/// Begin
 void LEDSPorosityReductionPlot();
 
 // Method that apply stress
@@ -161,6 +161,7 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
 
 // Read experimental duplet
 TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
+/// End
 
 
 
@@ -247,7 +248,7 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data)
     number_threads = 0;
 #endif
     
-    TPZPMRSAnalysis * time_analysis = new TPZPMRSAnalysis;
+    TPMRSAnalysis * time_analysis = new TPMRSAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
@@ -818,7 +819,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     {
         int matid = material_ids[iregion].first;
 
-        TPZPMRSCouplPoroElast * material = new TPZPMRSCouplPoroElast(matid,dim);
+        TPMRSCouplPoroElast * material = new TPMRSCouplPoroElast(matid,dim);
 
         DebugStop();
 //        int kmodel = 0;
