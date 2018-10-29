@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an CouplPoroelastPoroPermP_pore pressure and S_stress -->
+    <!-- Example 1: Simulating an Coupl_Poroelastic_P_pore pressure and S_stress  -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -9,6 +9,7 @@
     <TimeControls>
         <StepSize dt="0.001" />
         <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -16,13 +17,18 @@
         <Residue res_tolerance="0.00001" />
         <Correction cor_tolerance="0.0001" />
     </NewtonControls>
+        <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="20" />
+        <EnfFssIterations n_enforce_fss_iterations="5" />
+    </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
         <Numthreads n_threads="0" />
     </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -31,25 +37,23 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="CouplPoroelastPoroPermSP.vtk" n_divisions="0" n_reservoiroutputs="1" n_geomechanicoutputs="7"
-        />
-        <ReservoirOutputControls>
-            <Var name="p" />
-        </ReservoirOutputControls>
-        <GeomechanicOutputControls>
-            <Var name="e_x" />
-            <Var name="e_y" />
-            <Var name="phi" />
-            <Var name="k_x" />
-            <Var name="k_y" />
-            <Var name="s_x" />
-            <Var name="s_y" />
-        </GeomechanicOutputControls>
+        <PostProcessing vtk_file="CouplPoroelastPoroPermSP" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <OutputControlsGeo>
+            <Var s_name="e_x" />
+            <Var s_name="e_y" />
+            <Var s_name="phi" />
+            <Var s_name="k_x" />
+            <Var s_name="k_y" />
+            <Var s_name="s_x" />
+            <Var s_name="s_y" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="p" />
+        </OutputControlsRes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
@@ -57,24 +61,37 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="12" >
-            <Parameters eyoung="43457.2" nu="0.357983" phi="0.25" kappa="5.0e-9" alpha="1.0" m="1.0e29" mu="0.001" rhof="1000.0" rhos="2700.0"
-            MCcoh="1e6" MCphi="25.0" MCpsi="25.0"/>
-            <Boundaries>
+        <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
+            <PoroMechUndrainedParameters Eyoung_u="43457.2" nu_u="0.357983" phi_0="0.25" kappa_0="5.0e-9" />            
+            <PoroMechParameters Eyoung="43457.2" nu="0.357983" alpha="1.0" Se="1.0e-29" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PhiParameters phi_model="Linear" n_parameters="0"/>
+            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="1.0e6" friction="25.0"/>            
+            <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
-            </Boundaries>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+            </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
-    <BoundaryConditionReservoirs>
-        <BoundaryConditionReservoir bc_id="2" type="Dp" p="20.0e6" />
-        <BoundaryConditionReservoir bc_id="3" type="Dp" p="0.0e6" />
-        <BoundaryConditionReservoir bc_id="4" type="Nq" qn="0.0" />
-    </BoundaryConditionReservoirs> 
-    <BoundaryConditionGeomechanics>
-        <BoundaryConditionGeomechanic bc_id="2" type="Duy"  uy="0.0" />
-        <BoundaryConditionGeomechanic bc_id="3" type="Nt" tx="0.0" ty="-10.0" tz="-500.0" />
-        <BoundaryConditionGeomechanic bc_id="4" type="Dux" ux="0.0" uy="0.0"  />
-    </BoundaryConditionGeomechanics> 
+    <BCUndrainedGeomechanics>
+        <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
+    </BCUndrainedGeomechanics>     
+    <BCGeomechanics>
+        <Geomechanic bc_id="2" type="Duy" uy="0.0" />
+        <Geomechanic bc_id="3" type="Nt" tx="0.0" ty="-10.0" tz="-500.0" />
+        <Geomechanic bc_id="4" type="Dux" ux="0.0" />
+    </BCGeomechanics> 
+    <BCReservoirs>
+        <Reservoir bc_id="2" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="3" type="Dp" p="0.0" />
+        <Reservoir bc_id="4" type="Nq" qn="0.0" />
+    </BCReservoirs>     
 </CaseData>

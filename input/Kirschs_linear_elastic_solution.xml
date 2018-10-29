@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Kirschs_linear_elastic_solution: Linear superposition can be used to obtain analytical solutions for the stress field under general 2-D loading conditions  -->
+    <!-- Example 1: Simulating an Kirschs linear elastic solution -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -9,6 +9,7 @@
     <TimeControls>
         <StepSize dt="1.0e10" />
         <StepNumber n_time_steps="1" />
+        <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -16,6 +17,11 @@
         <Residue res_tolerance="0.0001" />
         <Correction cor_tolerance="0.01" />
     </NewtonControls>
+        <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="20" />
+        <EnfFssIterations n_enforce_fss_iterations="5" />
+    </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
         <Numthreads n_threads="4" />
@@ -31,22 +37,23 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Kirschs_linear_elastic.vtk" n_divisions="0" n_scalars="3" n_vectors="2"
-        />
-        <Scalars>
-            <Var name="p" />
-            <Var name="s_x" />
-            <Var name="s_y" />
-        </Scalars>
-        <Vectors>
-            <Var name="u" />
-            <Var name="v" />
-        </Vectors>
+        <PostProcessing vtk_file="Kirschs2D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <OutputControlsGeo>
+            <Var s_name="e_x" />
+            <Var s_name="e_y" />
+            <Var s_name="phi" />
+            <Var s_name="k_x" />
+            <Var s_name="k_y" />
+            <Var s_name="s_x" />
+            <Var s_name="s_y" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="p" />
+        </OutputControlsRes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
@@ -54,10 +61,13 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="7" n_parameters="12" >
-            <Parameters eyoung="1.0e6" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" mu="0.001" rhof="1000.0" rhos="2700.0"
-            MCcoh="0.0" MCphi="0.0" MCpsi="0.0"/>
-            <Boundaries>
+        <RegionData mat_id="1" n_boundaries_geo="7" n_boundaries_res ="7">
+            <PoroMechUndrainedParameters Eyoung_u="1.0e6" nu_u="0.3" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="1.0e6" nu="0.3" alpha="1.0" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PhiParameters phi_model="Linear" n_parameters="0"/>
+            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="0.0" friction="0.0"/>            
+            <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
@@ -65,16 +75,43 @@
                 <Boundary bc_id="6"/>
                 <Boundary bc_id="7"/>
                 <Boundary bc_id="8"/>
-            </Boundaries>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+                <Boundary bc_id="6"/>
+                <Boundary bc_id="7"/>
+                <Boundary bc_id="8"/>
+            </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
-    <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Nt_Dp" tx="0.0" ty="100.0" p="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-100.0" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Nt_Dp" tx="50.0" ty="0.0"  p="0.0" />
-        <BoundaryCondition bc_id="5" type="Nt_Dp" tx="-50.0" ty="0.0"  p="0.0" /> 
-        <BoundaryCondition bc_id="6" type="Nt_Dp" tx="0.0" ty="0.0"  p="0.0" />
-        <BoundaryCondition bc_id="7" type="Dux_Dp" ux="0.0" p="0.0" />
-        <BoundaryCondition bc_id="8" type="Duy_Dp" uy="0.0" p="0.0" />      
-    </BoundaryConditions>           
+    <BCUndrainedGeomechanics>
+        <UndrainedGeomechanic bc_id="2" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="4" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="5" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="6" type="Ntn" tn="0.0" />
+        <UndrainedGeomechanic bc_id="7" type="Dux" ux="0.0" />
+        <UndrainedGeomechanic bc_id="8" type="Duy" uy="0.0" />
+    </BCUndrainedGeomechanics>     
+    <BCGeomechanics>
+        <Geomechanic bc_id="2" type="Nt" tx="100.0" ty="0.0" />
+        <Geomechanic bc_id="3" type="Nt" tx="-100.0" ty="0.0" />
+        <Geomechanic bc_id="4" type="Nt" tx="0.0" ty="50.0" />
+        <Geomechanic bc_id="5" type="Nt" tx="0.0" ty="-50.0" />
+        <Geomechanic bc_id="6" type="Nt" tx="0.0" ty="0.0" />
+        <Geomechanic bc_id="7" type="Dux" ux="0.0" />
+        <Geomechanic bc_id="8" type="Duy" uy="0.0" />
+    </BCGeomechanics> 
+    <BCReservoirs>
+        <Reservoir bc_id="2" type="Dp" p="0.0" />
+        <Reservoir bc_id="3" type="Dp" p="0.0" />
+        <Reservoir bc_id="4" type="Dp" p="0.0" />
+        <Reservoir bc_id="5" type="Dp" p="0.0" />
+        <Reservoir bc_id="6" type="Dp" p="0.0" />
+        <Reservoir bc_id="7" type="Dp" p="0.0" />
+        <Reservoir bc_id="8" type="Dp" p="0.0" />
+    </BCReservoirs>     
 </CaseData>

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an poroelastic example  -->
+    <!-- Example 1: Simulating an poroelastic example -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -9,17 +9,23 @@
     <TimeControls>
         <StepSize dt="1.0e6" />
         <StepNumber n_time_steps="1" />
+        <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="10" />
         <Residue res_tolerance="0.01" />
         <Correction cor_tolerance="0.01" />
-    </NewtonControls> 
+    </NewtonControls>
+        <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="20" />
+        <EnfFssIterations n_enforce_fss_iterations="5" />
+    </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="4" />
-    </ParallelControls> 
+        <Numthreads n_threads="0" />
+    </ParallelControls>  
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
@@ -31,55 +37,23 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="plug.vtk" n_divisions="0" n_scalars="36" n_vectors="2"
-        />
-        <Scalars>
-            <Var name="et_v" />
-            <Var name="et_x" />
-            <Var name="et_y" />
-            <Var name="et_z" />
-            <Var name="et_xy" />
-            <Var name="et_xz" />
-            <Var name="et_yz" />
-            <Var name="e_v" />
-            <Var name="e_x" />
-            <Var name="e_y" />
-            <Var name="e_z" />
-            <Var name="e_xy" />
-            <Var name="e_xz" />
-            <Var name="e_yz" />
-            <Var name="ep_v" />
-            <Var name="ep_x" />
-            <Var name="ep_y" />
-            <Var name="ep_z" />
-            <Var name="ep_xy" />
-            <Var name="ep_xz" />
-            <Var name="ep_yz" />
-            <Var name="p" />
-            <Var name="phi" />
-            <Var name="k_x" />
-            <Var name="k_y" />
-            <Var name="k_z" />
-            <Var name="s_x" />
-            <Var name="s_y" />
-            <Var name="s_z" />
-            <Var name="t_xy" />
-            <Var name="t_xz" />
-            <Var name="t_yz" />
-            <Var name="K_0" />
-            <Var name="YS_1" />
-            <Var name="YS_2" />
-            <Var name="YS_3" />
-        </Scalars>
-        <Vectors>
-            <Var name="u" />
-            <Var name="v" />
-        </Vectors>
+        <PostProcessing vtk_file="plug" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <OutputControlsGeo>
+            <Var s_name="e_x" />
+            <Var s_name="e_y" />
+            <Var s_name="phi" />
+            <Var s_name="k_x" />
+            <Var s_name="k_y" />
+            <Var s_name="s_x" />
+            <Var s_name="s_y" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="p" />
+        </OutputControlsRes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
         <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
-        <Prestress sxx= "0.0" syy= "0.0" szz= "0.0" sxy= "0.0" sxz= "0.0" syz= "0.0" />
     </Physics>
     <!-- Material Settings -->
     <ReservoirRegions>
@@ -87,19 +61,37 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries="3" n_parameters="12" >
-            <Parameters eyoung="1.0e9" nu="0.3" phi="0.1" kappa="1.0e-13" alpha="1.0" m="1.0e19" mu="0.001" rhof="1000.0" rhos="2700.0"
-            MCcoh="0.0" MCphi="0.0" MCpsi="0.0"/>
-            <Boundaries>
+        <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
+            <PoroMechUndrainedParameters Eyoung_u="1.0e9" nu_u="0.3" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="1.0e9" nu="0.3" alpha="1.0" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PhiParameters phi_model="Linear" n_parameters="0"/>
+            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="0.0" friction="0.0"/>            
+            <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
                 <Boundary bc_id="4"/>
-            </Boundaries>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+            </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
-    <BoundaryConditions>
-        <BoundaryCondition bc_id="2" type="Duy_Nq" uy="0.0" qn="0.0" />
-        <BoundaryCondition bc_id="3" type="Nt_Dp" tx="0.0" ty="-1.0e6" p="0.0" />
-        <BoundaryCondition bc_id="4" type="Dux_Nq" ux="0.0" qn="0.0" />
-    </BoundaryConditions>           
+    <BCUndrainedGeomechanics>
+        <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Nt" tx="0.0" ty="0.0" />
+        <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
+    </BCUndrainedGeomechanics>     
+    <BCGeomechanics>
+        <Geomechanic bc_id="2" type="Duy" uy="0.0" />
+        <Geomechanic bc_id="3" type="Nt" tx="0.0" ty="-1.0" />
+        <Geomechanic bc_id="4" type="Dux" ux="0.0" />
+    </BCGeomechanics> 
+    <BCReservoirs>
+        <Reservoir bc_id="2" type="Nq" qn="0.0" />
+        <Reservoir bc_id="3" type="Dp" p="0.0" />
+        <Reservoir bc_id="4" type="Nq" qn="0.0" />
+    </BCReservoirs>     
 </CaseData>
