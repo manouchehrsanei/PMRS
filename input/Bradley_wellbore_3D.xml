@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating a case similar to SEST2D -->
+    <!-- Example 1: Simulating a case similar to Bradley 3D linear elastic-->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Wellbore_3D.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Bradley_wellbore_3D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -13,7 +13,7 @@
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="10" />
+        <Iterations n_iterations="40" />
         <Residue res_tolerance="0.001" />
         <Correction cor_tolerance="0.001" />
     </NewtonControls>
@@ -37,7 +37,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_3D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <PostProcessing vtk_file="Bradley_wellbore_3D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
         <OutputControlsGeo>
             <Var s_name="e_x" />
             <Var s_name="e_y" />
@@ -61,12 +61,12 @@
     </ReservoirRegions> 
     <RegionsDefinition>
         <!-- Region definition -->
-        <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
+        <RegionData mat_id="1" n_boundaries_geo="9" n_boundaries_res ="9">
             <PoroMechUndrainedParameters Eyoung_u="5.0e3" nu_u="0.25" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="5.0e3" nu="0.25" alpha="1.0" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Davies" n_parameters="1" c="2.0"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="0.0" friction="0.0"/>            
+            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30.0" friction="1.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

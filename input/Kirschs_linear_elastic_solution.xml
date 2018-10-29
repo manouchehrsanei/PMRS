@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/wellbore.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Kirschs2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -13,7 +13,7 @@
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="10" />
+        <Iterations n_iterations="40" />
         <Residue res_tolerance="0.0001" />
         <Correction cor_tolerance="0.01" />
     </NewtonControls>
@@ -66,7 +66,7 @@
             <PoroMechParameters Eyoung="1.0e6" nu="0.3" alpha="1.0" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="0.0" friction="0.0"/>            
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30.0" friction="1.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -97,10 +97,10 @@
         <UndrainedGeomechanic bc_id="8" type="Duy" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Nt" tx="100.0" ty="0.0" />
-        <Geomechanic bc_id="3" type="Nt" tx="-100.0" ty="0.0" />
-        <Geomechanic bc_id="4" type="Nt" tx="0.0" ty="50.0" />
-        <Geomechanic bc_id="5" type="Nt" tx="0.0" ty="-50.0" />
+        <Geomechanic bc_id="2" type="Nt" tx="-100.0" ty="0.0" />
+        <Geomechanic bc_id="3" type="Nt" tx="100.0" ty="0.0" />
+        <Geomechanic bc_id="4" type="Nt" tx="0.0" ty="-50.0" />
+        <Geomechanic bc_id="5" type="Nt" tx="0.0" ty="50.0" />
         <Geomechanic bc_id="6" type="Nt" tx="0.0" ty="0.0" />
         <Geomechanic bc_id="7" type="Dux" ux="0.0" />
         <Geomechanic bc_id="8" type="Duy" uy="0.0" />
