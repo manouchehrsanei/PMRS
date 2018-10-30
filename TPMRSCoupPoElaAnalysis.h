@@ -1,13 +1,13 @@
 //
-//  TPMRSAnalysis.hpp
+//  TPMRSCoupPoElaAnalysis.hpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 9/11/18.
 //
 //
 
-#ifndef TPMRSAnalysis_hpp
-#define TPMRSAnalysis_hpp
+#ifndef TPMRSCoupPoElaAnalysis_hpp
+#define TPMRSCoupPoElaAnalysis_hpp
 
 #include <stdio.h>
 
@@ -20,13 +20,10 @@
 #include "pzporoelastoplasticmem.h"
 #include "pzadmchunk.h"
 
-class TPMRSAnalysis : public TPZAnalysis
+class TPMRSCoupPoElaAnalysis : public TPZAnalysis
 {
     
 private:
-    
-    /// Brief whether it is PoroElastic
-    bool IsPoroElastic = false;
     
     /// Brief define the simulation data
     TPMRSSimulationData * m_SimulationData;
@@ -77,16 +74,16 @@ private:
 public:
     
     /// Brief default Constructor
-    TPMRSAnalysis();
+    TPMRSCoupPoElaAnalysis();
     
     /// Brief default Destructor
-    ~TPMRSAnalysis();
+    ~TPMRSCoupPoElaAnalysis();
     
     /// Brief Copy constructor
-    TPMRSAnalysis(const TPMRSAnalysis &copy);
+    TPMRSCoupPoElaAnalysis(const TPMRSCoupPoElaAnalysis &copy);
     
     /// Brief Copy assignemnt operator
-    TPMRSAnalysis &operator=(const TPMRSAnalysis &other);
+    TPMRSCoupPoElaAnalysis &operator=(const TPMRSCoupPoElaAnalysis &other);
     
     
     /// Brief Set Solution at n+1 (current) state
@@ -184,21 +181,12 @@ public:
     void QuasiNewtonIteration();
     
     /// Brief PostProcessStandard results
-    void PostProcessStepStandard();
-    
-    /// Brief PostProcess results
     void PostProcessStep();
     
     /// Brief update last (n) state solution for PMRS_PoroElastic
-    void Standard_UpdateState();
-    
-    /// Brief update current (n+1) state solution for PMRS_PoroElastic
-    void Standard_Update_at_n_State();
-    
-    /// Brief update last (n) state solution
     void UpdateState();
     
-    /// Brief update current (n+1) state solution
+    /// Brief update current (n+1) state solution for PMRS_PoroElastic
     void Update_at_n_State();
 
     /// Brief execute the evolutionary problem
@@ -231,4 +219,4 @@ public:
 };
 
 
-#endif /* TPMRSAnalysis_hpp */
+#endif /* TPMRSCoupPoElaAnalysis_hpp */

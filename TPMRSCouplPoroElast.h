@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
-#include "TPMRSMemoryPoroElast.h"
+#include "TPMRSCoupPoElaMemory.h"
 #include "pzdiscgal.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -24,40 +24,28 @@
 
 
 
-class TPMRSCouplPoroElast : public TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>
+class TPMRSCouplPoroElast : public TPZMatWithMem<TPMRSCoupPoElaMemory,TPZDiscontinuousGalerkin>
 {
     
-protected:
+private:
     
-    /// Brief define the simulation data
+    /// Pointer of Simulation data
     TPMRSSimulationData * m_SimulationData;
     
     /// Brief Problem dimension
     int m_Dim;
     
-    /// Brief body force
-    TPZManVector<REAL,3>  m_b;
-    
-    /// Brief permeability coupling model
-    int m_k_model;
-    
-    /// Brief Poison coeficient
-    REAL m_nu;
-    REAL m_nuu;
-    
     /// Brief first Lame Parameter
     REAL m_lambda;
-    REAL m_lambdau;
-
-    /// Brief Bulk modulus
-    REAL m_K;
-    REAL m_Ku;
     
     /// Brief Second Lame Parameter
     REAL m_mu;
     
     /// Brief constants Biot poroelasticity
     REAL m_alpha;
+    
+    /// Brief Fluid viscosity
+    REAL m_eta;
     
     /// Brief Storage coefficient poroelasticity
     REAL m_Se;
@@ -68,8 +56,11 @@ protected:
     /// Brief Initial Permeability of the rock
     REAL m_k_0;
     
-    /// Brief Fluid viscosity
-    REAL m_eta;
+    /// Brief permeability coupling model
+    int m_k_model;
+    
+    /// Brief body force
+    TPZManVector<REAL,3>  m_b;
     
     /// Brief Fluid density
     REAL m_rho_f;
@@ -77,23 +68,13 @@ protected:
     /// Brief Rock density
     REAL m_rho_s;
     
-    /// Brief Cohesion of Mohr-Coloumb
-    REAL mc_coh;
-    
-    /// Brief Friction of Mohr-Coloumb
-    REAL mc_phi;
-    
-    /// Brief Dilation of Mohr-Coloumb
-    REAL mc_psi;
-    
-
     
 public:
     
     /// Default constructor
     TPMRSCouplPoroElast();
     
-    /// Constructor
+    /// Constructor based on a material id
     TPMRSCouplPoroElast(int matid, int dim);
     
     /// Destructor
@@ -105,20 +86,21 @@ public:
     /// Brief Copy assignemnt operator
     TPMRSCouplPoroElast & operator = (const TPMRSCouplPoroElast& other);
     
-    
+    /// Print out the data associated with the material
     void Print(std::ostream & out);
     
     std::string Name() { return "TPMRSCouplPoroElast"; }
     
-    virtual int NStateVariables();
-    
+    /// Returns the number of state variables
+    int NStateVariables();
     
     /// Brief permeability correction model
     REAL k_permeability(REAL &phi, REAL &k);
     
-    /// Brief porosity correction model
+    /// Brief porosity correction model 2D
     REAL porosity_corrected_2D(TPZVec<TPZMaterialData> &datavec);
     
+    /// Brief porosity correction model 3D
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
     
     /// Brief computation of effective sigma
@@ -127,10 +109,11 @@ public:
     /// Brief Principal Stress
     void Principal_Stress(TPZFMatrix<REAL> T, TPZFMatrix<REAL> & S);
     
+    /// Set the required data at each integration point
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
+    /// Set the required data at each integration point
     void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
-    
     
     /// Brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
     void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
@@ -144,9 +127,13 @@ public:
     
     void ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
+    /// Returns the variable index associated with the name.
     int VariableIndex(const std::string &name);
     
+    /// Returns the number of variables associated with the variable indexed by var.
     int NSolutionVariables(int var);
+    
+    /// Returns the solution associated with the var index based on a finite element approximation.
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
     
     void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
@@ -202,82 +189,148 @@ public:
         return m_SimulationData;
     }
     
-    /// Brief dimension of the model
+    /// Brief Set the dimension of the model
     void SetDimension(int dimension)
     {
         m_Dim = dimension;
     }
     
-    int Dimension() const {return m_Dim;}
-    
-    
-    /// Brief set the peremability models
-    void SetKModel(int model)
+    /// Brief Get the dimension of the model
+    int Dimension() const
     {
-        m_k_model = model;
+        return m_Dim;
     }
     
-    /// Brief return the peremability models
+    /// Set First Lamé Parameter
+    void Setlambda(REAL Ey, REAL nu)
+    {
+        m_lambda = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
+    }
+    
+    /// Get First Lamé Parameter
+    REAL lambda()
+    {
+        return m_lambda;
+    }
+    
+    /// Set Second Lamé Parameter
+    void Setmu(REAL Ey, REAL nu)
+    {
+        m_mu = (Ey)/(2.0*(1.0+nu));
+    }
+    
+    /// Get Second Lamé Parameter
+    REAL mu()
+    {
+        return m_mu;
+    }
+    
+    /// Set Biot coefficient
+    void Setalpha(REAL alphaCof)
+    {
+        m_alpha = alphaCof;
+    }
+    
+    /// Get Biot coefficient
+    REAL alpha()
+    {
+        return m_alpha;
+    }
+    
+    /// Set Fluid dynamic viscosity
+    void Seteta(REAL eta_f)
+    {
+        m_eta = eta_f;
+    }
+    
+    /// Get Fluid dynamic viscosity
+    REAL eta()
+    {
+        return m_eta;
+    }
+    
+    /// Set Storage coefficient
+    void SetSe(REAL SeCof)
+    {
+        m_Se = SeCof;
+    }
+    
+    /// Get Storage coefficient
+    REAL Se()
+    {
+        return m_Se;
+    }
+    
+    /// Set Initial Porosity
+    void Setporosity0(REAL porosityZero)
+    {
+        m_porosity_0 = porosityZero;
+    }
+    
+    /// Get Initial Porosity
+    REAL porosity0()
+    {
+        return m_porosity_0;
+    }
+    
+    /// Set Initial Permeability
+    void Setk0(REAL k_zer0)
+    {
+        m_k_0 = k_zer0;
+    }
+    
+    /// Get Initial Permeability
+    REAL k0()
+    {
+        return m_k_0;
+    }
+    
+    /// Brief set the peremability models
+    void SetKModel(int kmodel)
+    {
+        m_k_model = kmodel;
+    }
+    
+    /// Brief Get the peremability models
     int KModel()
     {
         return m_k_model;
     }
     
-    
-    /// Brief Parameters of rock and fluid
-    void SetParameters(REAL perm, REAL m_porosity, REAL eta)
+    /// Set Density of fluid
+    void Setrhof(REAL rho_f)
     {
-        m_k_0 = perm;
-        m_eta = eta;
-        m_porosity_0 = m_porosity;
+        m_rho_f = rho_f;
     }
     
-    
-    /// Brief Set the porolastic parameters data
-    void SetPorolasticParameters(REAL l, REAL mu, REAL l_u)
+    /// Get Density of fluid
+    REAL rhof()
     {
-        m_lambda = l;
-        m_mu = mu;
-        m_lambdau = l_u;
-        m_K = m_lambda + (2.0/3.0)*m_mu;
-        m_Ku = m_lambdau + (2.0/3.0)*m_mu;
+        return m_rho_f;
     }
     
-    /// Brief Set the porolastic engineer parameters data
-    void SetPorolasticParametersEngineer(REAL Ey, REAL nu)
+    /// Set Density of fluid
+    void Setrhos(REAL rho_s)
     {
-        
-        m_lambda = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
-        m_mu = (Ey)/(2.0*(1.0+nu));
-        m_lambdau = (Ey*nu)/((1.0+nu)*(1.0-2.0*nu));
-        m_K = m_lambda + (2.0/3.0)*m_mu;
-        m_Ku = m_lambdau + (2.0/3.0)*m_mu;
+        m_rho_s = rho_s;
     }
     
-    /// Brief Set the Biot parameters data
-    void SetBiotParameters(REAL alpha, REAL Se)
+    /// Get Density of rock
+    REAL rhos()
     {
-        if(alpha==0){
-            std::cout << "Biot constan should be at leats equal to the intact porosity, alpha = " << alpha  << std::endl;
-            DebugStop();
-        }
-        m_alpha = alpha;
-        m_Se = Se;
+        return m_rho_s;
     }
     
-    
-    /// Brief Density of fluid and rock
-    void SetDensityFluidRock(REAL rhof, REAL rhos)
+    /// Set Body force
+    void Setbforce(TPZManVector<REAL,3> b_force)
     {
-        m_rho_f = rhof;
-        m_rho_s = rhos;
+        m_b = b_force;
     }
     
-    void SetMohrCoulombParameters(REAL coh, REAL phi, REAL psi)
+    /// Get Body force
+    TPZManVector<REAL,3> bforce()
     {
-        mc_coh = coh;
-        mc_phi = phi;
-        mc_psi = psi;
+        return m_b;
     }
     
     

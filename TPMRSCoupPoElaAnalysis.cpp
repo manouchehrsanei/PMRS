@@ -1,19 +1,18 @@
 //
-//  TPMRSAnalysis.cpp
+//  TPMRSCoupPoElaAnalysis.cpp
 //  PZ
 //
 //  Created by Omar and Manouchehr on 8/28/16.
 //
 //
 
-#include "TPMRSAnalysis.h"
+#include "TPMRSCoupPoElaAnalysis.h"
 #include "pzpostprocanalysis.h"
 #include "pzfstrmatrix.h"
-#include "TPMRSCouplPoroPlast.h"
 #include "TPZElasticCriterion.h"
 
 /// Brief default costructor
-TPMRSAnalysis::TPMRSAnalysis() : TPZAnalysis()
+TPMRSCoupPoElaAnalysis::TPMRSCoupPoElaAnalysis() : TPZAnalysis()
 {
     
     /// Brief define the simulation data
@@ -55,12 +54,12 @@ TPMRSAnalysis::TPMRSAnalysis() : TPZAnalysis()
 }
 
 /// Brief default destructor
-TPMRSAnalysis::~TPMRSAnalysis(){
+TPMRSCoupPoElaAnalysis::~TPMRSCoupPoElaAnalysis(){
     
 }
 
 /// Brief copy constructor
-TPMRSAnalysis::TPMRSAnalysis(const TPMRSAnalysis &copy)
+TPMRSCoupPoElaAnalysis::TPMRSCoupPoElaAnalysis(const TPMRSCoupPoElaAnalysis &copy)
 {
     m_SimulationData = copy.m_SimulationData;
     m_meshvec        = copy.m_meshvec;
@@ -74,7 +73,7 @@ TPMRSAnalysis::TPMRSAnalysis(const TPMRSAnalysis &copy)
 }
 
 /// Brief Copy assignemnt operator
-TPMRSAnalysis & TPMRSAnalysis::operator=(const TPMRSAnalysis &other)
+TPMRSCoupPoElaAnalysis & TPMRSCoupPoElaAnalysis::operator=(const TPMRSCoupPoElaAnalysis &other)
 {
     if (this != & other) {  /// prevent self-assignment
         
@@ -91,7 +90,7 @@ TPMRSAnalysis & TPMRSAnalysis::operator=(const TPMRSAnalysis &other)
 }
 
 /// Brief Resize and fill residue and solution vectors
-void TPMRSAnalysis::AdjustVectors()
+void TPMRSCoupPoElaAnalysis::AdjustVectors()
 {
     
     if(fSolution.Rows() == 0 /* || fRhs.Rows() == 0 */)
@@ -114,7 +113,7 @@ void TPMRSAnalysis::AdjustVectors()
     m_R.Zero();
 }
 
-void TPMRSAnalysis::QuasiNewtonIteration()
+void TPMRSCoupPoElaAnalysis::QuasiNewtonIteration()
 {
     
     if(m_k_iterations == 1)
@@ -144,13 +143,9 @@ void TPMRSAnalysis::QuasiNewtonIteration()
     
     
     /// Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
-    if(IsPoroElastic)
-    {
-        this->Standard_Update_at_n_State();
-    } else
-    {
-        this->Update_at_n_State();
-    }
+  
+    this->Update_at_n_State();
+
     
     this->AssembleResidual();
     m_R_n = this->Rhs();
@@ -172,42 +167,33 @@ void TPMRSAnalysis::QuasiNewtonIteration()
     
 }
 
-void TPMRSAnalysis::ExcecuteOneStep(){
+void TPMRSCoupPoElaAnalysis::ExcecuteOneStep(){
     
     this->SimulationData()->SetCurrentStateQ(false);
     
     /// Check the update state at last state (n) for PMRS_PoroElastic and PMRS_PoroPlastic
-    if(IsPoroElastic)
-    {
-        this->Standard_UpdateState();
-    } else
-    {
-        this->UpdateState();
-    }
+    this->UpdateState();
 
     this->AssembleResidual();
     m_R = this->Rhs();
     
+    this->Solver().Matrix()->Print("J = ", std::cout,EMathematicaInput);
+    this->Rhs().Print("R = ", std::cout,EMathematicaInput);
+    
     this->SimulationData()->SetCurrentStateQ(true);
     
-    
     /// Check the update state at current state (n+1) for PMRS_PoroElastic and PMRS_PoroPlastic
-    if(IsPoroElastic)
-    {
-        this->Standard_Update_at_n_State();
-    } else
-    {
-        this->Update_at_n_State();
-    }
+
+    this->Update_at_n_State();
     
     m_error = 1.0;
     
     STATE epsilon_res = this->SimulationData()->epsilon_res();
     STATE epsilon_cor = this->SimulationData()->epsilon_cor();
-    int n  =   this->SimulationData()->n_iterations();
+    int n_it  =   this->SimulationData()->n_iterations();
     
     m_SimulationData->Set_must_accept_solution_Q(true); /// For now acceting any solution in the party
-    for (int k = 1; k <= n; k++)
+    for (int k = 1; k <= n_it; k++)
     {
         this->Set_k_ietrarions(k);
         this->QuasiNewtonIteration();
@@ -225,85 +211,53 @@ void TPMRSAnalysis::ExcecuteOneStep(){
 
 
 /// Brief update last state (at n state) solution for PMRS_PoroElastic
-void TPMRSAnalysis::Standard_UpdateState()
+void TPMRSCoupPoElaAnalysis::UpdateState()
 {
     this->LoadSolution(m_X);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
 }
 
 /// Brief update current state (at n+1 state) solution for PMRS_PoroPlastic
-void TPMRSAnalysis::Standard_Update_at_n_State()
+void TPMRSCoupPoElaAnalysis::Update_at_n_State()
 {
     this->LoadSolution(m_X_n);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
-}
-
-/// Brief update last state (at n state) solution for PMRS_PoroPlastic
-void TPMRSAnalysis::UpdateState()
-{
-    this->LoadSolution(m_X);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
-    
-    int n_material = m_SimulationData->MaterialIds().size();
-    if (n_material == 1) {
-        int material_id =  m_SimulationData->MaterialIds()[0].first;
-        TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
-        TPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
-        
-        if (!rock_material) { /// There is no volumetric material of type TPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
-            DebugStop();
-        }
-        
-//        SetMemory(rock_material->GetMemory());
-    }
-    else{
-        //        Implement for several material ids
-        DebugStop();
-    }
-    
-}
-
-/// Brief update current state (at n+1 state) solution for PMRS_PoroPlastic
-void TPMRSAnalysis::Update_at_n_State()
-{
-    this->LoadSolution(m_X_n);
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
-    
-    int n_material = m_SimulationData->MaterialIds().size();
-    if (n_material == 1) {
-        int material_id =  m_SimulationData->MaterialIds()[0].first;
-        TPZMaterial * material = this->Mesh()->FindMaterial(material_id);
-        TPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> * rock_material = dynamic_cast<TPMRSCouplPoroPlast <TPZElasticCriterion, TPZPoroElastoPlasticMem> *>(material);
-        
-        if (!rock_material) { /// There is no volumetric material of type TPMRSCouplPoroPlast <TPZElasticCriterion, TPZElastoPlasticMem>
-            DebugStop();
-        }
-        
-//        SetMemory_n(rock_material->GetMemory());
-    }
-    else{
-        //        Implement for several material ids
-        DebugStop();
-    }
-    
 }
 
 
 /// Brief the Standard Post process function
-void TPMRSAnalysis::PostProcessStepStandard()
+void TPMRSCoupPoElaAnalysis::PostProcessStep()
 {
     /// Post Process when you want to use datavec in your solution or you don't use memory and integration point
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
     const int dim = this->Mesh()->Dimension();
     int div = m_SimulationData->n_div();
     
-    DebugStop();
-    TPZManVector<std::string,50> reservoiroutputs;// = m_SimulationData->reservoir_outputs();
-    TPZManVector<std::string,50> geomechanicoutputs;// = m_SimulationData->geomechanic_outputs();
+    TPZStack<std::string> outputcontrolsres;
+    TPZStack<std::string> outputcontrolsgeo;
+    
+    /// Reservoir outpouts
+    outputcontrolsres.Push("p");
+    outputcontrolsres.Push("phi");
+    outputcontrolsres.Push("kappa");
+    
+    /// Geomechanics outpouts
+    outputcontrolsgeo.Push("ux");
+    outputcontrolsgeo.Push("uy");
+    outputcontrolsgeo.Push("sxx");
+    outputcontrolsgeo.Push("syy");
+    outputcontrolsgeo.Push("szz");
+    outputcontrolsgeo.Push("exx");
+    outputcontrolsgeo.Push("eyy");
+    outputcontrolsgeo.Push("ezz");
+    outputcontrolsgeo.Push("epxx");
+    outputcontrolsgeo.Push("epyy");
+    outputcontrolsgeo.Push("epzz");
+    
     
     std::string plotfile = m_SimulationData->name_vtk_file();
     
-    this->DefineGraphMesh(dim,reservoiroutputs,geomechanicoutputs,plotfile);
+    this->DefineGraphMesh(dim,outputcontrolsres,outputcontrolsgeo,plotfile);
     this->PostProcess(div,dim);
     
     std::cout << "Standard post-processing finished." << std::endl;
@@ -311,64 +265,8 @@ void TPMRSAnalysis::PostProcessStepStandard()
 }
 
 
-/// Brief the Post process function
-void TPMRSAnalysis::PostProcessStep()
-{
-    /// Post Process when you want to use memory and integration point
-    
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, this->Mesh());
-    const int dim = this->Mesh()->Dimension();
-    int div = m_SimulationData->n_div();
- 
-    DebugStop();
-    TPZManVector<std::string,50> reservoiroutputs;// = m_SimulationData->reservoir_outputs();
-    TPZManVector<std::string,50> geomechanicoutputs;// = m_SimulationData->geomechanic_outputs();
-    
-    std::string plotfile = m_SimulationData->name_vtk_file();
-    
-    /// Scalars and vectors in the integration point
-    TPZStack<std::string> reservoiroutputs_intPoints;
-    TPZStack<std::string> geomechanicoutputs_intPoints;
-    
-    TPZStack<std::string> vars;
-    for (auto varname : reservoiroutputs)
-    {
-            reservoiroutputs_intPoints.push_back(varname);
-    }
-    for (auto varname : geomechanicoutputs)
-    {
-            geomechanicoutputs_intPoints.push_back(varname);
-    }
-    
-    TPZVec<int> PostProcMatIds(1);
-    {
-        PostProcMatIds[0] = 1;
-        TPZPostProcAnalysis postProcessAnalysis;
-        postProcessAnalysis.SetCompMesh(this->Mesh());
-        TPZVec<std::string> vars(reservoiroutputs_intPoints.size()+geomechanicoutputs_intPoints.size());
-        for (unsigned int i = 0; i < reservoiroutputs_intPoints.size(); ++i)
-        {
-            vars[i] = reservoiroutputs_intPoints[i];
-        }
-        for (unsigned int i = 0; i < geomechanicoutputs_intPoints.size(); ++i)
-        {
-            vars[reservoiroutputs_intPoints.size()+i] = geomechanicoutputs_intPoints[i];
-        }
-        postProcessAnalysis.SetPostProcessVariables(PostProcMatIds, vars);
-        TPZFStructMatrix structMatrix(postProcessAnalysis.Mesh());
-        structMatrix.SetNumThreads(0);
-        postProcessAnalysis.SetStructuralMatrix(structMatrix);
-        postProcessAnalysis.TransferSolution();
-        postProcessAnalysis.DefineGraphMesh(dim,reservoiroutputs_intPoints,geomechanicoutputs_intPoints,plotfile);
-        postProcessAnalysis.PostProcess(div, dim);
-    }
-    
-    std::cout << "Post-processing finished." << std::endl;
-    
-}
-
 /// Brief execute the evolutionary problem
-void TPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
+void TPMRSCoupPoElaAnalysis::Run_Evolution(TPZVec<REAL> &x)
 {
     int n = m_SimulationData->n_steps();
     REAL time = 0.0;
@@ -377,15 +275,8 @@ void TPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
     for (int i = 0; i < n; i++)
     {
         this->ExcecuteOneStep();
-        
-        if(IsPoroElastic)
-        {
-            this->PostProcessStepStandard();
-        } else
-        {
         this->PostProcessStep();
-        }
-        
+
 //        this->AppendStrain_Stress(x);
 //        this->AppendStrain_Pososity(x);
 //        this->AppendStrain_Permeability(x);
@@ -399,7 +290,7 @@ void TPMRSAnalysis::Run_Evolution(TPZVec<REAL> &x)
 }
 
 /// Brief Compute the strain and the stress at x euclidean point for each time
-void TPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
+void TPMRSCoupPoElaAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 {
     // Finding the geometic element that x bleongs to.
     REAL Tol = 1.0e-4;
@@ -460,7 +351,7 @@ void TPMRSAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
 }
 
 /// Brief Compute the strain and the Pososity at x euclidean point for each time
-void TPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
+void TPMRSCoupPoElaAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 {
     /// Finding the geometic element that x bleongs to
     REAL Tol = 1.0e-4;
@@ -523,7 +414,7 @@ void TPMRSAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
 }
 
 /// Brief Compute the strain and the Permeability at x euclidean point for each time
-void TPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
+void TPMRSCoupPoElaAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
 {
     
     /// Finding the geometic element that x bleongs to
@@ -587,7 +478,7 @@ void TPMRSAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
 }
 
 /// Brief Compute the strain and the Permeability at x euclidean point for each time
-void TPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
+void TPMRSCoupPoElaAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
 {
     
     /// Finding the geometic element that x bleongs to
@@ -650,7 +541,7 @@ void TPMRSAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
 }
 
 /// Brief Compute the strain and the stress at x euclidean point for each time
-void TPMRSAnalysis::PlotStrainStress(std::string file_name)
+void TPMRSCoupPoElaAnalysis::PlotStrainStress(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -674,7 +565,7 @@ void TPMRSAnalysis::PlotStrainStress(std::string file_name)
 }
 
 /// Brief Compute the strain and the Porosity at x euclidean point for each time
-void TPMRSAnalysis::PlotStrainPorosity(std::string file_name)
+void TPMRSCoupPoElaAnalysis::PlotStrainPorosity(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -699,7 +590,7 @@ void TPMRSAnalysis::PlotStrainPorosity(std::string file_name)
 }
 
 /// Brief Compute the strain and the Porosity at x euclidean point for each time
-void TPMRSAnalysis::PlotStrainPermeability(std::string file_name)
+void TPMRSCoupPoElaAnalysis::PlotStrainPermeability(std::string file_name)
 {
     
 #ifdef PZDEBUG
@@ -724,7 +615,7 @@ void TPMRSAnalysis::PlotStrainPermeability(std::string file_name)
 }
 
 /// Brief Compute the strain and the Porosity at x euclidean point for each time
-void TPMRSAnalysis::PlotStrainPressure(std::string file_name)
+void TPMRSCoupPoElaAnalysis::PlotStrainPressure(std::string file_name)
 {
     
 #ifdef PZDEBUG

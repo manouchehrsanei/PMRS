@@ -26,29 +26,33 @@ static LoggerPtr logger(Logger::getLogger("pz.TPMRSCouplPoroElast"));
 
 
 /// Brief default costructor
-TPMRSCouplPoroElast::TPMRSCouplPoroElast():TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPMRSCouplPoroElast::TPMRSCouplPoroElast():TPZMatWithMem<TPMRSCoupPoElaMemory,TPZDiscontinuousGalerkin>()
 {
-    m_Dim = 3;
-    m_b.resize(3);
-    
-    m_b[0]=0.;
-    m_b[1]=0.;
-    m_b[2]=0.;
-
-    m_k_model = 0;
+    m_SimulationData = NULL;
+    m_Dim            = 0 ;
+    m_lambda         = 0.;
+    m_mu             = 0.;
+    m_alpha          = 0.;
+    m_eta            = 0.;
+    m_Se             = 0.;
+    m_porosity_0     = 0.;
+    m_k_0            = 0.;
+    m_k_model        = 0 ;
 }
 
 /// Brief costructor based on a material id
-TPMRSCouplPoroElast::TPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPMRSMemoryPoroElast,TPZDiscontinuousGalerkin>(matid), m_nu(0.), m_alpha(0.), m_k_0(0.), m_eta(0.)
+TPMRSCouplPoroElast::TPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPMRSCoupPoElaMemory,TPZDiscontinuousGalerkin>(matid)
 {
-    m_Dim = dim;
-    m_b.resize(3);
-    
-    m_b[0]=0.;
-    m_b[1]=0.;
-    m_b[2]=0.;
-    
-    m_k_model = 0;
+    m_SimulationData = NULL;
+    m_Dim            = dim;
+    m_lambda         = 0.;
+    m_mu             = 0.;
+    m_alpha          = 0.;
+    m_eta            = 0.;
+    m_Se             = 0.;
+    m_porosity_0     = 0.;
+    m_k_0            = 0.;
+    m_k_model        = 0 ;
 }
 
 /// Brief default destructor
@@ -60,20 +64,39 @@ TPMRSCouplPoroElast::~TPMRSCouplPoroElast()
 /// Brief copy constructor
 TPMRSCouplPoroElast::TPMRSCouplPoroElast(const TPMRSCouplPoroElast& other)
 {
-    this->m_Dim               = other.m_Dim;
-    this->m_SimulationData    = other.m_SimulationData;
+     m_SimulationData   = other.m_SimulationData;
+     m_Dim              = other.m_Dim;
+     m_lambda           = other.m_lambda;
+     m_mu               = other.m_mu;
+     m_alpha            = other.m_alpha;
+     m_eta              = other.m_eta;
+     m_Se               = other.m_Se;
+     m_porosity_0       = other.m_porosity_0;
+     m_k_0              = other.m_k_0;
+     m_k_model          = other.m_k_model;
+
 }
 
 
 /// Brief Copy assignemnt operator
 TPMRSCouplPoroElast& TPMRSCouplPoroElast::operator = (const TPMRSCouplPoroElast& other)
 {
-    
-    if (this != & other) // prevent self-assignment
-    {
-        this->m_Dim               = other.m_Dim;
-        this->m_SimulationData    = other.m_SimulationData;
+    // check for self-assignment
+    if(&other == this){
+        return *this;
     }
+    
+    m_SimulationData   = other.m_SimulationData;
+    m_Dim              = other.m_Dim;
+    m_lambda           = other.m_lambda;
+    m_mu               = other.m_mu;
+    m_alpha            = other.m_alpha;
+    m_eta              = other.m_eta;
+    m_Se               = other.m_Se;
+    m_porosity_0       = other.m_porosity_0;
+    m_k_0              = other.m_k_0;
+    m_k_model          = other.m_k_model;
+    
     return *this;
 }
 
@@ -81,7 +104,7 @@ TPMRSCouplPoroElast& TPMRSCouplPoroElast::operator = (const TPMRSCouplPoroElast&
 /// Brief number of state variables
 int TPMRSCouplPoroElast::NStateVariables()
 {
-    return 2;
+    return m_Dim;
 }
 
 /// Brief permeability coupling models
@@ -290,8 +313,8 @@ void TPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     
     /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZAdmChunkVector<TPMRSMemoryPoroElast> memory_vec = *GetMemory();
-    TPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
+    TPZAdmChunkVector<TPMRSCoupPoElaMemory> memory_vec = *GetMemory();
+    TPMRSCoupPoElaMemory &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -383,14 +406,13 @@ void TPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
         }
     }
     
-    /// Brief Rudnicki diffusion coefficient
-    /// J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986
+    /// Flux Matrix: Compressibility and Transient Matrix
+
     REAL k = 0.0;
     m_k_model = 1;
     k_permeability(phi_poro,k);
-    m_lambdau = 1.1 * m_lambda;
     
-    REAL c = (k/m_eta); // (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+    REAL c = (k/m_eta);
 
     /// Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -421,9 +443,7 @@ void TPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
             
             ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0));
         }
-        
     }
-    
 }
 
 
@@ -471,7 +491,8 @@ void TPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
         
         
         /// Darcy mono-phascis flow
-        for (int ip = 0; ip < nphi_p; ip++) {
+        for (int ip = 0; ip < nphi_p; ip++)
+        {
             
             ef(ip + first_p, 0)		+= - weight * (phi_poro/dt) * phip(ip,0);
         }
@@ -502,8 +523,8 @@ void TPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
     
     /// Get the solution at the integrations points
     long global_point_index = datavec[0].intGlobPtIndex;
-    TPZAdmChunkVector<TPMRSMemoryPoroElast> memory_vec = *GetMemory();
-    TPMRSMemoryPoroElast &memory = memory_vec[global_point_index];
+    TPZAdmChunkVector<TPMRSCoupPoElaMemory> memory_vec = *GetMemory();
+    TPMRSCoupPoElaMemory &memory = memory_vec[global_point_index];
     e_e = memory.epsilon_e_n();
     e_p = memory.epsilon_p_n();
     Grad_u_n = memory.grad_u_n();
@@ -656,14 +677,11 @@ void TPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
         }
     }
     
-    
-    /// Brief Rudnicki diffusion coefficient
-    /// J. W. Rudnicki. Fluid mass sources and point forces in linear elastic diffusive solids. Journal of Mechanics of Materials, 5:383–393, 1986
+    /// Flux Matrix: Compressibility and Transient Matrix
     REAL k = 0.0;
     m_k_model = 1;
     k_permeability(phi_poro,k);
-    m_lambdau = 1.1 * m_lambda;
-    REAL c = (k/m_eta)*(m_lambdau-m_lambda)*(m_lambda + 2.0*m_mu)/(m_alpha*m_alpha*(m_lambdau + 2.0*m_mu));
+    REAL c = (k/m_eta);
     
     /// Darcy mono-phascis flow
     for (int ip = 0; ip < nphi_p; ip++)
@@ -696,11 +714,8 @@ void TPMRSCouplPoroElast::Contribute_3D(TPZVec<TPZMaterialData> &datavec, REAL w
             
             ek(ip + first_p, jp + first_p)		+= weight * (c * dot + (m_Se/dt) * phip(jp,0) * phip(ip,0) );
         }
-        
     }
-    
 }
-
 
 
 /// Brief of contribute
@@ -1229,127 +1244,126 @@ void TPMRSCouplPoroElast::FillBoundaryConditionDataRequirement(int type,TPZVec<T
 
 void TPMRSCouplPoroElast::Print(std::ostream &out)
 {
-    out << "Material Name : " << Name() << "\n";
-    out << "Properties for TPMRSCouplPoroElast: \n";
-    out << "\t Poisson Ratio   = "											<< m_nu		<< std::endl;
-    out << "\t Undarined Poisson Ratio   = "								<< m_nuu		<< std::endl;
-    out << "\t First Lamé Parameter   = "									<< m_lambda	<< std::endl;
-    out << "\t Second Lamé Parameter   = "									<< m_mu		<< std::endl;
-    out << "\t Undrained First Lamé Parameter   = "							<< m_lambdau	<< std::endl;
-    out << "\t Biot coefficient   = "										<< m_alpha	<< std::endl;
-    out << "\t Body force vector B {X-direction, Y-direction}   = "			<< m_b[0] << ' ' << m_b[1]   << std::endl;
-    out << "Properties for Diffusion: \n";
-    out << "\t Initial Permeability   = "											<< m_k_0		<< std::endl;
-    out << "\t Fluid Viscosity   = "										<< m_eta	<< std::endl;
-    out << "\t Constrained specific storage at constant strain Se = "		<< m_Se		<< std::endl;
-    out << "Class properties :";
+    out << " Material Name : "                 << Name()           << std::endl;
+    out << " Beging Properties for TPMRSCouplPoroElast: \n";
+    out << " Pointer to TPMRSSimulationData : " << m_SimulationData << std::endl;
+    out << " Material dimension : "             << m_Dim            << std::endl;
+    out << " First Lamé Parameter   = "		    << m_lambda	        << std::endl;
+    out << " Second Lamé Parameter   = "		<< m_mu		        << std::endl;
+    out << " Biot coefficient   = "			    << m_alpha   	    << std::endl;
+    out << " Fluid Viscosity   = "			    << m_eta	        << std::endl;
+    out << " Storage coefficient = "		    << m_Se		        << std::endl;
+    out << " Initial Porosity   = "		        << m_porosity_0	    << std::endl;
+    out << " Initial Permeability   = "		    << m_k_0	        << std::endl;
+    out << " End Properties for TPMRSCouplPoroElast: \n";
     TPZMaterial::Print(out);
     out << "\n";
     
 }
 
+
 /// Returns the variable index associated with the name
 int TPMRSCouplPoroElast::VariableIndex(const std::string &name)
 {
-    ///	Total Strain Variables
-    if(!strcmp("et_v",name.c_str()))             return	18;
-    if(!strcmp("et_x",name.c_str()))             return	19;
-    if(!strcmp("et_y",name.c_str()))             return	20;
-    if(!strcmp("et_z",name.c_str()))             return	21;
-    if(!strcmp("et_xy",name.c_str()))            return	22;
-    if(!strcmp("et_xz",name.c_str()))            return	23;
-    if(!strcmp("et_yz",name.c_str()))            return	24;
+    /// Reservoir Variable
+    if (!strcmp("p"     , name.c_str())) return  0;
+    if (!strcmp("q"     , name.c_str())) return  1;
+    if (!strcmp("div_q" , name.c_str())) return  2;
+    if (!strcmp("kappa" , name.c_str())) return  3;
+    if (!strcmp("phi"   , name.c_str())) return  4;
+    if (!strcmp("order" , name.c_str())) return  5;
+    if (!strcmp("id"    , name.c_str())) return  6;
     
-    ///	Elastic Strain Variables
-    if(!strcmp("e_v",name.c_str()))             return	25;
-    if(!strcmp("e_x",name.c_str()))             return	26;
-    if(!strcmp("e_y",name.c_str()))             return	27;
-    if(!strcmp("e_z",name.c_str()))             return	28;
-    if(!strcmp("e_xy",name.c_str()))            return	29;
-    if(!strcmp("e_xz",name.c_str()))            return	30;
-    if(!strcmp("e_yz",name.c_str()))            return	31;
-    
-    ///	Plastic Strain Variables
-    if(!strcmp("ep_v",name.c_str()))            return	32;
-    if(!strcmp("ep_x",name.c_str()))            return	33;
-    if(!strcmp("ep_y",name.c_str()))            return	34;
-    if(!strcmp("ep_z",name.c_str()))            return	35;
-    if(!strcmp("ep_xy",name.c_str()))           return	36;
-    if(!strcmp("ep_xz",name.c_str()))           return	37;
-    if(!strcmp("ep_yz",name.c_str()))           return	38;
-    
-    ///	Displacement Variables
-    if(!strcmp("u",name.c_str()))				return	39;
-    
-    ///	Diffusion Variables
-    if(!strcmp("p",name.c_str()))				return	40;
-    if(!strcmp("v",name.c_str()))				return	41;
-    if(!strcmp("phi",name.c_str()))				return	42;
-    if(!strcmp("k_x",name.c_str()))				return	43;
-    if(!strcmp("k_y",name.c_str()))				return	44;
-    if(!strcmp("k_z",name.c_str()))				return	45;
-    
-    ///	Total Stress Variables
-    if(!strcmp("s_x",name.c_str()))             return	46;
-    if(!strcmp("s_y",name.c_str()))             return	47;
-    if(!strcmp("s_z",name.c_str()))             return	48;
-    if(!strcmp("t_xy",name.c_str()))            return	49;
-    if(!strcmp("t_xz",name.c_str()))            return	50;
-    if(!strcmp("t_yz",name.c_str()))            return	51;
-    
-    ///	Stress Ratio Variable
-    if(!strcmp("K_0",name.c_str()))             return	52;
-    
-    ///	Yield Surface Variable
-    if(!strcmp("YS_1",name.c_str()))             return	53;
-    if(!strcmp("YS_2",name.c_str()))             return	54;
-    if(!strcmp("YS_3",name.c_str()))             return	55;
-    
+    /// Geomechanics Variable
+    if (!strcmp("ux"    , name.c_str())) return  7;
+    if (!strcmp("uy"    , name.c_str())) return  8;
+    if (!strcmp("uz"    , name.c_str())) return  9;
+    if (!strcmp("sxx"   , name.c_str())) return 10;
+    if (!strcmp("sxy"   , name.c_str())) return 11;
+    if (!strcmp("sxz"   , name.c_str())) return 12;
+    if (!strcmp("syy"   , name.c_str())) return 13;
+    if (!strcmp("syz"   , name.c_str())) return 14;
+    if (!strcmp("szz"   , name.c_str())) return 15;
+    if (!strcmp("exx"   , name.c_str())) return 16;
+    if (!strcmp("exy"   , name.c_str())) return 17;
+    if (!strcmp("exz"   , name.c_str())) return 18;
+    if (!strcmp("eyy"   , name.c_str())) return 19;
+    if (!strcmp("eyz"   , name.c_str())) return 20;
+    if (!strcmp("ezz"   , name.c_str())) return 21;
+    if (!strcmp("epxx"  , name.c_str())) return 22;
+    if (!strcmp("epxy"  , name.c_str())) return 23;
+    if (!strcmp("epxz"  , name.c_str())) return 24;
+    if (!strcmp("epyy"  , name.c_str())) return 25;
+    if (!strcmp("epyz"  , name.c_str())) return 26;
+    if (!strcmp("epzz"  , name.c_str())) return 27;
+        
     return TPZMaterial::VariableIndex(name);
 }
 
 int TPMRSCouplPoroElast::NSolutionVariables(int var)
 {
-    if(var == 18)	return 1;
-    if(var == 19)	return 1;
-    if(var == 20)	return 1;
-    if(var == 21)	return 1;
-    if(var == 22)	return 1;
-    if(var == 23)	return 1;
-    if(var == 24)	return 1;
-    if(var == 25)	return 1;
-    if(var == 26)	return 1;
-    if(var == 27)	return 1;
-    if(var == 28)	return 1;
-    if(var == 29)	return 1;
-    if(var == 30)	return 1;
-    if(var == 31)	return 1;
-    if(var == 32)	return 1;
-    if(var == 33)	return 1;
-    if(var == 34)	return 1;
-    if(var == 35)	return 1;
-    if(var == 36)	return 1;
-    if(var == 37)	return 1;
-    if(var == 38)	return 1;
-    if(var == 39)	return m_Dim;
-    if(var == 40)	return 1;
-    if(var == 41)	return m_Dim;
-    if(var == 42)	return 1;
-    if(var == 43)	return 1;
-    if(var == 44)	return 1;
-    if(var == 45)	return 1;
-    if(var == 46)	return 1;
-    if(var == 47)	return 1;
-    if(var == 48)	return 1;
-    if(var == 49)	return 1;
-    if(var == 50)	return 1;
-    if(var == 51)	return 1;
-    if(var == 52)	return 1;
-    if(var == 53)	return 1;
-    if(var == 54)	return 1;
-    if(var == 55)	return 1;
+    switch(var) {
+        case 0:
+            return 1; /// Scalar
+        case 1:
+            return m_Dim; /// Vector
+        case 2:
+            return 1; /// Scalar
+        case 3:
+            return 1; /// Scalar
+        case 4:
+            return 1; /// Scalar
+        case 5:
+            return 1; /// Scalar
+        case 6:
+            return 1; /// Scalar
+            
+        case 7:
+            return 1; // Scalar
+        case 8:
+            return 1; // Scalar
+        case 9:
+            return 1; // Scalar
+        case 10:
+            return 1; // Scalar
+        case 11:
+            return 1; // Scalar
+        case 12:
+            return 1; // Scalar
+        case 13:
+            return 1; // Scalar
+        case 14:
+            return 1; // Scalar
+        case 15:
+            return 1; // Scalar
+        case 16:
+            return 1; // Scalar
+        case 17:
+            return 1; // Scalar
+        case 18:
+            return 1; // Scalar
+        case 19:
+            return 1; // Scalar
+        case 20:
+            return 1; // Scalar
+        case 21:
+            return 1; // Scalar
+        case 22:
+            return 1; // Scalar
+        case 23:
+            return 1; // Scalar
+        case 24:
+            return 1; // Scalar
+        case 25:
+            return 1; // Scalar
+        case 26:
+            return 1; // Scalar
+        case 27:
+            return 1; // Scalar
+    }
     
     return TPZMaterial::NSolutionVariables(var);
+    
 }
 
 ///	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
@@ -1410,180 +1424,16 @@ void TPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     
     // ************************************** The value of parameters ************************
     
-    // ************************	Total Strain Variables ************************
-    //	epsilon_t_v
-    if(var == 18)
-    {
-        Solout[0] = e_e(0,0) + e_e(1,1) + e_e(2,2);
-        return;
-    }
-    
-    //	epsilon_t_xx
-    if(var == 19)
-    {
-        Solout[0] = e_e(0,0);
-        return;
-    }
-    
-    //	epsilon_t_yy
-    if(var == 20)
-    {
-        Solout[0] = e_e(1,1);
-        return;
-    }
-    
-    //	epsilon_t_zz
-    if(var == 21)
-    {
-        Solout[0] = e_e(2,2);
-        return;
-    }
-    
-    //	epsilon_t_xy
-    if(var == 22)
-    {
-        Solout[0] = e_e(0,1);
-        return;
-    }
-    
-    //	epsilon_t_xz
-    if(var == 23)
-    {
-        Solout[0] = e_e(0,2);
-        return;
-    }
-    
-    //	epsilon_t_yz
-    if(var == 24)
-    {
-        Solout[0] = e_e(1,2);
-        return;
-    }
-    
-    // ************************	Elastic Strain Variables ************************
-    //	epsilon_e_v
-    if(var == 25)
-    {
-        Solout[0] = e_e(0,0) + e_e(1,1) + e_e(2,2);
-        return;
-    }
-    
-    //	epsilon_e_xx
-    if(var == 26)
-    {
-        Solout[0] = e_e(0,0);
-        return;
-    }
-    
-    //	epsilon_e_yy
-    if(var == 27)
-    {
-        Solout[0] = e_e(1,1);
-        return;
-    }
-    
-    //	epsilon_e_zz
-    if(var == 28)
-    {
-        Solout[0] = e_e(2,2);
-        return;
-    }
-    
-    //	epsilon_e_xy
-    if(var == 29)
-    {
-        Solout[0] = e_e(0,1);
-        return;
-    }
-    
-    //	epsilon_e_xz
-    if(var == 30)
-    {
-        Solout[0] = e_e(0,2);
-        return;
-    }
-    
-    //	epsilon_e_yz
-    if(var == 31)
-    {
-        Solout[0] = e_e(1,2);
-        return;
-    }
-    
-    // ************************	Plastic Strain Variables ************************
-    //	epsilon_p_v
-    if(var == 32)
-    {
-        Solout[0] = e_p(0,0) + e_p(1,1) + e_p(2,2);
-        return;
-    }
-    
-    //	epsilon_p_xx
-    if(var == 33)
-    {
-        Solout[0] = e_p(0,0);
-        return;
-    }
-    
-    //	epsilon_p_yy
-    if(var == 34)
-    {
-        Solout[0] = e_p(1,1);
-        return;
-    }
-    
-    //	epsilon_p_zz
-    if(var == 35)
-    {
-        Solout[0] = e_p(2,2);
-        return;
-    }
-    
-    //	epsilon_p_xy
-    if(var == 36)
-    {
-        Solout[0] = e_p(0,1);
-        return;
-    }
-    
-    //	epsilon_p_xz
-    if(var == 37)
-    {
-        Solout[0] = e_p(0,2);
-        return;
-    }
-    
-    //	epsilon_p_yz
-    if(var == 38)
-    {
-        Solout[0] = e_p(1,2);
-        return;
-    }
-    
-    // ************************	Displacement Variables ************************
-    //  Displacement Variable
-    if(var == 39)
-    {
-        Solout[0] = u[0];
-        Solout[1] = u[1];
-        if (m_Dim == 3)
-        {
-            Solout[2] = u[2];
-        }
-        return;
-    }
-    
-    
-    // ************************	Diffusion Variables ************************
+    // ************************	Reservoir Variables ************************
     //	pore pressure
-    if(var == 40)
+    if(var == 0)
     {
         Solout[0] = p[0]*to_Mpa;
         return;
     }
     
     //	Darcy's velocity
-    if(var == 41)
+    if(var == 1)
     {
         if (m_Dim != 3)
         {
@@ -1613,9 +1463,31 @@ void TPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
         }
     }
     
+    //	Permeability
+    if(var == 3)
+    {
+        if (m_Dim != 3)
+        {
+            REAL phi = porosity_corrected_2D(datavec);
+            REAL k = 0.0;
+            k_permeability(phi, k);
+            Solout[0] = k*to_Darcy;
+            return;
+        }
+        
+        else
+        {
+            REAL phi = porosity_corrected_3D(datavec);
+            REAL k = 0.0;
+            k_permeability(phi, k);
+            Solout[0] = k*to_Darcy;
+            return;
+        }
+    }
+    
     
     //	Porosity
-    if(var == 42)
+    if(var == 4)
     {
         if (m_Dim != 3)
         {
@@ -1630,141 +1502,116 @@ void TPMRSCouplPoroElast::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
     }
     
     
-    //	k_x
-    if(var == 43)
+    // ************************	Geomechanics Variables ************************
+    //  ux , displacement variable in X direction
+    
+    if(var == 7)
     {
-        if (m_Dim != 3)
-        {
-        REAL phi = porosity_corrected_2D(datavec);
-        REAL k = 0.0;
-        k_permeability(phi, k);
-        Solout[0] = k*to_Darcy;
+        Solout[0] = u[0];
+
         return;
-        }
-        
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
     }
     
-    //	k_y
-    if(var == 44)
+    //  uy , displacement variable in Y direction
+    if(var == 8)
     {
-        if (m_Dim != 3)
-        {
-            REAL phi = porosity_corrected_2D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
+        Solout[0] = u[1];
+
+        return;
     }
-    
-    //	k_z
-    if(var == 45)
+
+    //  uz , displacement variable in Z direction
+    if(var == 9)
     {
-        if (m_Dim != 3)
+        if (m_Dim == 3)
         {
-            REAL phi = porosity_corrected_2D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
+            Solout[0] = u[2];
         }
-        else
-        {
-            REAL phi = porosity_corrected_3D(datavec);
-            REAL k = 0.0;
-            k_permeability(phi, k);
-            Solout[0] = k*to_Darcy;
-            return;
-        }
+        return;
     }
     
-    
-    // ************************	Total Stress Variables ************************
-    //	sigma_x
-    if(var == 46)
+    //	sigma_xx
+    if(var == 10)
     {
         Solout[0] = S(0,0)*to_Mpa;
         return;
     }
     
-    //	sigma_y
-    if(var == 47)
-    {
-        Solout[0] = S(1,1)*to_Mpa;
-        return;
-    }
-    
-    //	sigma_z
-    if(var == 48)
-    {
-        Solout[0] = S(2,2)*to_Mpa;
-        return;
-    }
-    
     //	tau_xy
-    if(var == 49)
+    if(var == 11)
     {
         Solout[0] = S(0,1)*to_Mpa;
         return;
     }
     
     //	tau_xz
-    if(var == 50)
+    if(var == 12)
     {
         Solout[0] = S(0,2)*to_Mpa;
         return;
     }
     
+    //	sigma_yy
+    if(var == 13)
+    {
+        Solout[0] = S(1,1)*to_Mpa;
+        return;
+    }
+    
     //	tau_yz
-    if(var == 51)
+    if(var == 14)
     {
         Solout[0] = S(1,2)*to_Mpa;
         return;
     }
     
-    // ************************	Stress Ratio Variable ************************
-    //	K_0
-    if(var == 52)
+    //	sigma_z
+    if(var == 15)
     {
-        Solout[0] = S(0,0)/S(1,1);
+        Solout[0] = S(2,2)*to_Mpa;
         return;
     }
     
-    // ************************	Yield Surface Variable ************************
-    //  YS_1
-    if(var == 53)
+    
+    //	epsilon_t_xx
+    if(var == 16)
     {
-       Solout[0] = 0;
+        Solout[0] = e_e(0,0);
         return;
     }
     
-    //  YS_2
-    if(var == 54)
+    //	epsilon_t_xy
+    if(var == 17)
     {
-        Solout[0] = 0;
+        Solout[0] = e_e(0,1);
         return;
     }
     
-    //  YS_3
-    if(var == 55)
+    //	epsilon_t_xz
+    if(var == 18)
     {
-        Solout[0] = 0;
+        Solout[0] = e_e(0,2);
+        return;
+    }
+    
+    //	epsilon_t_yy
+    if(var == 19)
+    {
+        Solout[0] = e_e(1,1);
+        return;
+    }
+    
+    //	epsilon_t_yz
+    if(var == 20)
+    {
+        Solout[0] = e_e(1,2);
+        return;
+    }
+    
+    //	epsilon_t_zz
+    if(var == 21)
+    {
+        Solout[0] = e_e(2,2);
         return;
     }
     

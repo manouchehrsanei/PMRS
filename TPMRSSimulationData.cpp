@@ -897,7 +897,6 @@ void TPMRSSimulationData::ReadGeometry()
 /// Brief print the geometry
 void TPMRSSimulationData::PrintGeometry()
 {
-    
     std::stringstream text_name;
     std::stringstream vtk_name;
     text_name  << "geometry" << ".txt";

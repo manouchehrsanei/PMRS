@@ -45,7 +45,7 @@
 // Geomechanics
 #include "TPMRSElastoPlastic_impl.h"
 #include "TPMRSGeomechanicAnalysis.h"
-#include "TPMRSMemoryPoroElast.h"
+#include "TPMRSCoupPoElaMemory.h"
 #include "TPMRSElastoPlasticMemory.h"
 
 // Segregated solver
@@ -69,7 +69,7 @@
 // Analysis
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
-#include "TPMRSAnalysis.h"
+#include "TPMRSCoupPoElaAnalysis.h"
 
 
 // Matrix
@@ -91,7 +91,6 @@
 
 // ElastoPlastic Materials
 #include "TPMRSCouplPoroElast.h"
-#include "TPMRSCouplPoroPlast.h"
 
 
 #ifdef LOG4CXX
@@ -205,6 +204,9 @@ int main(int argc, char *argv[])
 //    RuningGeomechanics(sim_data);
 //    RuningMonophasic(sim_data);
     
+//    RuningFullCoupling(sim_data);
+
+    
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -248,26 +250,28 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data)
     number_threads = 0;
 #endif
     
-    TPMRSAnalysis * time_analysis = new TPMRSAnalysis;
+    TPMRSCoupPoElaAnalysis * time_analysis = new TPMRSCoupPoElaAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-#ifdef USING_Pardiso
-    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
-    TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
-#else
-    
+//#ifdef USING_Pardiso
+//    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
+//    TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
+//#else
+//    
+//    TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
+//    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+//    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
+//    
+//    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
+//    //    struct_mat.SetDecomposeType(ELDLt);
+//    
+//#endif
+//    
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-    //    struct_mat.SetDecomposeType(ELDLt);
-    
-#endif
-    
+
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -485,91 +489,6 @@ void RuningMonophasic(TPMRSSimulationData * sim_data){
         analysis->ExecuteOneTimeStep();
         analysis->PostProcessTimeStep(file_name);
     }    
-}
-
-
-TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data){
-    
-    // Getting mesh dimension
-    int dim = sim_data->Dimension();
-    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
-    int nstate = dim;
-    TPZVec<STATE> sol;
-    int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
-    for (int iregion = 0; iregion < n_regions; iregion++)
-    {
-        int matid = material_ids[iregion].first;
-        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
-        cmesh->InsertMaterialObject(material);
-        
-        // Inserting boundary conditions
-        int dirichlet = 0;
-        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
-        int n_bc = material_ids[iregion].second.first.size();
-        for (int ibc = 0; ibc < n_bc; ibc++)
-        {
-            int bc_id = material_ids[iregion].second.first [ibc];
-            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
-            cmesh->InsertMaterialObject(bc);
-        }
-    }
-    // Setting H1 approximation space
-    cmesh->SetDimModel(dim);
-    cmesh->SetDefaultOrder(sim_data->ElasticityOrder());
-    cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->AutoBuild();
-    
-#ifdef PZDEBUG
-//    std::ofstream out("CmeshDeformation.txt");
-//    cmesh->Print(out);
-#endif
-
-    return cmesh;
-    
-}
-
-
-TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data)
-{
-    
-    // Getting mesh dimension
-    int dim = sim_data->Dimension();
-    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
-    int nstate = 1;
-    TPZVec<STATE> sol;
-    int n_regions = sim_data->NumberOfRegions();
-    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
-    for (int iregion = 0; iregion < n_regions; iregion++)
-    {
-        int matid = material_ids[iregion].first;
-        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
-        cmesh->InsertMaterialObject(material);
-        
-        // Inserting boundary conditions
-        int dirichlet = 0;
-        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
-        int n_bc = material_ids[iregion].second.first.size();
-        for (int ibc = 0; ibc < n_bc; ibc++)
-        {
-            int bc_id = material_ids[iregion].second.first [ibc];
-            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
-            
-            cmesh->InsertMaterialObject(bc);
-        }
-    }
-    // Setting H1 approximation space
-    cmesh->SetDimModel(dim);
-    cmesh->SetDefaultOrder(sim_data->DiffusionOrder());
-    cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->AutoBuild();
-    
-#ifdef PZDEBUG
-//    std::ofstream out("CmeshPorePressure.txt");
-//    cmesh->Print(out);
-#endif
-    
-    return cmesh;
 }
 
 
@@ -799,6 +718,92 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
 
 }
 
+
+TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data){
+    
+    // Getting mesh dimension
+    int dim = sim_data->Dimension();
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    int nstate = dim;
+    TPZVec<STATE> sol;
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+        cmesh->InsertMaterialObject(material);
+        
+        // Inserting boundary conditions
+        int dirichlet = 0;
+        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
+        int n_bc = material_ids[iregion].second.first.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second.first [ibc];
+            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
+            cmesh->InsertMaterialObject(bc);
+        }
+    }
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(sim_data->ElasticityOrder());
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    //    std::ofstream out("CmeshDeformation.txt");
+    //    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+    
+}
+
+
+TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data)
+{
+    
+    // Getting mesh dimension
+    int dim = sim_data->Dimension();
+    TPZCompMesh * cmesh = new TPZCompMesh(sim_data->Geometry());
+    int nstate = 1;
+    TPZVec<STATE> sol;
+    int n_regions = sim_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        TPZL2Projection * material = new TPZL2Projection(matid,dim,nstate,sol);
+        cmesh->InsertMaterialObject(material);
+        
+        // Inserting boundary conditions
+        int dirichlet = 0;
+        TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
+        int n_bc = material_ids[iregion].second.first.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second.first [ibc];
+            TPZMaterial * bc = material->CreateBC(material, bc_id, dirichlet, val1, val2);
+            
+            cmesh->InsertMaterialObject(bc);
+        }
+    }
+    // Setting H1 approximation space
+    cmesh->SetDimModel(dim);
+    cmesh->SetDefaultOrder(sim_data->DiffusionOrder());
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    
+#ifdef PZDEBUG
+    //    std::ofstream out("CmeshPorePressure.txt");
+    //    cmesh->Print(out);
+#endif
+    
+    return cmesh;
+}
+
+
 TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
@@ -812,7 +817,6 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
     std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
     
-    
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
     for (int iregion = 0; iregion < n_regions; iregion++)
@@ -820,32 +824,42 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         int matid = material_ids[iregion].first;
 
         TPMRSCouplPoroElast * material = new TPMRSCouplPoroElast(matid,dim);
-
-        DebugStop();
-//        int kmodel = 0;
-//        REAL Ey_r = sim_data->Get_young();
-//        REAL nu_r = sim_data->Get_nu();
-//        REAL porosity = sim_data->Get_porosity();
-//        REAL k = sim_data->Get_k();
-//        REAL alpha_r = sim_data->Get_alpha();
-//        REAL Se = sim_data->Get_Se();
-//        REAL eta = sim_data->Get_eta();
-//        REAL rho_f = sim_data->Get_rho_f();
-//        REAL rho_s = sim_data->Get_rho_s();
-//        REAL MC_coh = sim_data->Get_mc_coh();
-//        REAL MC_phi = sim_data->Get_mc_phi();
-//        REAL MC_psi = sim_data->Get_mc_psi();
-//        
-//        material->SetSimulationData(sim_data);
-//        material->SetPorolasticParametersEngineer(Ey_r, nu_r);
-//        material->SetBiotParameters(alpha_r, Se);
-//        material->SetParameters(k, porosity, eta);
-//        material->SetKModel(kmodel);
-//        material->SetDensityFluidRock(rho_f, rho_s);
-//        material->SetMohrCoulombParameters(MC_coh, MC_phi, MC_psi);
-//        cmesh->InsertMaterialObject(material);
         
-        DebugStop();
+        int coup_index;
+        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunkCoup =    sim_data->MaterialProps()[coup_index];
+        
+        // Initial parameter
+        TPMRSUndrainedParameters i_poro_parameters(std::get<0>(chunkCoup));
+        std::vector<REAL> i_pars = i_poro_parameters.GetParameters();
+        REAL phi_0   = i_pars[2];
+        REAL kappa_0 = i_pars[3];
+        
+        material->Setporosity0(phi_0);
+        material->Setk0(kappa_0);
+        
+        // Elastic predictor
+        TPMRSPoroMechParameters e_c_poro_parameters(std::get<1>(chunkCoup));
+        std::vector<REAL> e_c_pars = e_c_poro_parameters.GetParameters();
+        REAL Ey         = e_c_pars[0];
+        REAL nu         = e_c_pars[1];
+        REAL alpha      = e_c_pars[2];
+        REAL se         = e_c_pars[3];
+        REAL eta        = e_c_pars[4];
+        REAL rhof       = e_c_pars[5];
+        REAL rhos       = e_c_pars[6];
+
+        material->SetSimulationData(sim_data);
+        material->SetDimension(dim);
+        material->Setlambda(Ey, nu);
+        material->Setmu(Ey, nu);
+        material->Setalpha(alpha);
+        material->SetSe(se);
+        material->Seteta(eta);
+        material->Setrhof(rhof);
+        material->Setrhos(rhos);
+        
+        cmesh->InsertMaterialObject(material);
+        
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.first.size();
         for (int ibc = 0; ibc < n_bc; ibc++)
@@ -884,7 +898,6 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
     
-    
     long nel = cmesh->NElements();
     TPZVec<long> indices;
     for (long el = 0; el<nel; el++) {
@@ -898,10 +911,9 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         mfcel->PrepareIntPtIndices();
     }
     
-    
 #ifdef PZDEBUG
-//    std::ofstream out("PorePermCoupling.txt");
-//    cmesh->Print(out);
+    std::ofstream out("PorePermCoupling.txt");
+    cmesh->Print(out);
 #endif
     cmesh->InitializeBlock();
 

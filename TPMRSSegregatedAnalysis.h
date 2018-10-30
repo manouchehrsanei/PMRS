@@ -46,7 +46,8 @@ public:
     TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis & other);
     
     /// Set the pointer of Simulation data object
-    void SetSimulationData(TPMRSSimulationData * simulation_data){
+    void SetSimulationData(TPMRSSimulationData * simulation_data)
+    {
         m_simulation_data = simulation_data;
     }
 
