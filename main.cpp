@@ -825,7 +825,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
 
         TPMRSCouplPoroElast * material = new TPMRSCouplPoroElast(matid,dim);
         
-        int coup_index;
+        int coup_index = 0;
         std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunkCoup =    sim_data->MaterialProps()[coup_index];
         
         // Initial parameter

@@ -177,8 +177,6 @@ void TPMRSCoupPoElaAnalysis::ExcecuteOneStep(){
     this->AssembleResidual();
     m_R = this->Rhs();
     
-    this->Solver().Matrix()->Print("J = ", std::cout,EMathematicaInput);
-    this->Rhs().Print("R = ", std::cout,EMathematicaInput);
     
     this->SimulationData()->SetCurrentStateQ(true);
     
@@ -301,16 +299,13 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int sx_var = 46;
-    int sy_var = 47;
-//    int eex_var = 26;
-//    int epx_var = 33;
-    int eey_var = 27;
-    int epy_var = 34;
+    int sx_var = 10;
+    int sy_var = 13;
+    int ey_var = 19;
+
     TPZVec<STATE> sx;
     TPZVec<STATE> sy;
-    TPZVec<STATE> eey;
-    TPZVec<STATE> epy;
+    TPZVec<STATE> ey;
     
     std::pair<REAL,REAL> duplet;
     
@@ -338,9 +333,9 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Stress(TPZVec<REAL> & x)
             TPZCompEl * cel = gel->Reference();
             cel->Solution(parametric_space, sx_var, sx);
             cel->Solution(parametric_space, sy_var, sy);
-            cel->Solution(parametric_space, eey_var, eey);
-            cel->Solution(parametric_space, epy_var, epy);
-            duplet.first = eey[0] + epy[0];
+            cel->Solution(parametric_space, ey_var, ey);
+
+            duplet.first = ey[0];
             duplet.second = sy[0] - sx[0];
             
             duplet.first = -duplet.first;
@@ -362,16 +357,12 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int phi_var = 42;
-    int eex_var = 26;
-    int epx_var = 33;
-    int eey_var = 27;
-    int epy_var = 34;
+    int phi_var =  4;
+    int ex_var  = 16;
+    int ey_var  = 19;
     TPZVec<STATE> phi;
-    TPZVec<STATE> eex;
-    TPZVec<STATE> epx;
-    TPZVec<STATE> eey;
-    TPZVec<STATE> epy;
+    TPZVec<STATE> ex;
+    TPZVec<STATE> ey;
     
     std::pair<REAL,REAL> duplet;
     
@@ -398,11 +389,9 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Pososity(TPZVec<REAL> & x)
         if(IsTargetElementQ){
             TPZCompEl * cel = gel->Reference();
             cel->Solution(parametric_space, phi_var, phi);
-            cel->Solution(parametric_space, eex_var, eex);
-            cel->Solution(parametric_space, epx_var, epx);
-            cel->Solution(parametric_space, eey_var, eey);
-            cel->Solution(parametric_space, epy_var, epy);
-            duplet.first = eex[0] + epx[0] + eey[0] + epy[0];
+            cel->Solution(parametric_space, ex_var, ex);
+            cel->Solution(parametric_space, ey_var, ey);
+            duplet.first = ex[0]+ ey[0];
             duplet.second = phi[0];
             
             duplet.first = fabs(duplet.first);
@@ -426,16 +415,12 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int ky_var  = 44;
-    int eex_var = 26;
-    int epx_var = 33;
-    int eey_var = 27;
-    int epy_var = 34;
+    int ky_var =  3;
+    int ex_var = 16;
+    int ey_var = 19;
     TPZVec<STATE> k;
-    TPZVec<STATE> eex;
-    TPZVec<STATE> epx;
-    TPZVec<STATE> eey;
-    TPZVec<STATE> epy;
+    TPZVec<STATE> ex;
+    TPZVec<STATE> ey;
     
     std::pair<REAL,REAL> duplet;
     
@@ -462,11 +447,9 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Permeability(TPZVec<REAL> & x)
         if(IsTargetElementQ){
             TPZCompEl * cel = gel->Reference();
             cel->Solution(parametric_space, ky_var, k);
-            cel->Solution(parametric_space, eex_var, eex);
-            cel->Solution(parametric_space, epx_var, epx);
-            cel->Solution(parametric_space, eey_var, eey);
-            cel->Solution(parametric_space, epy_var, epy);
-            duplet.first = eex[0] + epx[0] + eey[0] + epy[0];
+            cel->Solution(parametric_space, ex_var, ex);
+            cel->Solution(parametric_space, ey_var, ey);
+            duplet.first = ex[0] + ey[0];
             duplet.second = k[0];
             
             duplet.first = fabs(duplet.first);
@@ -490,16 +473,12 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
     bool IsTargetElementQ = false;
     long n_elemenst = geometry->NElements();
     
-    int p_var   = 40;
-    int eex_var = 26;
-    int epx_var = 33;
-    int eey_var = 27;
-    int epy_var = 34;
+    int p_var  =  0;
+    int ex_var = 16;
+    int ey_var = 19;
     TPZVec<STATE> p;
-    TPZVec<STATE> eex;
-    TPZVec<STATE> epx;
-    TPZVec<STATE> eey;
-    TPZVec<STATE> epy;
+    TPZVec<STATE> ex;
+    TPZVec<STATE> ey;
     
     std::pair<REAL,REAL> duplet;
     
@@ -525,11 +504,9 @@ void TPMRSCoupPoElaAnalysis::AppendStrain_Pressure(TPZVec<REAL> & x)
         if(IsTargetElementQ){
             TPZCompEl * cel = gel->Reference();
             cel->Solution(parametric_space, p_var, p);
-            cel->Solution(parametric_space, eex_var, eex);
-            cel->Solution(parametric_space, epx_var, epx);
-            cel->Solution(parametric_space, eey_var, eey);
-            cel->Solution(parametric_space, epy_var, epy);
-            duplet.first = eex[0] + epx[0] + eey[0] + epy[0];
+            cel->Solution(parametric_space, ex_var, ex);
+            cel->Solution(parametric_space, ey_var, ey);
+            duplet.first = ex[0] + ey[0];
             duplet.second = p[0];
             
             duplet.first = fabs(duplet.first);

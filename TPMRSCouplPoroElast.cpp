@@ -38,6 +38,10 @@ TPMRSCouplPoroElast::TPMRSCouplPoroElast():TPZMatWithMem<TPMRSCoupPoElaMemory,TP
     m_porosity_0     = 0.;
     m_k_0            = 0.;
     m_k_model        = 0 ;
+    m_b.resize(3);
+    m_b[0]           = 0.;
+    m_b[1]           = 0.;
+    m_b[2]           = 0.;
 }
 
 /// Brief costructor based on a material id
@@ -53,6 +57,10 @@ TPMRSCouplPoroElast::TPMRSCouplPoroElast(int matid, int dim):TPZMatWithMem<TPMRS
     m_porosity_0     = 0.;
     m_k_0            = 0.;
     m_k_model        = 0 ;
+    m_b.resize(3);
+    m_b[0]           = 0.;
+    m_b[1]           = 0.;
+    m_b[2]           = 0.;
 }
 
 /// Brief default destructor
@@ -328,11 +336,11 @@ void TPMRSCouplPoroElast::Contribute_2D(TPZVec<TPZMaterialData> &datavec, REAL w
     TPZFNMatrix<6,REAL> Grad_vx_j(2,1,0.0);
     TPZFNMatrix<6,REAL> Grad_vy_j(2,1,0.0);
 
-    TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
-    
-    
-    Sigma_0.Zero();
-    S -= Sigma_0; /// Applying prestress
+//    TPZFMatrix<REAL> Sigma_0;// = m_SimulationData->PreStress();
+//    Sigma_0.Resize(0, 0);
+//    
+////    Sigma_0.Zero();
+//    S -= Sigma_0; /// Applying prestress
 
     for (int iu = 0; iu < nphi_u; iu++) {
         
