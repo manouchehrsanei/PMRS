@@ -23,22 +23,22 @@ private:
     /// pore pressure at initial state
     STATE m_p_0;
     
-    /// pore pressure
+    /// pore pressure at last state (n)
     STATE m_p;
     
-    /// pore pressure
+    /// pore pressure at current state (n+1)
     STATE m_p_n;
     
     /// absolute permeability at initial state
     STATE m_kappa_0;
     
-    /// absolute permeability
+    /// absolute permeability at current state
     STATE m_kappa;
     
     /// lagrangian porosity at intial state
     STATE m_phi_0;
     
-    /// lagrangian porosity
+    /// lagrangian porosity at current state
     STATE m_phi;
     
 public:

@@ -40,7 +40,8 @@ const std::string  TPMRSPoroMechParameters::Name() const{
 
 void TPMRSPoroMechParameters::Print(std::ostream &out) const{
     out << Name() << std::endl;
-    for (int i  = 0; i < m_parameters.size(); i++) {
+    for (int i  = 0; i < m_parameters.size(); i++)
+    {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
 }
@@ -48,7 +49,7 @@ void TPMRSPoroMechParameters::Print(std::ostream &out) const{
 
 void TPMRSPoroMechParameters::SetParameters(std::vector<REAL> & parameters){
     if (parameters.size() != 7) {
-        std::cout << "TPMRSUndrainedParameters:: It is required 7 parameters." << std::endl;
+        std::cout << "TPMRSPoroMechParameters:: It is required 7 parameters." << std::endl;
         DebugStop();
     }
     m_parameters = parameters;

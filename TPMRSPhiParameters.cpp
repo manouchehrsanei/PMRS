@@ -49,7 +49,8 @@ const std::string TPMRSPhiParameters::Name() const{
 void TPMRSPhiParameters::Print(std::ostream &out) const{
     out << Name() << std::endl;
     out << "m_model = " << m_model << std::endl;
-    for (int i  = 0; i < m_parameters.size(); i++) {
+    for (int i  = 0; i < m_parameters.size(); i++)
+    {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
     out << "m_K = " << m_K << std::endl;
@@ -78,12 +79,12 @@ void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p
     switch (m_model)
     {
         case p_constant : {
-            phi = phi_0;
+            phi     = phi_0;
             dphi_dp = 0.0;
         }
             break;
         case p_linear : {
-            phi = phi_0 + (alpha/m_K) * (sigma_v-sigma_v_0) + (Se + (alpha*alpha)/m_K) * (p - p_0);
+            phi     = phi_0 + (alpha/m_K) * (sigma_v-sigma_v_0) + (Se + (alpha*alpha)/m_K) * (p - p_0);
             dphi_dp = (Se + (alpha*alpha)/m_K);
         }
             break;
@@ -96,9 +97,9 @@ void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p
 
 void TPMRSPhiParameters::Initialize()
 {
-    m_name_to_p_model["none"] = p_none;
+    m_name_to_p_model["none"]     = p_none;
     m_name_to_p_model["Constant"] = p_constant;
-    m_name_to_p_model["Linear"] = p_linear;
+    m_name_to_p_model["Linear"]   = p_linear;
 
 }
 

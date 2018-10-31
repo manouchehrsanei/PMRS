@@ -118,10 +118,10 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
         std::vector<REAL> undrained_pars = udrained_parameters.GetParameters();
         std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
 
-        REAL phi_0 = undrained_pars[2];
+        REAL phi_0   = undrained_pars[2];
         REAL kappa_0 = undrained_pars[3];
-        REAL alpha = poroperm_pars[2];
-        REAL Se = poroperm_pars[3];
+        REAL alpha   = poroperm_pars[2];
+        REAL Se      = poroperm_pars[3];
         
         std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
         
@@ -368,10 +368,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 bc->Val2()(i,0) = value;
             }
         }
-        
     }
-    
-    
 }
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){

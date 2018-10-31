@@ -79,13 +79,13 @@ void TPMRSMonoPhasicMemory::Read(TPZStream &buf, void *context){
 
 void TPMRSMonoPhasicMemory::Print(std::ostream &out) const{
     out << Name();
-    out << "\n initial pressure = " << m_p_0;
-    out << "\n pressure at last state = " << m_p;
-    out << "\n pressure at current state = " << m_p_n;
-    out << "\n initial absolute permeability = " << m_kappa_0;
-    out << "\n current absolute permeability = " << m_kappa;
-    out << "\n initial porosity = " << m_phi_0;
-    out << "\n current porosity = " << m_phi;
+    out << "\n Initial pressure = " << m_p_0;
+    out << "\n Pressure at last state = " << m_p;
+    out << "\n Pressure at current state = " << m_p_n;
+    out << "\n Initial absolute permeability = " << m_kappa_0;
+    out << "\n Current absolute permeability = " << m_kappa;
+    out << "\n Initial porosity = " << m_phi_0;
+    out << "\n Current porosity = " << m_phi;
 }
 
 int TPMRSMonoPhasicMemory::ClassId() const{

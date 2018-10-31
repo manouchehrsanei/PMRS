@@ -16,8 +16,8 @@ TPMRSPlasticityParameters::TPMRSPlasticityParameters(){
 }
 
 TPMRSPlasticityParameters::TPMRSPlasticityParameters(const TPMRSPlasticityParameters & other){
-    m_model         = other.m_model;
-    m_parameters    = other.m_parameters;
+    m_model            = other.m_model;
+    m_parameters       = other.m_parameters;
     m_name_to_ep_model = other.m_name_to_ep_model;
     
 }
@@ -29,8 +29,8 @@ const TPMRSPlasticityParameters & TPMRSPlasticityParameters::operator=(const TPM
         return *this;
     }
     
-    m_model         = other.m_model;
-    m_parameters    = other.m_parameters;
+    m_model            = other.m_model;
+    m_parameters       = other.m_parameters;
     m_name_to_ep_model = other.m_name_to_ep_model;
     return *this;
     
@@ -47,7 +47,8 @@ const std::string TPMRSPlasticityParameters::Name() const{
 void TPMRSPlasticityParameters::Print(std::ostream &out) const {
     out << Name() << std::endl;
     out << "m_model = " << m_model << std::endl;
-    for (int i  = 0; i < m_parameters.size(); i++) {
+    for (int i  = 0; i < m_parameters.size(); i++)
+    {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
 }

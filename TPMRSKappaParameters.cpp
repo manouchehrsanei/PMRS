@@ -16,8 +16,8 @@ TPMRSKappaParameters::TPMRSKappaParameters(){
 }
 
 TPMRSKappaParameters::TPMRSKappaParameters(const TPMRSKappaParameters & other){
-    m_model         = other.m_model;
-    m_parameters    =   other.m_parameters;
+    m_model               = other.m_model;
+    m_parameters          = other.m_parameters;
     m_name_to_kappa_model = other.m_name_to_kappa_model;
 }
 
@@ -28,8 +28,8 @@ const TPMRSKappaParameters & TPMRSKappaParameters::operator=(const TPMRSKappaPar
         return *this;
     }
     
-    m_model         = other.m_model;
-    m_parameters    =   other.m_parameters;
+    m_model               = other.m_model;
+    m_parameters          = other.m_parameters;
     m_name_to_kappa_model = other.m_name_to_kappa_model;
     return *this;
 }
@@ -48,7 +48,8 @@ const std::string TPMRSKappaParameters::Name() const{
 void TPMRSKappaParameters::Print(std::ostream &out) const{
     out << Name() << std::endl;
     out << "m_model = " << m_model << std::endl;
-    for (int i  = 0; i < m_parameters.size(); i++) {
+    for (int i  = 0; i < m_parameters.size(); i++)
+    {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
 }
@@ -79,10 +80,10 @@ void TPMRSKappaParameters::SetModel(std::string model){
 
 void TPMRSKappaParameters::Initialize()
 {
-    m_name_to_kappa_model["none"] = k_none;
+    m_name_to_kappa_model["none"]     = k_none;
     m_name_to_kappa_model["Constant"] = k_constant;
-    m_name_to_kappa_model["Petunin"] = k_petunin;
-    m_name_to_kappa_model["Davies"] = k_davies;
+    m_name_to_kappa_model["Petunin"]  = k_petunin;
+    m_name_to_kappa_model["Davies"]   = k_davies;
 }
 
 void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0){
@@ -90,19 +91,19 @@ void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &ka
     switch (m_model)
     {
         case k_constant : {
-            kappa = kappa_0;
+            kappa       = kappa_0;
             dkappa_dphi = 0;
         }
             break;
         case k_petunin : {
-            REAL A = m_parameters[0];
-            kappa = kappa_0*pow(phi/phi_0,A);
+            REAL A      = m_parameters[0];
+            kappa       = kappa_0*pow(phi/phi_0,A);
             dkappa_dphi = (A*kappa_0*pow(phi/phi_0,-1.0 + A))/phi_0;
         }
             break;
         case k_davies : {
-            REAL C = m_parameters[0];
-            kappa = exp(C*(-1.0 + phi/phi_0))*kappa_0;
+            REAL C      = m_parameters[0];
+            kappa       = exp(C*(-1.0 + phi/phi_0))*kappa_0;
             dkappa_dphi = (C*exp(C*(-1.0 + phi/phi_0))*kappa_0)/phi_0;
         }
             break;

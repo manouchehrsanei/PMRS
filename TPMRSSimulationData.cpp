@@ -65,8 +65,8 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     }
     else
     {
-        std::cout << "Failed to load file \n" << simulation_file << std::endl;
-        std::cout <<    "Check the given path or your xml structure. \n" << std::endl;
+        std::cout << "Failed to load file \n"      << simulation_file << std::endl;
+        std::cout << "Check the given path or your xml structure. \n" << std::endl;
         DebugStop();
     }
     
@@ -129,7 +129,6 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("EnfFssIterations").ToElement();
     char_container = container->Attribute("n_enforce_fss_iterations");
     int n_enf_fss_iterations = std::atoi(char_container);
-    
     
     SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
     /// End:: Fixed Stress Split Scheme
@@ -335,10 +334,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         }
         
         std::vector<REAL> pars;
-        TPMRSUndrainedParameters u_pars;
-        TPMRSPoroMechParameters poro_pars;
-        TPMRSPhiParameters      phi_pars;
-        TPMRSKappaParameters    kappa_pars;
+        TPMRSUndrainedParameters  u_pars;
+        TPMRSPoroMechParameters   poro_pars;
+        TPMRSPhiParameters        phi_pars;
+        TPMRSKappaParameters      kappa_pars;
         TPMRSPlasticityParameters plasticity_pars;
         
         std::tuple <TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters, TPMRSPlasticityParameters> chunk;
@@ -799,7 +798,7 @@ void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicol
 void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
 {
     
-    m_n_iteraions  =   n_iterations;
+    m_n_iteraions    =   n_iterations;
     m_epsilon_res    =   epsilon_res;
     m_epsilon_cor    =   epsilon_cor;
     
@@ -808,7 +807,7 @@ void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res,
 /// Brief Setup fixed stress split schemes
 void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations)
 {
-    m_n_fss_iterations  =   n_fss_iterations;
+    m_n_fss_iterations        =   n_fss_iterations;
     m_n_enf_fss_iterations    =   n_enf_fss_iterations;
 }
 

@@ -13,9 +13,9 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
     m_X_n.Resize(0, 0);
     m_X.Resize(0, 0);
     m_mesh_vec.Resize(0);
-    m_error = 0;
-    m_dx_norm = 0;
-    m_k_iterations = 0;
+    m_error          = 0;
+    m_dx_norm        = 0;
+    m_k_iterations   = 0;
     m_post_processor = NULL;
     m_var_names.resize(0);
     
