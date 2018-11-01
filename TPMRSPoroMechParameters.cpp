@@ -48,8 +48,8 @@ void TPMRSPoroMechParameters::Print(std::ostream &out) const{
 
 
 void TPMRSPoroMechParameters::SetParameters(std::vector<REAL> & parameters){
-    if (parameters.size() != 7) {
-        std::cout << "TPMRSPoroMechParameters:: It is required 7 parameters." << std::endl;
+    if (parameters.size() != 8) {
+        std::cout << "TPMRSPoroMechParameters:: It is required 8 parameters." << std::endl;
         DebugStop();
     }
     m_parameters = parameters;

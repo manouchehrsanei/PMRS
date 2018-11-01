@@ -38,14 +38,16 @@ const std::string TPMRSUndrainedParameters::Name() const {
 
 void TPMRSUndrainedParameters::Print(std::ostream &out) const {
     out << Name() << std::endl;
-    for (int i  = 0; i < m_parameters.size(); i++) {
+    for (int i  = 0; i < m_parameters.size(); i++)
+    {
         out << "parameter number " << i << " = " << m_parameters[i] << std::endl;
     }
 }
 
 
 void TPMRSUndrainedParameters::SetParameters(std::vector<REAL> & parameters){
-    if (parameters.size() != 4) {
+    if (parameters.size() != 4)
+    {
         std::cout << "TPMRSUndrainedParameters:: It is required 4 parameters." << std::endl;
         DebugStop();
     }

@@ -68,6 +68,9 @@ private:
     /// Brief Rock density
     REAL m_rho_s;
     
+    /// Brief Compressibility of fluid
+    REAL m_comp_f;
+    
     
 public:
     
@@ -320,6 +323,19 @@ public:
     {
         return m_rho_s;
     }
+    
+    /// Set Compressibility of fluid
+    void Setcomf(REAL com_f)
+    {
+        m_comp_f = com_f;
+    }
+    
+    /// Get Compressibility of fluid
+    REAL comf()
+    {
+        return m_comp_f;
+    }
+    
     
     /// Set Body force
     void Setbforce(TPZManVector<REAL,3> b_force)

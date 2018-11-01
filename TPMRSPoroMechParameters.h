@@ -42,10 +42,10 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    /// Set parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s}
+    /// Set parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s, c_f}
     void SetParameters(std::vector<REAL> & parameters);
     
-    /// Get parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s}
+    /// Get parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s, c_f}
     std::vector<REAL> & GetParameters();
     
 };

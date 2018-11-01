@@ -20,6 +20,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_fss_iterations                    =   0;
     m_n_enf_fss_iterations                =   0;
     m_n_threads                           =   0;
+    m_scale_factor                        = 0.0;
     m_is_dual_formulation_Q               = true;
     m_transfer_current_to_last_solution_Q = false;
     m_h_level                             =   0;
@@ -134,13 +135,21 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     /// End:: Fixed Stress Split Scheme
 
     
-    
     /// Begin:: Parallel controls
     container = doc_handler.FirstChild("CaseData").FirstChild("ParallelControls").FirstChild("Numthreads").ToElement();
     char_container = container->Attribute("n_threads");
     int n_threads = std::atoi(char_container);
     m_n_threads = n_threads;
     /// End:: Parallel controls
+    
+    
+    /// Begin:: Scale factor controls
+    container = doc_handler.FirstChild("CaseData").FirstChild("ScaleFactor").FirstChild("Valscalefactor").ToElement();
+    char_container = container->Attribute("scalfac_value");
+    REAL scale_factor_value = std::atof(char_container);
+    m_scale_factor = scale_factor_value;
+    /// End:: Scale factor controls
+    
     
     /// Begin:: Finite elements
     container = doc_handler.FirstChild("CaseData").FirstChild("FEM").FirstChild("MixedFormulationQ").ToElement();
@@ -371,7 +380,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         u_pars.SetParameters(pars);
         
         sub_container = container->FirstChild("PoroMechParameters")->ToElement();
-        pars.resize(7);
+        pars.resize(8);
         char_container = sub_container->Attribute("Eyoung");
         if (!char_container) {
             std::cout << "Please provide Eyoung." << std::endl;
@@ -414,6 +423,13 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         pars[6] = std::atof(char_container);
+        char_container = sub_container->Attribute("c_f");
+        if (!char_container) {
+            std::cout << "Please provide c_f." << std::endl;
+            DebugStop();
+        }
+        pars[7] = std::atof(char_container);
+        
         poro_pars.SetParameters(pars);
         
         /// Porosity model data
@@ -827,6 +843,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
+    std::cout << " m_scale_factor = " << m_scale_factor << std::endl;
     std::cout << " m_is_dual_formulation_Q = " << m_is_dual_formulation_Q << std::endl;
     std::cout << " m_transfer_current_to_last_solution_Q = " << m_transfer_current_to_last_solution_Q << std::endl;
     std::cout << " m_h_level = " << m_h_level << std::endl;

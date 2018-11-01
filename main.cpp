@@ -11,7 +11,7 @@
 #include <iostream>
 #include <math.h>
 
-// Geometry
+/// Geometry
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoLinear.h"
@@ -22,7 +22,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "tpzhierarquicalgrid.h"
 
-// Computational mesh
+/// Computational mesh
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -30,49 +30,47 @@
 #include "pzintel.h"
 #include "pzlog.h"
 
-// Materials
+/// Materials
 #include "pzl2projection.h"
 #include "pzbndcond.h"
 #include "TPZBndCondWithMem.h"
 
-// Monophasic
+/// Monophasic
 #include "TPMRSMonoPhasic_impl.h"
 #include "TPMRSMonoPhasicCG_impl.h"
 #include "TPMRSMonoPhasicAnalysis.h"
 #include "TPMRSMonoPhasicMemory.h"
 
 
-// Geomechanics
+/// Geomechanics
 #include "TPMRSElastoPlastic_impl.h"
 #include "TPMRSGeomechanicAnalysis.h"
 #include "TPMRSCoupPoElaMemory.h"
 #include "TPMRSElastoPlasticMemory.h"
 
-// Segregated solver
+/// Segregated solver
 #include "TPMRSMemory.h"
 #include "TPMRSSegregatedAnalysis.h"
 
 
-// Elasticity
+/// Elasticity
 #include "TPZElasticCriterion.h"
 
-// Plasticity
+/// Plasticity
 #include "TPZPlasticStepPV.h"
 #include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
 
-
 #include "pzporoelastoplasticmem.h"
-#include "TPZPlasticStepPV.h"
 #include "TPZSandlerDimaggio.h"
 
-// Analysis
+/// Analysis
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
 #include "TPMRSCoupPoElaAnalysis.h"
 
 
-// Matrix
+/// Matrix
 #include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
@@ -81,7 +79,7 @@
 #include "pzstepsolver.h"
 #include "pzfstrmatrix.h"
 
-// Simulation data structure
+/// Simulation data structure
 #include "TPMRSSimulationData.h"
 #include "TPMRSUndrainedParameters.h"
 #include "TPMRSPoroMechParameters.h"
@@ -89,7 +87,7 @@
 #include "TPMRSKappaParameters.h"
 #include "TPMRSPlasticityParameters.h"
 
-// ElastoPlastic Materials
+/// ElastoPlastic Materials
 #include "TPMRSCouplPoroElast.h"
 
 
@@ -185,13 +183,13 @@ int main(int argc, char *argv[])
         {
             cout << "Size: " << argc << " Number of Arguments " << endl;
             cout << "Usage: " << argv[0] << " Myinputfile.xml " << endl;
-            cout <<    "Program stop: not xml file found \n" << endl;
+            cout <<    "Program stop: not xml file found \n"    << endl;
             DebugStop();
         }
         
         if (argc == 2)
         {
-            cout << "Control File used : " << argv[1] << "\n" << endl;
+            cout << "Control File used : " << argv[1]  << "\n"  << endl;
             simulation_file        = argv[1];
         }
     }
@@ -246,32 +244,26 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data)
     bool mustOptimizeBandwidth = true;
     int number_threads = sim_data->n_threads();
     
-#ifdef PZDEBUG
-    number_threads = 0;
-#endif
-    
     TPMRSCoupPoElaAnalysis * time_analysis = new TPMRSCoupPoElaAnalysis;
     time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
     time_analysis->SetSimulationData(sim_data);
     time_analysis->SetMeshvec(mesh_vector);
     time_analysis->AdjustVectors();
     
-//#ifdef USING_Pardiso
-//    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
-//    TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
-//#else
-//    
-//    TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
-//    
-//    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-//    //    struct_mat.SetDecomposeType(ELDLt);
-//    
-//#endif
-//    
+#ifdef USING_Pardiso
+    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
+    TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
+#else
+    
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-
+    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
+    
+    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
+    //    struct_mat.SetDecomposeType(ELDLt);
+    
+#endif
+    
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
@@ -385,7 +377,6 @@ TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data){
             TPZBndCondWithMem<TPMRSElastoPlasticMemory> * bc = new  TPZBndCondWithMem<TPMRSElastoPlasticMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
-        
     }
     
     // Setting H1 approximation space
@@ -684,8 +675,8 @@ TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data){
 
 TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh){
     
-    REAL s = 1.0e-6;
-    REAL c = 0.0;
+    /// Scale factor
+    REAL s  = sim_data->scale_factor_val();
     int dim = sim_data->Dimension();
     
     std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
@@ -693,13 +684,15 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
     // Reservoir parameters
     TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
     std::vector<REAL> res_pars = poro_parameters.GetParameters();
-    REAL eta = res_pars[4];
+    REAL eta   = res_pars[4];
     REAL rho_0 = res_pars[5];
+    REAL c_f   = res_pars[7];
+
 
     if (IsMixedQ) {
         TPMRSMonoPhasic<TPMRSMemory> * material = new TPMRSMonoPhasic<TPMRSMemory>(matid,dim);
         material->SetSimulationData(sim_data);
-        material->SetFluidProperties(rho_0, eta, c);
+        material->SetFluidProperties(rho_0, eta, c_f);
         material->SetScaleFactor(s);
         material->SetPorosityParameters(std::get<2>(chunk));
         material->SetPermeabilityParameters(std::get<3>(chunk));
@@ -708,7 +701,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
     }else{
         TPMRSMonoPhasicCG<TPMRSMemory> * material = new TPMRSMonoPhasicCG<TPMRSMemory>(matid,dim);
         material->SetSimulationData(sim_data);
-        material->SetFluidProperties(rho_0, eta, c);
+        material->SetFluidProperties(rho_0, eta, c_f);
         material->SetScaleFactor(s);
         material->SetPorosityParameters(std::get<2>(chunk));
         material->SetPermeabilityParameters(std::get<3>(chunk));
@@ -757,7 +750,6 @@ TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data){
 #endif
     
     return cmesh;
-    
 }
 
 
@@ -847,6 +839,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         REAL eta        = e_c_pars[4];
         REAL rhof       = e_c_pars[5];
         REAL rhos       = e_c_pars[6];
+        REAL cf         = e_c_pars[7];
 
         material->SetSimulationData(sim_data);
         material->SetDimension(dim);
@@ -857,7 +850,8 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         material->Seteta(eta);
         material->Setrhof(rhof);
         material->Setrhos(rhos);
-        
+        material->Setcomf(cf);
+
         cmesh->InsertMaterialObject(material);
         
         // Inserting boundary conditions
@@ -925,9 +919,8 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
 void LEDSPorosityReductionPlot()
 {
     
-    // Getting Elastic Matrix
-    // MC Mohr Coloumb PV
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;    
+    // Getting Elastic Matrix, MC Mohr Coloumb PV
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
     
     // Experimental data
     std::string dirname = PZSOURCEDIR;
@@ -937,7 +930,6 @@ void LEDSPorosityReductionPlot()
     TPZFMatrix<REAL> data = Read_Duplet(n_data, file_name);
 //    data.Print(std::cout);
     
-    
     // DS Dimaggio Sandler PV
     TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
     
@@ -945,11 +937,8 @@ void LEDSPorosityReductionPlot()
     TPZElasticResponse ER;
     
     
-    /**
-     * Input data for shear enhanced compaction:
-     *
-     */
-    
+    /// Input data for shear enhanced compaction:
+
     REAL E =43457.2; // MPa * 1.025
     REAL nu = 0.357983; // MPa
     
@@ -1015,7 +1004,6 @@ void LEDSPorosityReductionPlot()
 //        Apply_Stress(LEDS, De, De_inv, sigma_target, epsilon_t);
         
         // For a given strain
-
         epsilon_t.XX() = data(id,0);
         epsilon_t.YY() = data(id,1);
         epsilon_t.ZZ() = data(id,1);
@@ -1032,11 +1020,9 @@ void LEDSPorosityReductionPlot()
         
         LEDS_epsilon_stress(id,0) = epsilon_t.XX()+epsilon_t.YY()+epsilon_t.ZZ();
         LEDS_epsilon_stress(id,1) = (1/3.)*(sigma_target.XX()+sigma_target.YY()+sigma_target.ZZ());
-    
     }
 
     LEDS_epsilon_stress.Print("data = ", std::cout,EMathematicaInput);
-    
 }
 
 
@@ -1066,7 +1052,6 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
     
     for (int64_t i = 0; i < n_iter; i++)
     {
-
         sigma_res.CopyTo(res);
         De_inv.Multiply(res, eps);
         depsilon.CopyFrom(eps);

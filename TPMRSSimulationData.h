@@ -66,6 +66,9 @@ protected:
     /// Brief Number of thread
     int m_n_threads;
     
+    /// Brief value of scale factor
+    REAL m_scale_factor;
+    
     /// Brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
@@ -190,6 +193,7 @@ public:
         m_n_fss_iterations                        = other.m_n_fss_iterations;
         m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
         m_n_threads                               = other.m_n_threads;
+        m_scale_factor                            = other.m_scale_factor;
         m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
         m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
         m_h_level                                 = other.m_h_level;
@@ -232,6 +236,7 @@ public:
             m_n_fss_iterations                        = other.m_n_fss_iterations;
             m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
             m_n_threads                               = other.m_n_threads;
+            m_scale_factor                            = other.m_scale_factor;
             m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
             m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
             m_h_level                                 = other.m_h_level;
@@ -343,6 +348,9 @@ public:
     
     /// Brief Get the number of threads
     int n_threads() { return m_n_threads; }
+    
+    /// Brief Get the value of scale factor
+    REAL scale_factor_val() { return m_scale_factor; }
     
     /// Brief Get Name for the vtk files being postprocessed
     std::string name_vtk_file() { return m_vtk_file; }

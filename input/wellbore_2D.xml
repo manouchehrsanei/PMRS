@@ -25,7 +25,11 @@
     <!-- Parallel controls  -->
     <ParallelControls>
         <Numthreads n_threads="0" />
-    </ParallelControls>  
+    </ParallelControls>
+    <!-- Scale factor controls  -->
+    <ScaleFactor>
+        <Valscalefactor scalfac_value="1.0e-6" />
+    </ScaleFactor>   
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
@@ -63,7 +67,7 @@
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
             <PoroMechUndrainedParameters Eyoung_u="36495.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-11" />            
-            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-8" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="1.0e-8" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Davies" n_parameters="1" c="2.0"/>
             <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30" friction="1.0"/>            
