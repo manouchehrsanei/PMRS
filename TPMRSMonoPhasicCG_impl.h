@@ -21,7 +21,7 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG() : m_phi_model(), m_kappa_model(){
 template <class TMEM>
 TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(int mat_id, int dimension) :  TPZMatWithMem<TMEM>(mat_id), m_phi_model(), m_kappa_model(){
     m_simulation_data   = NULL;
-    m_dimension = dimension;
+    m_dimension         = dimension;
     m_c                 = 0;
     m_eta               = 0;
     m_rho_0             = 0;
@@ -115,9 +115,7 @@ void TPMRSMonoPhasicCG<TMEM>::UndrainedContribute(TPZMaterialData &data, REAL we
         {
             ek(ip,jp) +=  weight * phi_p(jp,0) * phi_p(ip,0);
         }
-        
     }
-    
 }
 
 template <class TMEM>
@@ -178,15 +176,18 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
     /// Defining local variables
     TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
-    for (int i = 0; i < Dimension(); i++) {
+    for (int i = 0; i < Dimension(); i++)
+    {
         STATE dot = 0.0;
         STATE dKdpdot = 0.0;
-        for (int j =0; j < Dimension(); j++) {
-            dot    += K(i,j)*grad_p(j,0);
+        for (int j = 0; j < Dimension(); j++)
+        {
+            dot        += K(i,j)*grad_p(j,0);
             dKdpdot    += dKdp(i,j)*grad_p(j,0);
         }
-        Kl_grad_p_(i,0)     = lambda * dot;
-        dKdpl_grad_p_(i,0)     = lambda * dKdpdot;
+        
+        Kl_grad_p_(i,0)      = lambda * dot;
+        dKdpl_grad_p_(i,0)   = lambda * dKdpdot;
     }
     
     /// Integration point contribution
@@ -202,7 +203,8 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         
         STATE Kl_grad_p_dot_grad_phi = 0.0;
         STATE dKdpl_grad_p_dot_grad_phi = 0.0;
-        for (int i = 0; i < Dimension(); i++) {
+        for (int i = 0; i < Dimension(); i++)
+        {
             Kl_grad_p_dot_grad_phi      += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
             dKdpl_grad_p_dot_grad_phi   += dKdpl_grad_p_(i,0)*grad_phi_p(i,ip);
             
@@ -213,16 +215,20 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         for (int jp = 0; jp < n_phi_p; jp++)
         {
         
-            for (int i = 0; i < Dimension(); i++) {
+            for (int i = 0; i < Dimension(); i++)
+            {
                 STATE dot = 0.0;
-                for (int j =0; j < Dimension(); j++) {
+                for (int j =0; j < Dimension(); j++)
+                {
                     dot    += K(i,j)*grad_phi_p(j,jp);
                 }
+                
                 Kl_grad_phi_j_(i,0)     = lambda * dot;
             }
             
             STATE Kl_grad_phi_j_dot_grad_phi_j = 0.0;
-            for (int i = 0; i < Dimension(); i++) {
+            for (int i = 0; i < Dimension(); i++)
+            {
                 Kl_grad_phi_j_dot_grad_phi_j    += Kl_grad_phi_j_(i,0)*grad_phi_p(i,ip);
                 
             }
@@ -246,7 +252,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
             return;
         }
         
-        STATE p                  = data.sol[0][0];
+        STATE p = data.sol[0][0];
         
         if (m_simulation_data->IsInitialStateQ()) {
             this->MemItem(gp_index).Setp_0(p);
@@ -331,13 +337,13 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
 
 template <class TMEM>
 int TPMRSMonoPhasicCG<TMEM>::VariableIndex(const std::string &name) {
-    if (!strcmp("p", name.c_str())) return 0;
-    if (!strcmp("q", name.c_str())) return 1;
-    if (!strcmp("div_q", name.c_str())) return 2;
-    if (!strcmp("kappa", name.c_str())) return 3;
-    if (!strcmp("phi", name.c_str())) return 4;
-    if (!strcmp("order", name.c_str())) return 5;
-    if (!strcmp("id", name.c_str())) return 6;
+    if (!strcmp("p"     , name.c_str())) return 0;
+    if (!strcmp("q"     , name.c_str())) return 1;
+    if (!strcmp("div_q" , name.c_str())) return 2;
+    if (!strcmp("kappa" , name.c_str())) return 3;
+    if (!strcmp("phi"   , name.c_str())) return 4;
+    if (!strcmp("order" , name.c_str())) return 5;
+    if (!strcmp("id"    , name.c_str())) return 6;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -404,15 +410,15 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     TMEM & memory = this->MemItem(gp_index);
     
     REAL alpha = memory.GetAlpha();
-    REAL Se = memory.GetSe();
+    REAL Se    = memory.GetSe();
     REAL phi_0 = memory.phi_0();
     
-    REAL p_0 = memory.p_0();
-    REAL p = memory.p();
-    REAL p_n = memory.p_n();
+    REAL p_0   = memory.p_0();
+    REAL p     = memory.p();
+    REAL p_n   = memory.p_n();
     REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3); ///- alpha * p_0;
-    REAL sigma_t_v = (memory.GetSigma().I1()/3) ; ///- alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3); ///- alpha * p;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3)  ; ///- alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3); ///- alpha * p_n;
     
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);

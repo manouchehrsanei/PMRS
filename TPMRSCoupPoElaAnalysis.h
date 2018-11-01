@@ -180,7 +180,7 @@ public:
     /// Brief Execute a Quasi Newton iteration
     void QuasiNewtonIteration();
     
-    /// Brief PostProcessStandard results
+    /// Brief PostProcess results
     void PostProcessStep();
     
     /// Brief update last (n) state solution for PMRS_PoroElastic

@@ -59,7 +59,7 @@ private:
     /// Brief permeability coupling model
     int m_k_model;
     
-    /// Brief body force
+    /// Brief Body force
     TPZManVector<REAL,3>  m_b;
     
     /// Brief Fluid density
@@ -92,6 +92,7 @@ public:
     /// Print out the data associated with the material
     void Print(std::ostream & out);
     
+    /// Class Name
     std::string Name() { return "TPMRSCouplPoroElast"; }
     
     /// Returns the number of state variables
@@ -106,7 +107,7 @@ public:
     /// Brief porosity correction model 3D
     REAL porosity_corrected_3D(TPZVec<TPZMaterialData> &datavec);
     
-    /// Brief computation of effective sigma
+    /// Brief computation of sigma at the last state (n)
     void Compute_Sigma_n(TPZFMatrix<REAL> Grad_u_n, TPZFMatrix<REAL> Grad_u, TPZFMatrix<REAL> &e_e, TPZFMatrix<REAL> &e_p, TPZFMatrix<REAL> &S);
     
     /// Brief Principal Stress
@@ -288,7 +289,7 @@ public:
         return m_k_0;
     }
     
-    /// Brief set the peremability models
+    /// Brief Set the peremability models
     void SetKModel(int kmodel)
     {
         m_k_model = kmodel;
@@ -312,7 +313,7 @@ public:
         return m_rho_f;
     }
     
-    /// Set Density of fluid
+    /// Set Density of rock
     void Setrhos(REAL rho_s)
     {
         m_rho_s = rho_s;

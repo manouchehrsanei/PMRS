@@ -90,7 +90,7 @@ public:
     /// Returns the variable index associated with the name
     int VariableIndex(const std::string &name);
     
-    /// returns the number of variables associated with the variable indexed by var.
+    /// Returns the number of variables associated with the variable indexed by var.
     int NSolutionVariables(int var);
     
     /// Returns the solution associated with the var index based on a finite element approximation (Used for TPZPostProcAnalysis)

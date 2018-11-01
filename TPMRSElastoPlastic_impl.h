@@ -10,7 +10,7 @@
 template <class T, class TMEM>
 TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic() : TPZMatWithMem<TMEM>(){
     m_simulation_data = NULL;
-    m_dimension = 0;
+    m_dimension       = 0;
 }
 
 template <class T, class TMEM>
@@ -21,7 +21,7 @@ TPMRSElastoPlastic<T,TMEM>::~TPMRSElastoPlastic(){
 template <class T, class TMEM>
 TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic(int mate_id) : TPZMatWithMem<TMEM>(mate_id) {
     m_simulation_data = NULL;
-    m_dimension = 0;
+    m_dimension       = 0;
 }
 
 template <class T, class TMEM>
@@ -130,16 +130,16 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
     
     long gp_index = data.intGlobPtIndex;
     TMEM & memory = this->GetMemory().get()->operator[](gp_index);
-    Solout.Resize( this->NSolutionVariables(var));
+    Solout.Resize(this->NSolutionVariables(var));
     
     TPZTensor<REAL> epsilon_t = memory.GetPlasticState_n().m_eps_t;
     TPZTensor<REAL> epsilon_p = memory.GetPlasticState_n().m_eps_p;
     
     switch (var) {
         case 0:
-            {
-                Solout[0] = memory.Getu_n()[0];
-            }
+        {
+            Solout[0] = memory.Getu_n()[0];
+        }
             break;
         case 1:
         {
@@ -248,7 +248,6 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
         }
             break;
     }
-    
 }
 
 template <class T, class TMEM>
@@ -256,7 +255,7 @@ void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> 
     
     int gp_index = data.intGlobPtIndex;
     TPZTensor<REAL> last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
-    TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u,grad_delta_u_t;
+    TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u, grad_delta_u_t;
     TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
     TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);
     grad_delta_u.Resize(3, 3);
@@ -345,7 +344,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;
     
-    if (m_dimension == 2) { // Plane strain conditions.
+    if (m_dimension == 2) { /// Plane strain conditions.
         
         for(int iu = 0; iu < n_phi_u; iu++ )
         {
@@ -364,12 +363,12 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                     }
                 }
                 
-                val  = 2. * De(_XX_, _XX_) * Deriv(0, 0);
-                val +=      De(_XX_, _XY_) * Deriv(0, 1);
-                val += 2. * De(_XY_, _XX_) * Deriv(1, 0);
-                val +=      De(_XY_, _XY_) * Deriv(1, 1);
+                val  = 2. * De(_XX_, _XX_) * Deriv(0, 0);//dvdx*dudx
+                val +=      De(_XX_, _XY_) * Deriv(0, 1);//dvdx*dudy
+                val += 2. * De(_XY_, _XX_) * Deriv(1, 0);//dvdy*dudx
+                val +=      De(_XY_, _XY_) * Deriv(1, 1);//dvdy*dudy
                 val *= 0.5;
-                ek(m_dimension*iu+0 + first_u, m_dimension*ju + first_u) += weight * val;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+0 + first_u) += weight * val;
                 
                 val  =      De(_XX_, _XY_) * Deriv(0, 0);
                 val += 2. * De(_XX_, _YY_) * Deriv(0, 1);
@@ -383,7 +382,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 val += 2. * De(_YY_, _XX_) * Deriv(1, 0);
                 val +=      De(_YY_, _XY_) * Deriv(1, 1);
                 val *= 0.5;
-                ek(m_dimension*iu+1 + first_u, m_dimension*ju + first_u) += weight * val;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+0 + first_u) += weight * val;
                 
                 val  =      De(_XY_, _XY_) * Deriv(0, 0);
                 val += 2. * De(_XY_, _YY_) * Deriv(0, 1);
@@ -589,7 +588,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     switch (bc.Type())
     {
         case 2 : // Du
-            // Dirichlet of displacement
+            /// Dirichlet of displacement
 
         {
             REAL v[2];
@@ -598,15 +597,15 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
+                ///    Contribution for load Vector
                 ef(2*in+0,0)      += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 ef(2*in+1,0)      += BigNumber*(u_n[1] - v[1])*phiu(in,0)*weight;    // Y displacement Value
 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
-                    ek(2*in+0,2*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ///    Contribution for Stiffness Matrix
+                    ek(2*in+0,2*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    /// X displacement
                     ek(2*in+1,2*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
 
                 }
@@ -616,8 +615,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
         }
             
         
-        case 3 : // Dux
-            // Dirichlet in x direction of displacement
+        case 3 : /// Dux
+            /// Dirichlet in x direction of displacement
 
         {
             REAL v[1];
@@ -625,12 +624,12 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
+                ///    Contribution for load Vector
                 ef(2*in,0)        += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // X displacement Value
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
+                    ///    Contribution for Stiffness Matrix
                     ek(2*in,2*jn)        += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
                 }
             }
@@ -638,8 +637,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 4 : //Duy
-            // Dirichlet in y direction of displacement
+        case 4 : /// Duy
+            /// Dirichlet in y direction of displacement
 
         {
             REAL v[1];
@@ -647,12 +646,12 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             
             for(in = 0 ; in < phru; in++)
             {
-                //    Contribution for load Vector
+                ///   Contribution for load Vector
                 ef(2*in+1,0)      += BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;    // Y displacement
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
-                    //    Contribution for Stiffness Matrix
+                    ///    Contribution for Stiffness Matrix
                     ek(2*in+1,2*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                 }
             }
@@ -660,19 +659,19 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 5 : // Nt
-            // Neumann of traction
+        case 5 : /// Nt
+            /// Neumann of traction
 
         {
             REAL v[2];
             v[0] = bc.Val2()(0,0);    //    Tnx
             v[1] = bc.Val2()(1,0);    //    Tny
 
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
-                //    Normal Tension Components on neumman boundary
+                ///    Normal Tension Components on neumman boundary
                 ef(2*in+0,0)    += -1.0 * weight * v[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * v[1] * phiu(in,0);        //    Tny
             }
@@ -680,8 +679,8 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-        case 6 : // Ntn
-            // Neumann of traction
+        case 6 : /// Ntn
+            /// Neumann of traction
 
         {
             REAL v[1];
@@ -689,11 +688,11 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             
             REAL tn = v[0];
             TPZManVector<REAL,3> n = data.normal;
-            //    Neumann condition for each state variable
-            //    Elasticity Equation
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
             for(in = 0 ; in <phru; in++)
             {
-                //    Normal Tension Components on neumman boundary
+                ///   Normal Tension Components on neumman boundary
                 ef(2*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
                 ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
@@ -745,7 +744,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
     }
     
     TPZFMatrix<REAL>  &phiu = data.phi;
-    TPZManVector<STATE,3> delta_u    = data.sol[0];
+    TPZManVector<STATE,3> delta_u = data.sol[0];
     TPZManVector<STATE,3> u_n(m_dimension,0.0);
     TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
     for (int i = 0; i < m_dimension; i++) {
@@ -979,9 +978,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             }
             
             break;
-            
         }
-            
             
         default:
         {
@@ -1033,14 +1030,12 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             this->MemItem(gp_index).Setu(u);
         }
 
-        
     }
     
     TPZFMatrix<REAL> ek_fake;
     ek_fake.Resize(ef.Rows(),ef.Rows());
     this->Contribute(data, weight, ek_fake, ef);
 
-    
 }
 
 template <class T, class TMEM>

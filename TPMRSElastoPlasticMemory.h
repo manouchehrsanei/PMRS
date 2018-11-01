@@ -125,12 +125,12 @@ public:
         return m_sigma;
     }
     
-    /// Set the last plastic_strain state
+    /// Set the last plastic strain state
     void SetPlasticState(TPZPlasticState<REAL> & plastic_strain){
         m_plastic_strain = plastic_strain;
     }
     
-    /// Get the last plastic_strain state
+    /// Get the last plastic strain state
     TPZPlasticState<REAL> & GetPlasticState(){
         return m_plastic_strain;
     }
@@ -155,12 +155,12 @@ public:
         return m_sigma_0;
     }
     
-    /// Set the initial plastic_strain state
+    /// Set the initial plastic strain state
     void SetPlasticState_0(TPZPlasticState<REAL> & plastic_strain_0){
         m_plastic_strain_0 = plastic_strain_0;
     }
     
-    /// Get the initial plastic_strain state
+    /// Get the initial plastic strain state
     TPZPlasticState<REAL> & GetPlasticState_0(){
         return m_plastic_strain_0;
     }

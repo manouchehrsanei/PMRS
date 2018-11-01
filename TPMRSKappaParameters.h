@@ -69,7 +69,7 @@ public:
     /// Get the model index
     EKappaModel GetModel();
     
-    /// Computes the porosity using the selected model
+    /// Computes the permeability using the selected model
     void Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0);
     
 };

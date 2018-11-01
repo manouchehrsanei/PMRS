@@ -18,13 +18,8 @@
 class TPMRSCoupPoElaMemory
 {
     
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory : It is written for TPMRSCoupPoElaMemory
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    /// Basis function
-    
-    /// Brief Gradient of deformation at at n (last) state
+private:
+    /// Brief Gradient of deformation at n (last) state
     TPZFNMatrix<9,REAL> m_grad_u_n;
     
    /// Brief elastic strain at n (last) state
@@ -37,31 +32,42 @@ class TPMRSCoupPoElaMemory
     
 public:
     
-    /// Brief Default constructor
+    /// Default constructor
     TPMRSCoupPoElaMemory();
     
-    /// Brief Default destructor
+    /// Copy constructor
+    TPMRSCoupPoElaMemory(const TPMRSCoupPoElaMemory & other);
+    
+    /// Assignement constructor
+    const TPMRSCoupPoElaMemory & operator=(const TPMRSCoupPoElaMemory & other);
+    
+    /// Default destructor
     ~TPMRSCoupPoElaMemory();
     
-    TPMRSCoupPoElaMemory(const TPMRSCoupPoElaMemory &copy)
-    {
-        
-        m_grad_u_n    = copy.m_grad_u_n;
-        m_epsilon_e_n = copy.m_epsilon_e_n;
-        m_epsilon_p_n = copy.m_epsilon_p_n;
+    /// Class Name
+    const std::string Name() const;
+    
+    /// Write class attributes
+    virtual void Write(TPZStream &buf, int withclassid) const;
+    
+    /// Read class attributes
+    virtual void Read(TPZStream &buf, void *context);
+    
+    /// Print class attributes
+    virtual void Print(std::ostream &out = std::cout) const;
+    
+    /// Print class attributes
+    friend std::ostream & operator<<( std::ostream& out, const TPMRSCoupPoElaMemory & memory ){
+        memory.Print(out);
+        return out;
+    }
+    
+    /// Brief Class unique identifier
+    virtual int ClassId() const;
+    
+    
+    /// ********* Set and Get some functions ********************************************
 
-    }
-    
-    TPMRSCoupPoElaMemory &operator=(const TPMRSCoupPoElaMemory &other)
-    {
-        
-        m_grad_u_n    = other.m_grad_u_n;
-        m_epsilon_e_n = other.m_epsilon_e_n;
-        m_epsilon_p_n = other.m_epsilon_p_n;
-        
-        return *this;
-    }
-    
     
     /// Brief Set Gradient of deformation at n (last) state
     void Set_grad_u_n(TPZFMatrix<STATE> & grad_u_n)
@@ -96,49 +102,11 @@ public:
     
     /// Brief Get plastic strain at n (last) state
     TPZFMatrix<REAL> epsilon_p_n(){
+        
         return m_epsilon_p_n;
     }
     
-    
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  Memory :
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-    /// Brief Write method
-    void Write(TPZStream &buf, int withclassid) const
-    {
-//                buf.Write(&m_Pressure_n);
-//                buf.Write(&m_Pressure);
-        DebugStop();
-    }
-    
-    /// Brief Read method
-    void Read(TPZStream &buf, void *context)
-    {
-        //        buf.Read(&m_Pressure_n);
-        //        buf.Read(&m_Pressure);
-        DebugStop();
-    }
-    
-    void Print(std::ostream &out) const
-    {
-        //        out << m_Pressure_n;
-        //        out << m_Pressure;
-        DebugStop();
-    }
-
-    
-    /// Brief Class unique identifier
-    virtual int ClassId() const;
-    
 };
-
-inline std::ostream &operator<<(std::ostream &out,const TPMRSCoupPoElaMemory &mem)
-{
-    mem.Print(out);
-    return out;
-}
 
 
 #endif /* TPMRSCoupPoElaMemory_h */

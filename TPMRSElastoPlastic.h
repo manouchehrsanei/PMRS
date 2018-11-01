@@ -39,7 +39,7 @@ public:
     /// Destructor
     virtual ~TPMRSElastoPlastic();
     
-    /// Constructor base on material id and dimension
+    /// Constructor based on material id and dimension
     TPMRSElastoPlastic(int mate_id);
     
     /// Constructor based on TPMRSElastoPlastic
