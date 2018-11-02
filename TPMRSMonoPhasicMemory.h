@@ -32,14 +32,14 @@ private:
     /// absolute permeability at initial state
     STATE m_kappa_0;
     
-    /// absolute permeability at current state
-    STATE m_kappa;
+    /// absolute permeability at current state (n+1)
+    STATE m_kappa_n;
     
     /// lagrangian porosity at intial state
     STATE m_phi_0;
     
-    /// lagrangian porosity at current state
-    STATE m_phi;
+    /// lagrangian porosity at current state (n+1)
+    STATE m_phi_n;
     
 public:
     
@@ -91,26 +91,26 @@ public:
     }
     
     
-    /// Set pore pressure at current state
+    /// Set pore pressure at last state
     void Setp(STATE p)
     {
         m_p = p;
     }
     
-    /// Get pore pressure at current state
+    /// Get pore pressure at last state
     STATE p()
     {
         return m_p;
     }
     
     
-    /// Set pore pressure at last state
+    /// Set pore pressure at current state
     void Setp_n(STATE p_n)
     {
         m_p_n = p_n;
     }
     
-    /// Get pore pressure at last state
+    /// Get pore pressure at current state
     STATE p_n()
     {
         return m_p_n;
@@ -131,15 +131,15 @@ public:
 
     
     /// Set absolute permeability at current state
-    void Setkappa(STATE kappa)
+    void Setkappa_n(STATE kappa_n)
     {
-        m_kappa = kappa;
+        m_kappa_n = kappa_n;
     }
     
     /// Get absolute permeability at current state
-    STATE kappa()
+    STATE kappa_n()
     {
-        return m_kappa;
+        return m_kappa_n;
     }
 
     
@@ -157,15 +157,15 @@ public:
     
     
     /// Set lagrangian porosity at current state
-    void Setphi(STATE phi)
+    void Setphi_n(STATE phi_n)
     {
-        m_phi = phi;
+        m_phi_n = phi_n;
     }
     
     /// Get lagrangian porosity at current state
-    STATE phi()
+    STATE phi_n()
     {
-        return m_phi;
+        return m_phi_n;
     }
     
     

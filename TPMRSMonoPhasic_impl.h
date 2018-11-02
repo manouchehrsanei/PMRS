@@ -512,12 +512,12 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             break;
         case 3:
         {
-            Solout[0] = memory.kappa();
+            Solout[0] = memory.kappa_n();
         }
             break;
         case 4:
         {
-            Solout[0] = memory.phi();
+            Solout[0] = memory.phi_n();
         }
             break;
             
@@ -539,27 +539,27 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     TMEM & memory = this->MemItem(gp_index);
     
     REAL alpha = memory.GetAlpha();
-    REAL Se = memory.GetSe();
+    REAL Se    = memory.GetSe();
     REAL phi_0 = memory.phi_0();
     
-    REAL p_0 = memory.p_0();
-    REAL p = memory.p();
-    REAL p_n = memory.p_n();
+    REAL p_0   = memory.p_0();
+    REAL p     = memory.p();
+    REAL p_n   = memory.p_n();
     REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
-    REAL sigma_t_v = (memory.GetSigma().I1()/3) - alpha * p;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3) - alpha * p;
     REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3) - alpha * p_n;
 
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
-    this->MemItem(gp_index).Setphi(phi); /// Current phi, please rename it ot phi_n
+    this->MemItem(gp_index).Setphi_n(phi_n);
 }
 
 template <class TMEM>
-void TPMRSMonoPhasic<TMEM>::permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
+void TPMRSMonoPhasic<TMEM>::permeability(long gp_index, REAL &kappa_n, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
     
     TMEM & memory = this->MemItem(gp_index);
-    REAL kappa_0 = memory.kappa();
-    m_kappa_model.Permeability(kappa, dkappa_ndphi, kappa_0, phi, phi_0);
-    this->MemItem(gp_index).Setkappa(kappa); /// Current kappa, please rename it to kappa_n
+    REAL kappa_0  = memory.kappa_0();
+    m_kappa_model.Permeability(kappa_n, dkappa_ndphi, kappa_0, phi, phi_0);
+    this->MemItem(gp_index).Setkappa_n(kappa_n);
 }

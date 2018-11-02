@@ -36,7 +36,7 @@ public:
     /// Desconstructor
     virtual ~TPMRSMemory();
     
-    /// Class name
+    /// Class Name
     const std::string Name() const;
     
     /// Write class attributes

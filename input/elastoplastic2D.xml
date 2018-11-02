@@ -69,7 +69,7 @@
             <PoroMechUndrainedParameters Eyoung_u="4.36" nu_u="0.2" phi_0="0.25" kappa_0="1.0e-14" />            
             <PoroMechParameters Eyoung="4.36" nu="0.2" alpha="0.7" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a="1" />
             <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="1.0" friction="1.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>

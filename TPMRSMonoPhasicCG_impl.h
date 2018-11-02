@@ -160,9 +160,9 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3);
     
     K.Zero();
-    K(0,0) = memory.kappa();
-    K(1,1) = memory.kappa();
-    K(2,2) = memory.kappa();
+    K(0,0) = memory.kappa_n();
+    K(1,1) = memory.kappa_n();
+    K(2,2) = memory.kappa_n();
     
     dKdp.Zero();
     dKdp(0,0) = dkappa_ndp;
@@ -383,12 +383,12 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             break;
         case 3:
         {
-            Solout[0] = memory.kappa();
+            Solout[0] = memory.kappa_n();
         }
             break;
         case 4:
         {
-            Solout[0] = memory.phi();
+            Solout[0] = memory.phi_n();
         }
             break;
             
@@ -423,14 +423,14 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
     
-    this->MemItem(gp_index).Setphi(phi); /// Current phi, please rename it to phi_n
+    this->MemItem(gp_index).Setphi_n(phi_n);
 }
 
 template <class TMEM>
-void TPMRSMonoPhasicCG<TMEM>::permeability(long gp_index, REAL &kappa, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
+void TPMRSMonoPhasicCG<TMEM>::permeability(long gp_index, REAL &kappa_n, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
     
     TMEM & memory = this->MemItem(gp_index);
-    REAL kappa_0 = memory.kappa();
-    m_kappa_model.Permeability(kappa, dkappa_ndphi, kappa_0, phi, phi_0);
-    this->MemItem(gp_index).Setkappa(kappa); /// Current kappa, please rename it to kappa_n
+    REAL kappa_0  = memory.kappa_0();
+    m_kappa_model.Permeability(kappa_n, dkappa_ndphi, kappa_0, phi, phi_0);
+    this->MemItem(gp_index).Setkappa_n(kappa_n);
 }

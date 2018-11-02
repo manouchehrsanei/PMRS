@@ -72,7 +72,8 @@ protected:
     /// Brief Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
-    /// Brief Directive that states if the last memory solution is being transferred to the current memory solution
+   
+    /// Brief Directive that states if the current memory solution is being transferred to the last memory solution
     bool m_transfer_current_to_last_solution_Q;
     
     /// Brief Spatial refinemenet level
@@ -143,10 +144,10 @@ protected:
     /// Brief Use for Crank-Nicolson method directive
     bool m_is_crank_nicolson_Q;
         
-    /// Brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided
+    /// Brief Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided (undrained)
     std::map<int, std::vector<REAL> > m_bc_id_to_values_geo_un;
     
-    /// Brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
+    /// Brief Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator (undrained)
     std::map<int, std::string> m_bc_id_to_type_geo_un;
     
     /// Brief Map that storage all the boundary conditions of Geomechanic Simulator supported
@@ -276,11 +277,12 @@ public:
     /// Brief Set the update pressure from undrain condition
     void SetupdatePressureFromUndrainSolutionQ(bool update_pressure_from_undrain_solution_Q) { m_update_pressure_from_undrain_solution_Q = update_pressure_from_undrain_solution_Q; }
     
+    /// Brief Get the update pressure from undrain condition
+    bool GetupdatePressureFromUndrainSolutionQ() { return m_update_pressure_from_undrain_solution_Q; }
+    
     /// Brief Set the directive that states if the current memory solution is being transferred to the last memory solution
     void SetTransferCurrentToLastQ(bool transfer_current_to_last_solution_Q) { m_transfer_current_to_last_solution_Q = transfer_current_to_last_solution_Q; }
 
-    /// Brief Get the update pressure from undrain condition
-    bool GetupdatePressureFromUndrainSolutionQ() { return m_update_pressure_from_undrain_solution_Q; }
     
     /// Brief Get the directive that states if the current memory solution is being transferred to the last memory solution
     bool GetTransferCurrentToLastQ() { return m_transfer_current_to_last_solution_Q; }
@@ -304,7 +306,7 @@ public:
     bool Set_must_accept_solution_Q(bool must_accept_solution_Q){
         m_must_accept_solution_Q = must_accept_solution_Q;}
     
-    /// Brief Set the the use of dual (true) or pirmal (false) formulation for monophacic flow
+    /// Brief Set the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool Set_is_dual_formulation_Q(bool is_dual_formulation_Q){
         m_is_dual_formulation_Q = is_dual_formulation_Q;}
     
@@ -430,10 +432,10 @@ public:
     /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
     std::map<int, std::string> & BCIdToConditionTypeReservoirs() { return m_bc_id_to_type_reser; }
     
-    /// Brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided
+    /// Brief Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided (undrained)
     std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanicsUndrained() { return m_bc_id_to_values_geo_un; }
     
-    /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
+    /// Brief Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator (undrained)
     std::map<int, std::string> & BCIdToConditionTypeGeomechanicsUndrained() { return m_bc_id_to_type_geo_un; }
     
     /// Brief Get the map that storage all the boundary conditions of Geomechanic Simulator supported
@@ -448,7 +450,7 @@ public:
     /// Brief Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
-    /// Brief Get the the use of dual (true) or primal (false) formulation for monophacic flow
+    /// Brief Get the use of dual (true) or primal (false) formulation for monophacic flow
     bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }
     
     //// Brief Get crank nicolson directive for time derivative (false Euler method)
