@@ -98,8 +98,8 @@ template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::UndrainedContribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     /// Getting weight functions
-    TPZFMatrix<REAL>  & phi_p     =  data.phi;
-    int n_phi_p = phi_p.Rows();
+    TPZFMatrix<REAL>  & phi_p  = data.phi;
+    int n_phi_p                = phi_p.Rows();
     STATE p_n                  = data.sol[0][0];
     
     /// Get the pressure at the integrations points
@@ -138,15 +138,15 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
     
     /// Get the pressure at the integrations points
-    long gp_index     = data.intGlobPtIndex;
-    TMEM & memory     = this->MemItem(gp_index);
+    long gp_index  = data.intGlobPtIndex;
+    TMEM & memory  = this->MemItem(gp_index);
     
     /// Time
-    STATE dt          = m_simulation_data->dt();
-    STATE p_n         = data.sol[0][0];
+    STATE dt       = m_simulation_data->dt();
+    STATE p_n      = data.sol[0][0];
     
-    STATE p_0         = memory.p_0();
-    STATE p           = memory.p();
+    STATE p_0      = memory.p_0();
+    STATE p        = memory.p();
     
     STATE phi_n,dphi_ndp,phi;
     REAL phi_0 = memory.phi_0();
@@ -169,16 +169,16 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     dKdp(1,1) = dkappa_ndp;
     dKdp(2,2) = dkappa_ndp;
     
-    STATE rho = m_rho_0 * (1 + m_c*(p-p_0));
-    STATE rho_n = m_rho_0 * (1 + m_c*(p_n-p_0));
+    STATE rho        = m_rho_0 * (1 + m_c*(p-p_0));
+    STATE rho_n      = m_rho_0 * (1 + m_c*(p_n-p_0));
     STATE drho_ndp_n = m_c;
-    STATE lambda = rho_n/m_eta;
+    STATE lambda     = rho_n/m_eta;
     
     /// Defining local variables
     TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
     for (int i = 0; i < Dimension(); i++)
     {
-        STATE dot = 0.0;
+        STATE dot     = 0.0;
         STATE dKdpdot = 0.0;
         for (int j = 0; j < Dimension(); j++)
         {
@@ -201,7 +201,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     for (int ip = 0; ip < n_phi_p; ip++)
     {
         
-        STATE Kl_grad_p_dot_grad_phi = 0.0;
+        STATE Kl_grad_p_dot_grad_phi    = 0.0;
         STATE dKdpl_grad_p_dot_grad_phi = 0.0;
         for (int i = 0; i < Dimension(); i++)
         {

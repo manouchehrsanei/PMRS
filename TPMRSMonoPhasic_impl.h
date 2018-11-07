@@ -106,9 +106,9 @@ void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &d
     int dim = this->Dimension();
     /// Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   /// For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi;  /// Derivative For H1  test functions
+    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi;  /// Derivative For H1  test functions (master)
     TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; /// Derivative For H1  test functions
-    TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
+    TPZFNMatrix<9,STATE> gradu      = datavec[ublock].dsol[0];
     TPZFNMatrix<9,STATE> graduMaster;
     gradu.Transpose();
     
@@ -123,7 +123,7 @@ void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &d
     
     TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
     TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian = datavec[ublock].jacobian;
+    TPZFMatrix<STATE> Jacobian        = datavec[ublock].jacobian;
     TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
     
     TPZFMatrix<STATE> GradOfX;
@@ -135,14 +135,14 @@ void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &d
     JacobianInverse.Multiply(Qaxes, GradOfXInverse);
     
     int ivectorindex = 0;
-    int ishapeindex = 0;
+    int ishapeindex  = 0;
     
     if (HDivPiola == 1)
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            ishapeindex  = datavec[ublock].fVecShapeIndex[iq].second;
             
             for (int k = 0; k < dim; k++) {
                 VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
@@ -163,7 +163,7 @@ void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &d
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
+            ishapeindex  = datavec[ublock].fVecShapeIndex[iq].second;
             
             /// Computing the divergence for constant jacobian elements
             for (int k = 0; k < dim; k++) {
@@ -226,6 +226,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     unsigned int q_b = 0;
     unsigned int p_b = 1;
     
+    
     TPZFNMatrix<100,STATE> phi_qs       = datavec[q_b].phi;
     TPZFNMatrix<100,STATE> phi_ps       = datavec[p_b].phi;
     TPZFNMatrix<10,STATE> grad_q_axes   = datavec[q_b].dsol[0];
@@ -256,6 +257,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     REAL dkappa_ndphi,dkappa_ndp;
     this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
     dkappa_ndp = dkappa_ndphi * dphi_ndp;
+    
     
 //    K.Zero();
 //    K(0,0) = kappa_n;
@@ -312,7 +314,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         STATE Kl_inv_dot_q = 0.0;
         STATE dK_invdp_dot_q = 0.0;
-        for (int i = 0; i < Dimension(); i++) {
+        for (int i = 0; i < Dimension(); i++)
+        {
             phi_q_i(i,0) = phi_qs(s_i,0) * datavec[q_b].fNormalVec(i,v_i);
             Kl_inv_dot_q    += Kl_inv_q(i,0)*phi_q_i(i,0);
             dK_invdp_dot_q    += dK_invdp_q(i,0)*phi_q_i(i,0);
@@ -327,7 +330,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             s_j = datavec[q_b].fVecShapeIndex[jq].second;
             
             STATE Kl_inv_phi_q_j_dot_phi_q_j = 0.0;
-            for (int j = 0; j < Dimension(); j++) {
+            for (int j = 0; j < Dimension(); j++)
+            {
                 phi_q_j(j,0) = phi_qs(s_j,0) * datavec[q_b].fNormalVec(j,v_j);
                 Kl_inv_phi_q_j(j,0) = (1.0/lambda) * (1.0/kappa_n) * phi_q_j(j,0);
                 Kl_inv_phi_q_j_dot_phi_q_j += Kl_inv_phi_q_j(j,0)*phi_q_i(j,0);
@@ -466,13 +470,13 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 
 template <class TMEM>
 int TPMRSMonoPhasic<TMEM>::VariableIndex(const std::string &name) {
-    if (!strcmp("p", name.c_str())) return 0;
-    if (!strcmp("q", name.c_str())) return 1;
-    if (!strcmp("div_q", name.c_str())) return 2;
-    if (!strcmp("kappa", name.c_str())) return 3;
-    if (!strcmp("phi", name.c_str())) return 4;
-    if (!strcmp("order", name.c_str())) return 5;
-    if (!strcmp("id", name.c_str())) return 6;
+    if (!strcmp("p"     , name.c_str())) return 0;
+    if (!strcmp("q"     , name.c_str())) return 1;
+    if (!strcmp("div_q" , name.c_str())) return 2;
+    if (!strcmp("kappa" , name.c_str())) return 3;
+    if (!strcmp("phi"   , name.c_str())) return 4;
+    if (!strcmp("order" , name.c_str())) return 5;
+    if (!strcmp("id"    , name.c_str())) return 6;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -545,9 +549,9 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     REAL p_0   = memory.p_0();
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
-    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
-    REAL sigma_t_v   = (memory.GetSigma().I1()/3) - alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3) - alpha * p_n;
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3); /// - alpha * p_0;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3); /// - alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3); /// - alpha * p_n;
 
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Se);
