@@ -50,6 +50,9 @@ private:
     /// Variables being postprocessed
     TPZStack<std::string> m_var_names;
     
+    /// Variables being postprocessed
+    TPZStack<std::string> m_vec_var_names;
+    
 public:
     
     /// Default constructor

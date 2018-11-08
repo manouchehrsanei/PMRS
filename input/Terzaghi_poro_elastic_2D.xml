@@ -32,7 +32,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,18 +41,25 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="7" n_outputs_res="1" />
+        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="8" n_outputs_res="7" />
         <OutputControlsGeo>
-            <Var s_name="e_x" />
-            <Var s_name="e_y" />
-            <Var s_name="phi" />
-            <Var s_name="k_x" />
-            <Var s_name="k_y" />
-            <Var s_name="s_x" />
-            <Var s_name="s_y" />
+            <Var s_name="ux" />
+            <Var s_name="uy" />
+            <Var s_name="sxx" />
+            <Var s_name="syy" />
+            <Var s_name="exx" />
+            <Var s_name="eyy" />
+            <Var s_name="epxx" />
+            <Var s_name="epyy" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
+            <Var s_name="phi" />
+            <Var s_name="kappa" />
+            <Var s_name="div_q" />
+            <Var s_name="qx" />
+            <Var s_name="qy" />
+            <Var s_name="qz" />
         </OutputControlsRes>        
     </OutputControls>
     <Physics>

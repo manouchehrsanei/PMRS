@@ -471,22 +471,23 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 template <class TMEM>
 int TPMRSMonoPhasic<TMEM>::VariableIndex(const std::string &name) {
     if (!strcmp("p"     , name.c_str())) return 0;
-    if (!strcmp("q"     , name.c_str())) return 1;
-    if (!strcmp("div_q" , name.c_str())) return 2;
-    if (!strcmp("kappa" , name.c_str())) return 3;
-    if (!strcmp("phi"   , name.c_str())) return 4;
-    if (!strcmp("order" , name.c_str())) return 5;
-    if (!strcmp("id"    , name.c_str())) return 6;
+    if (!strcmp("phi"   , name.c_str())) return 1;
+    if (!strcmp("kappa" , name.c_str())) return 2;
+    if (!strcmp("div_q" , name.c_str())) return 3;
+    if (!strcmp("qx"    , name.c_str())) return 4;
+    if (!strcmp("qy"    , name.c_str())) return 5;
+    if (!strcmp("qz"    , name.c_str())) return 6;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
 template <class TMEM>
 int TPMRSMonoPhasic<TMEM>::NSolutionVariables(int var) {
-    switch(var) {
+    switch(var)
+    {
         case 0:
             return 1; /// Scalar
         case 1:
-            return m_dimension; /// Vector
+            return 1; /// Scalar
         case 2:
             return 1; /// Scalar
         case 3:
@@ -497,6 +498,7 @@ int TPMRSMonoPhasic<TMEM>::NSolutionVariables(int var) {
             return 1; /// Scalar
         case 6:
             return 1; /// Scalar
+            
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -504,9 +506,14 @@ int TPMRSMonoPhasic<TMEM>::NSolutionVariables(int var) {
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
     
+    TPZFMatrix<STATE> dq      = data.dsol[0].Redim(m_dimension, 1);
+    TPZManVector<STATE,3> qb  = data.sol[0];
+
+    
     long gp_index = data.intGlobPtIndex;
-    TMEM & memory = this->MemItem(gp_index); ///this->GetMemory().get()->operator[](gp_index);
+    TMEM & memory = this->MemItem(gp_index); 
     Solout.Resize( this->NSolutionVariables(var));
+    
     
     switch (var) {
         case 0:
@@ -514,14 +521,40 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             Solout[0] = memory.p_n();
         }
             break;
-        case 3:
+        case 1:
+        {
+            Solout[0] = memory.phi_n();
+        }
+            break;
+        case 2:
         {
             Solout[0] = memory.kappa_n();
         }
             break;
+        case 3:
+        {
+            Solout[0] = 0;
+            for (int i = 0; i < m_dimension; i++)
+            {
+                Solout[0] += dq[i];
+            }
+            
+        }
+            break;
         case 4:
         {
-            Solout[0] = memory.phi_n();
+            Solout[0] = 0;
+
+        }
+            break;
+        case 5:
+        {
+            Solout[0] = 0;
+        }
+            break;
+        case 6:
+        {
+            Solout[0] = 0;
         }
             break;
             
@@ -533,8 +566,6 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             break;
     }
 
-        
-    
 }
 
 template <class TMEM>

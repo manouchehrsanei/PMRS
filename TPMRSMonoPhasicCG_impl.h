@@ -338,12 +338,12 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
 template <class TMEM>
 int TPMRSMonoPhasicCG<TMEM>::VariableIndex(const std::string &name) {
     if (!strcmp("p"     , name.c_str())) return 0;
-    if (!strcmp("q"     , name.c_str())) return 1;
-    if (!strcmp("div_q" , name.c_str())) return 2;
-    if (!strcmp("kappa" , name.c_str())) return 3;
-    if (!strcmp("phi"   , name.c_str())) return 4;
-    if (!strcmp("order" , name.c_str())) return 5;
-    if (!strcmp("id"    , name.c_str())) return 6;
+    if (!strcmp("phi"   , name.c_str())) return 1;
+    if (!strcmp("kappa" , name.c_str())) return 2;
+    if (!strcmp("div_q" , name.c_str())) return 3;
+    if (!strcmp("qx"    , name.c_str())) return 4;
+    if (!strcmp("qy"    , name.c_str())) return 5;
+    if (!strcmp("qz"    , name.c_str())) return 6;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -353,7 +353,7 @@ int TPMRSMonoPhasicCG<TMEM>::NSolutionVariables(int var) {
         case 0:
             return 1; /// Scalar
         case 1:
-            return m_dimension; /// Vector
+            return 1; /// Scalar
         case 2:
             return 1; /// Scalar
         case 3:
@@ -364,6 +364,7 @@ int TPMRSMonoPhasicCG<TMEM>::NSolutionVariables(int var) {
             return 1; /// Scalar
         case 6:
             return 1; /// Scalar
+
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -381,14 +382,71 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             Solout[0] = memory.p_n();
         }
             break;
-        case 3:
+        case 1:
+        {
+            Solout[0] = memory.phi_n();
+        }
+            break;
+        case 2:
         {
             Solout[0] = memory.kappa_n();
         }
             break;
+        case 3:
+        {
+            REAL p_0      = memory.p_0();
+            REAL p_n      = memory.p_n();
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL lambda   = rho_n/m_eta;
+            REAL k        = memory.kappa_n();
+            Solout[0] = 0;
+            for (int i = 0; i < m_dimension; i++)
+            {
+                TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+                TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
+                Solout[0] += (- k * lambda * grad_p[i]);
+            }
+        }
+            break;
         case 4:
         {
-            Solout[0] = memory.phi_n();
+            REAL p_0      = memory.p_0();
+            REAL p_n      = memory.p_n();
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL lambda   = rho_n/m_eta;
+            REAL k        = memory.kappa_n();
+            
+            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
+            Solout[0] = - k * lambda * grad_p[0];
+        }
+            break;
+        case 5:
+        {
+            REAL p_0      = memory.p_0();
+            REAL p_n      = memory.p_n();
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL lambda   = rho_n/m_eta;
+            REAL k        = memory.kappa_n();
+        
+            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
+            Solout[0] = - k * lambda * grad_p[1];
+
+        }
+            break;
+        case 6:
+        {
+            REAL p_0      = memory.p_0();
+            REAL p_n      = memory.p_n();
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL lambda   = rho_n/m_eta;
+            REAL k        = memory.kappa_n();
+            
+            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
+            Solout[0] = - k * lambda * grad_p[2];
+
         }
             break;
             
@@ -399,9 +457,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
         }
             break;
     }
-    
-    
-    
+
 }
 
 template <class TMEM>

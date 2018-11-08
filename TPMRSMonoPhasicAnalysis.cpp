@@ -18,6 +18,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
     m_k_iterations   = 0;
     m_post_processor = NULL;
     m_var_names.resize(0);
+    m_vec_var_names.resize(0);
     
 }
 
@@ -36,6 +37,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis &
     m_k_iterations      = other.m_k_iterations;
     m_post_processor    = other.m_post_processor;
     m_var_names         = other.m_var_names;
+    m_vec_var_names     = other.m_vec_var_names;
     
 }
 
@@ -99,33 +101,18 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         post_mat_id[iregion] = matid;
     }
     
-    // @TODO:: MS, please transfer from xml file
-    m_var_names.Push("p");
-    m_var_names.Push("phi");
-    m_var_names.Push("kappa");
+    TPZManVector<std::string,50> scalnames;
+    TPZManVector<std::string,50> vecnames;
     
-//    TPZManVector<string,10> s_names;
-//    s_names = m_simulation_data->s_names_res();
-//    
-//    TPZStack< std::string> s_names_stack;
-//    
-//    for (auto& elem : s_names)
-//    {
-//        s_names_stack.push(elem);
-//    }
-//    
-//    TPZVec<std::string> v_names;
-//    v_names = m_simulation_data->v_names_res();
-    
+    scalnames = m_simulation_data->s_names_res();
+//    vecnames = m_simulation_data->v_names_res();
 
+    m_post_processor->SetPostProcessVariables(post_mat_id, scalnames);
+//    m_post_processor->SetPostProcessVariables(post_mat_id, vecnames);
 
-    m_post_processor->SetPostProcessVariables(post_mat_id, m_var_names);
-    
-    
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
     structmatrix.SetNumThreads(n_threads);
     m_post_processor->SetStructuralMatrix(structmatrix);
-    
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
@@ -193,9 +180,17 @@ void TPMRSMonoPhasicAnalysis::PostProcessTimeStep(std::string & file){
     
     int dim = Mesh()->Dimension();
     int div = m_simulation_data->n_div();
+    
+    TPZManVector<std::string,50> scalnames;
+//    TPZManVector<std::string,50> vecnames;
+
+    scalnames = m_simulation_data->s_names_res();
+//    vecnames = m_simulation_data->v_names_res();
+    
     TPZStack< std::string> vecnames;
+   
     m_post_processor->TransferSolution();
-    m_post_processor->DefineGraphMesh(dim,m_var_names,vecnames,file);
+    m_post_processor->DefineGraphMesh(dim, scalnames, vecnames,file);
     m_post_processor->PostProcess(div,dim);
 }
 
