@@ -1,7 +1,7 @@
 
 ////////////////////////////////////////////////////////////////
-// Bradley2D
-// Created 30/05/2018 by Manouchehr Sanei
+// Fjar2D
+// Created 28/05/2018 by Manouchehr Sanei
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
@@ -12,10 +12,10 @@ Mesh.SecondOrderLinear = 0;
 
 lf = 0.01;
 lc = 1;
-fl = 4.0;
+fl = 10.0;
 wr = 0.1;
 nh = 8;
-nv = 4;
+nv = 8;
 nr = 8;
 
 Point(1) = {-fl,-fl,0,lc};

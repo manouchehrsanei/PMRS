@@ -581,7 +581,7 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
     REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3); /// - alpha * p_0;
-    REAL sigma_t_v   = (memory.GetSigma().I1()/3); /// - alpha * p;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3);   /// - alpha * p;
     REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3); /// - alpha * p_n;
 
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Se);

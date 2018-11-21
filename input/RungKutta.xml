@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating an Bradley linear elastic solution -->
+    <!-- Example 1: Simulating an Fjaer linear poroelastic solution -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Bradley2D.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/RungKutta2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e6" />
+        <StepSize dt="1.0e10" />
         <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -41,21 +41,15 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Bradley2D" n_divisions="1" n_outputs_geo="8" n_outputs_res="3" />
+        <PostProcessing vtk_file="RungKutta" n_divisions="1" n_outputs_geo="2" n_outputs_res="3" />
         <OutputControlsGeo>
-            <Var s_name="ux" />
-            <Var s_name="uy" />
             <Var s_name="sxx" />
             <Var s_name="syy" />
-            <Var s_name="exx" />
-            <Var s_name="eyy" />
-            <Var s_name="epxx" />
-            <Var s_name="epyy" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
-            <Var s_name="phi" />
             <Var s_name="kappa" />
+            <Var s_name="phi" />
         </OutputControlsRes>         
     </OutputControls>
     <Physics>
@@ -69,10 +63,10 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="7" n_boundaries_res ="7">
-            <PoroMechUndrainedParameters Eyoung_u="5.0e3" nu_u="0.25" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="5.0e3" nu="0.25" alpha="1.0" Se="1.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
+            <PoroMechUndrainedParameters Eyoung_u="29.269e3" nu_u="0.203" phi_0="0.25" kappa_0="1e-13" />            
+            <PoroMechParameters Eyoung="29.269e3" nu="0.203" alpha="1.0" Se="10e-9" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Constant" n_parameters="0"/>
+            <KappaParameters kappa_model="Constant" n_parameters="0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="30.0" friction="1.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
@@ -104,21 +98,21 @@
         <UndrainedGeomechanic bc_id="8" type="Duy" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Nt" tx="-80.0" ty="0.0" />
-        <Geomechanic bc_id="3" type="Nt" tx="80.0" ty="0.0" />
-        <Geomechanic bc_id="4" type="Nt" tx="0.0" ty="-20.0" />
-        <Geomechanic bc_id="5" type="Nt" tx="0.0" ty="20.0" />
-        <Geomechanic bc_id="6" type="Ntn" tn="-50.0" />
+        <Geomechanic bc_id="2" type="Nt" tx="-70.0" ty="0.0" />
+        <Geomechanic bc_id="3" type="Nt" tx="70.0" ty="0.0" />
+        <Geomechanic bc_id="4" type="Nt" tx="0.0" ty="-70.0" />
+        <Geomechanic bc_id="5" type="Nt" tx="0.0" ty="70.0" />
+        <Geomechanic bc_id="6" type="Ntn" tn="-8.0" />
         <Geomechanic bc_id="7" type="Dux" ux="0.0" />
         <Geomechanic bc_id="8" type="Duy" uy="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Dp" p="0.0" />
-        <Reservoir bc_id="3" type="Dp" p="0.0" />
-        <Reservoir bc_id="4" type="Dp" p="0.0" />
-        <Reservoir bc_id="5" type="Dp" p="0.0" />
-        <Reservoir bc_id="6" type="Dp" p="0.0" />
-        <Reservoir bc_id="7" type="Dp" p="0.0" />
-        <Reservoir bc_id="8" type="Dp" p="0.0" />
+        <Reservoir bc_id="2" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="3" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="4" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="5" type="Dp" p="20.0e6" />
+        <Reservoir bc_id="6" type="Dp" p="8.0e6" />
+        <Reservoir bc_id="7" type="Dp" p="8.0e6" />
+        <Reservoir bc_id="8" type="Dp" p="8.0e6" />
     </BCReservoirs>     
 </CaseData>
