@@ -402,7 +402,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     // Elastic predictor
     TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
     std::vector<REAL> e_pars = poro_parameters.GetParameters();
-    REAL E = e_pars[0];
+    REAL E  = e_pars[0];
     REAL nu = e_pars[1];
     
     // Updating bulk modulus for porosity model
@@ -449,6 +449,49 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
                 return material;
             }
             break;
+            case plasticity_parameters.ep_ds: {
+                // Dimaggio Sandler data
+                
+                STATE G   = E / (2.0 * (1.0 + nu));
+                STATE K   = E / (3.0 * (1.0 - 2 * nu));
+                
+                REAL A    = p_pars[0];
+                REAL B    = p_pars[1];
+                REAL C    = p_pars[2];
+                REAL D    = p_pars[3];
+                REAL R    = p_pars[4];
+                REAL W    = p_pars[5];
+                REAL X0   = p_pars[6];
+                REAL phi = 0, psi = 1.0, N = 0;
+                
+                REAL Pc = -150.0;
+                TPZTensor<REAL> sigma;
+                sigma.Zero();
+                
+                sigma.XX() = Pc;
+                sigma.YY() = Pc;
+                sigma.ZZ() = Pc;
+            
+                
+                TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+                LEDS.SetElasticResponse(ER);
+                LEDS.fYC.SetUp(A, B, C, D, K, G, W, R, phi, N, psi);
+                
+                
+                // Initial damage data
+                REAL k_0;
+                LEDS.InitialDamage(sigma, k_0);
+                LEDS.fN.m_hardening = k_0;
+                
+                TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory>(matid);
+                material->SetDimension(dim);
+                material->SetPlasticIntegrator(LEDS);
+                
+                material->SetSimulationData(sim_data);
+                cmesh->InsertMaterialObject(material);
+                return material;
+            }
+                break;
             default:{
                 TPZMaterial * material = NULL;
                 std::cout << "Material not implemented. " << std::endl;

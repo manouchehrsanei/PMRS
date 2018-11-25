@@ -323,6 +323,48 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                         vol_material->SetPlasticIntegrator(LEMC);
                     }
                         break;
+                    case plasticity_parameters.ep_ds: {
+                        // Dimaggio Sandler data
+                        
+                        STATE G   = E / (2.0 * (1.0 + nu));
+                        STATE K   = E / (3.0 * (1.0 - 2 * nu));
+                        
+                        REAL A    = p_pars[0];
+                        REAL B    = p_pars[1];
+                        REAL C    = p_pars[2];
+                        REAL D    = p_pars[3];
+                        REAL R    = p_pars[4];
+                        REAL W    = p_pars[5];
+                        REAL X0   = p_pars[6];
+                        REAL phi = 0, psi = 1.0, N = 0;
+                        
+                        REAL Pc = -150.0;
+                        TPZTensor<REAL> sigma;
+                        sigma.Zero();
+        
+                        sigma.XX() = Pc;
+                        sigma.YY() = Pc;
+                        sigma.ZZ() = Pc;
+                        
+                        
+                        TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+                        LEDS.SetElasticResponse(ER);
+                        LEDS.fYC.SetUp(A, B, C, D, K, G, W, R, phi, N, psi);
+                        
+                        
+                        // Initial damage data
+                        REAL k_0;
+                        LEDS.InitialDamage(sigma, k_0);
+                        LEDS.fN.m_hardening = k_0;
+        
+                        
+                        TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory> * vol_material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory>(matid);
+                        
+                        vol_material->SetPlasticIntegrator(LEDS);
+                    
+                    }
+                        break;
+
                     default:
                     {
                         std::cout << "Material not implemented. " << std::endl;
