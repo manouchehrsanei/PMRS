@@ -503,6 +503,36 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                     pars[0] = c;
                 }
                     break;
+                case kappa_pars.k_costa:
+                {
+                    char_container = sub_container->Attribute("a");
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "CostaModel::Please provide a $ c parameters" << std::endl;
+                        DebugStop();
+                    }
+                    REAL a = std::atof(char_container);
+                    REAL c = std::atof(char_container);
+                    pars[0] = a;
+                    pars[1] = c;
+                }
+                    break;
+                case kappa_pars.k_nelson:
+                {
+                    char_container = sub_container->Attribute("a");
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "NelsonModel::Please provide a $ c parameters" << std::endl;
+                        DebugStop();
+                    }
+                    REAL a = std::atof(char_container);
+                    REAL c = std::atof(char_container);
+                    pars[0] = a;
+                    pars[1] = c;
+                }
+                    break;
+                    
+                    
                 default:
                 {
                     std::cout << "KappaModel::Please provide a permeability model example {kappa_model, n_parameters, a}." << std::endl;

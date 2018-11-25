@@ -6,6 +6,7 @@
 //
 
 #include "TPMRSKappaParameters.h"
+#include <math.h>
 
 
 TPMRSKappaParameters::TPMRSKappaParameters(){
@@ -71,6 +72,15 @@ void TPMRSKappaParameters::SetModel(std::string model){
             m_model = k_davies;
         }
             break;
+        case k_costa : {
+            m_model = k_costa;
+        }
+            break;
+        case k_nelson : {
+            m_model = k_nelson;
+        }
+            break;
+            
         default : {
             DebugStop();
         }
@@ -84,6 +94,10 @@ void TPMRSKappaParameters::Initialize()
     m_name_to_kappa_model["Constant"] = k_constant;
     m_name_to_kappa_model["Petunin"]  = k_petunin;
     m_name_to_kappa_model["Davies"]   = k_davies;
+    m_name_to_kappa_model["Costa"]    = k_costa;
+    m_name_to_kappa_model["Nelson"]   = k_nelson;
+    
+    
 }
 
 void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &kappa_0, REAL &phi, REAL &phi_0){
@@ -105,6 +119,21 @@ void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &ka
             REAL C      = m_parameters[0];
             kappa       = exp(C*(-1.0 + phi/phi_0))*kappa_0;
             dkappa_dphi = (C*exp(C*(-1.0 + phi/phi_0))*kappa_0)/phi_0;
+        }
+            break;
+        case k_costa : {
+            REAL A      = m_parameters[0];
+            REAL C      = m_parameters[1];
+            kappa       = kappa_0*A*((1-phi_0)/(1-phi))*pow(phi/phi_0,C);
+            dkappa_dphi = (A*kappa_0*(1 - phi_0)*pow(phi/phi_0,C))/pow(1 - phi,2) +
+            (A*C*kappa_0*(1 - phi_0)*pow(phi/phi_0,-1 + C))/((1 - phi)*phi_0);
+        }
+            break;
+        case k_nelson : {
+            REAL A      = m_parameters[0];
+            REAL C      = m_parameters[1];
+            kappa       = pow(10,C + A*(phi - phi_0))*kappa_0;
+            dkappa_dphi = pow(10,C + A*(phi - phi_0))*A*kappa_0*log(10.0);
         }
             break;
         default : {

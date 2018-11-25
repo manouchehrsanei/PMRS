@@ -21,7 +21,7 @@ class TPMRSKappaParameters {
 public:
     
     /// Enumerate defining the permeability model
-    enum EKappaModel { k_none = 0, k_constant = 1, k_petunin = 2, k_davies = 3 };
+    enum EKappaModel { k_none = 0, k_constant = 1, k_petunin = 2, k_davies = 3, k_costa = 4, k_nelson = 5};
     
 private:
     
