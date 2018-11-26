@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e3" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="1.0e10" />
+        <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -32,7 +32,7 @@
     </ScaleFactor>   
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="PermeabModZone" n_divisions="1" n_outputs_geo="6" n_outputs_res="5" />
+        <PostProcessing vtk_file="PermeabModZone" n_divisions="1" n_outputs_geo="6" n_outputs_res="6" />
         <OutputControlsGeo>
             <Var s_name="sxx" />
             <Var s_name="syy" />
@@ -52,8 +52,9 @@
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
-            <Var s_name="kappa" />
             <Var s_name="phi" />
+            <Var s_name="kappa" />
+            <Var s_name="div_q" />
             <Var s_name="qx" />
             <Var s_name="qy" />
         </OutputControlsRes>         
@@ -69,11 +70,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="7" n_boundaries_res ="7">
-            <PoroMechUndrainedParameters Eyoung_u="50.0e3" nu_u="0.22" phi_0="0.25" kappa_0="1.4e-13" />            
+            <PoroMechUndrainedParameters Eyoung_u="50.0e3" nu_u="0.22" phi_0="0.20" kappa_0="1.4e-15" />            
             <PoroMechParameters Eyoung="50.0e3" nu="0.22" alpha="0.9" Se="10.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Petunin" n_parameters="1" a="2"/>
-            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="220.0" b="0.0025" c="210.0" d="0.0003" r="4.5" w="0.25" x0="-440.0"/>            
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a="4"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="12.0" friction="18.0"/>             
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

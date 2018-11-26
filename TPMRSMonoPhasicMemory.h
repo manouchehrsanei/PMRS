@@ -29,6 +29,12 @@ private:
     /// pore pressure at current state (n+1)
     STATE m_p_n;
     
+    /// flux at last state (n)
+    TPZManVector<STATE,3> m_q;
+    
+    /// flux at current state (n+1)
+    TPZManVector<STATE,3> m_q_n;
+    
     /// absolute permeability at initial state
     STATE m_kappa_0;
     
@@ -116,6 +122,29 @@ public:
         return m_p_n;
     }
 
+   
+    /// Set flux at last state
+    void Setq(TPZManVector<STATE,3> & q)
+    {
+        m_q = q;
+    }
+    
+    /// Get flux at last state
+    TPZManVector<STATE,3> & q(){
+        return m_q;
+    }
+    
+    /// Set flux at current state
+    void Setq_n(TPZManVector<STATE,3> & q_n)
+    {
+        m_q_n = q_n;
+    }
+    
+    /// Get flux at current state
+    TPZManVector<STATE,3> & q_n(){
+        return m_q_n;
+    }
+    
     
     /// Set absolute permeability at initial state
     void Setkappa_0(STATE kappa_0)

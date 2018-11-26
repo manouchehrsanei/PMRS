@@ -87,15 +87,15 @@ void TPMRSElastoPlasticMemory::Read(TPZStream &buf, void *context){
 
 void TPMRSElastoPlasticMemory::Print(std::ostream &out) const{
     out << Name();
-    out << "\n Current state stress = " << m_sigma_n;
+    out << "\n Current state stress         = " << m_sigma_n;
     out << "\n Current Plastic strain state = " << m_plastic_strain_n;
-    out << "\n Current displacement field = " << m_u_n;
-    out << "\n Last state stress = " << m_sigma;
-    out << "\n Last Plastic strain state = " << m_plastic_strain;
-    out << "\n Last displacement field = " << m_u;
-    out << "\n Initial state stress = " << m_sigma_0;
+    out << "\n Current displacement field   = " << m_u_n;
+    out << "\n Last state stress            = " << m_sigma;
+    out << "\n Last Plastic strain state    = " << m_plastic_strain;
+    out << "\n Last displacement field      = " << m_u;
+    out << "\n Initial state stress         = " << m_sigma_0;
     out << "\n Initial Plastic strain state = " << m_plastic_strain_0;
-    out << "\n Initial displacement field = " << m_u_0;
+    out << "\n Initial displacement field   = " << m_u_0;
 }
 
 int TPMRSElastoPlasticMemory::ClassId() const{

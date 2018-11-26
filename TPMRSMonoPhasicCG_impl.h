@@ -376,6 +376,8 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
     TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
+    REAL scal = 1./m_scale_factor;
+    
     switch (var) {
         case 0:
         {
@@ -404,7 +406,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             {
                 TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
                 TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-                Solout[0] += (- k * lambda * grad_p[i]);
+                Solout[0] += (- scal * k * lambda * grad_p[i]);
             }
         }
             break;
@@ -418,7 +420,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             
             TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
             TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - k * lambda * grad_p[0];
+            Solout[0] = - scal * k * lambda * grad_p[0];
         }
             break;
         case 5:
@@ -431,7 +433,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
         
             TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
             TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - k * lambda * grad_p[1];
+            Solout[0] = - scal * k * lambda * grad_p[1];
 
         }
             break;
@@ -445,7 +447,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             
             TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
             TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - k * lambda * grad_p[2];
+            Solout[0] = - scal * k * lambda * grad_p[2];
 
         }
             break;

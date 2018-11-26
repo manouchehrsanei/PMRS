@@ -90,7 +90,6 @@
 /// ElastoPlastic Materials
 #include "TPMRSCouplPoroElast.h"
 
-
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 #endif
