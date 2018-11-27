@@ -514,8 +514,6 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
     
     TPZManVector<STATE,3> qb  = memory.q_n();
     
-    REAL scal = 1.0; // 1./m_scale_factor;
-
     
     switch (var) {
         case 0:
@@ -538,25 +536,25 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             Solout[0] = 0;
             for (int i = 0; i < m_dimension; i++)
             {
-                Solout[0] += (qb[i] * scal);
+                Solout[0] += qb[i];
             }
             
         }
             break;
         case 4:
         {
-            Solout[0] = (qb[0] * scal);
+            Solout[0] = qb[0];
 
         }
             break;
         case 5:
         {
-            Solout[0] = (qb[1] * scal);
+            Solout[0] = qb[1];
         }
             break;
         case 6:
         {
-            Solout[0] = (qb[2] * scal);
+            Solout[0] = qb[2];
         }
             break;
             
