@@ -392,8 +392,10 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         if (m_simulation_data->IsCurrentStateQ()) {
             this->MemItem(gp_index).Setp_n(p);
+            this->MemItem(gp_index).Setq_n(q);
         }else{
             this->MemItem(gp_index).Setp(p);
+            this->MemItem(gp_index).Setq(q);
         }
         
     }
@@ -506,14 +508,14 @@ int TPMRSMonoPhasic<TMEM>::NSolutionVariables(int var) {
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
     
-    TPZFMatrix<STATE> dq      = data.dsol[0].Redim(m_dimension, 1);
-    TPZManVector<STATE,3> qb  = data.sol[0];
-
-    
     long gp_index = data.intGlobPtIndex;
     TMEM & memory = this->MemItem(gp_index); 
     Solout.Resize( this->NSolutionVariables(var));
     
+    TPZManVector<STATE,3> qb  = memory.q_n();
+    
+    REAL scal = 1.0; // 1./m_scale_factor;
+
     
     switch (var) {
         case 0:
@@ -536,25 +538,25 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             Solout[0] = 0;
             for (int i = 0; i < m_dimension; i++)
             {
-                Solout[0] += dq[i];
+                Solout[0] += (qb[i] * scal);
             }
             
         }
             break;
         case 4:
         {
-            Solout[0] = 0;
+            Solout[0] = (qb[0] * scal);
 
         }
             break;
         case 5:
         {
-            Solout[0] = 0;
+            Solout[0] = (qb[1] * scal);
         }
             break;
         case 6:
         {
-            Solout[0] = 0;
+            Solout[0] = (qb[2] * scal);
         }
             break;
             

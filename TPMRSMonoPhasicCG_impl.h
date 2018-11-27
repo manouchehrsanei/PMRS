@@ -376,7 +376,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
     TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
     
-    REAL scal = 1./m_scale_factor;
+    REAL scal =  1./m_scale_factor;
     
     switch (var) {
         case 0:
