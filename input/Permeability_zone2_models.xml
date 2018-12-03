@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e10" />
-        <StepNumber n_time_steps="1" />
+        <StepSize dt="1.0e5" />
+        <StepNumber n_time_steps="20" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -73,7 +73,7 @@
             <PoroMechParameters Eyoung="30.0e3" nu="0.22" alpha="0.9" Se="10.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Davies" n_parameters="1" c="4"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="12.0" friction="25.0"/>             
+            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="50.0" b="0.005" c="40.0" d="0.0001" r="2.5" w="0.25" x0="-80.0"/>                
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
