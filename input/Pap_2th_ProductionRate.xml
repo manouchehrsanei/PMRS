@@ -7,13 +7,13 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0e5" />
-        <StepNumber n_time_steps="20" />
+        <StepSize dt="259200" />
+        <StepNumber n_time_steps="120" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="40" />
+        <Iterations n_iterations="50" />
         <Residue res_tolerance="0.001" />
         <Correction cor_tolerance="0.001" />
     </NewtonControls>
@@ -41,21 +41,15 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="wellboreRes" n_divisions="1" n_outputs_geo="6" n_outputs_res="5" />
+        <PostProcessing vtk_file="wellboreRes" n_divisions="1" n_outputs_geo="3" n_outputs_res="2" />
         <OutputControlsGeo>
             <Var s_name="sxx" />
-            <Var s_name="syy" />
             <Var s_name="exx" />
-            <Var s_name="eyy" />
             <Var s_name="epxx" />
-            <Var s_name="epyy" />
         </OutputControlsGeo>
         <OutputControlsRes>
-            <Var s_name="p" />
-            <Var s_name="phi" />
             <Var s_name="kappa" />
             <Var s_name="qx" />
-            <Var s_name="qy" />
         </OutputControlsRes>         
     </OutputControls>
     <Physics>
@@ -69,11 +63,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
-            <PoroMechUndrainedParameters Eyoung_u="30.0e3" nu_u="0.22" phi_0="0.20" kappa_0="1.4e-15" />            
-            <PoroMechParameters Eyoung="30.0e3" nu="0.22" alpha="0.9" Se="10.0e-19" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
+            <PoroMechUndrainedParameters Eyoung_u="20.0e3" nu_u="0.20" phi_0="0.25" kappa_0="2.0e-15" />            
+            <PoroMechParameters Eyoung="20.0e3" nu="0.20" alpha="0.9" Se="10.0e-19" eta="0.001" rho_f="930.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Davies" n_parameters="1" c="4"/>
-            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="50.0" b="0.005" c="40.0" d="0.0001" r="2.5" w="0.25" x0="-80.0"/>                
+            <KappaParameters kappa_model="Davies" n_parameters="1" c="9"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="2.0" friction="20.0"/>                    
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -95,13 +89,13 @@
         <UndrainedGeomechanic bc_id="5" type="Duy" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" tn="-30.0" />
+        <Geomechanic bc_id="2" type="Ntn" tn="-33.0" />
         <Geomechanic bc_id="3" type="Ntn" tn="-110.0" />
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
         <Geomechanic bc_id="5" type="Duy" uy="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Nq" qn="0.003" />
+        <Reservoir bc_id="2" type="Dp" p="33.0e6" />
         <Reservoir bc_id="3" type="Dp" p="40.0e6" />
         <Reservoir bc_id="4" type="Dp" p="40.0e6" />
         <Reservoir bc_id="5" type="Dp" p="40.0e6" />

@@ -70,7 +70,7 @@
             <PoroMechParameters Eyoung="8000.0" nu="0.22" alpha="1.0" Se="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Davies" n_parameters="1" c="8.0"/>
-            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="18.40" b="0.015" c="15.0" d="0.1" r="2.5" w="0.2" x0="-35.0"/>  
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="1.0" friction="15.0"/>  
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

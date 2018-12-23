@@ -10,7 +10,7 @@ Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
 wr = 0.1;
-fr = 50.0;
+fr = 30.0;
 
 nt = 5;
 //nr = 10;
