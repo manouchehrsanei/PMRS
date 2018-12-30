@@ -463,7 +463,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
                 REAL X0   = p_pars[6];
                 REAL phi = 0, psi = 1.0, N = 0;
                 
-                REAL Pc = -80.0;
+                REAL Pc = -60;
                 TPZTensor<REAL> sigma;
                 sigma.Zero();
                 

@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="259200" />
-        <StepNumber n_time_steps="120" />
+        <StepSize dt="0.0001" />
+        <StepNumber n_time_steps="50" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -63,11 +63,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
-            <PoroMechUndrainedParameters Eyoung_u="20.0e3" nu_u="0.20" phi_0="0.25" kappa_0="2.0e-15" />            
+            <PoroMechUndrainedParameters Eyoung_u="20.0e3" nu_u="0.20" phi_0="0.15" kappa_0="2.0e-16" />            
             <PoroMechParameters Eyoung="20.0e3" nu="0.20" alpha="0.9" Se="10.0e-19" eta="0.001" rho_f="930.0" rho_s="2700.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Davies" n_parameters="1" c="9"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="2.0" friction="20.0"/>                    
+            <KappaParameters kappa_model="Nelson" n_parameters="2" a="1.0" c="-0.01"/>
+            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="62.0" b="0.005" c="25.0" d="0.02" r="3.0" w="0.3" x0="-40.0"/>         
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
