@@ -62,6 +62,21 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
             this->SetStructuralMatrix(struct_mat);
         }
             break;
+        case ELU:
+        {
+            
+#ifdef USING_MKL
+            TPZSpStructMatrix struct_mat(Mesh());
+            struct_mat.SetNumThreads(number_threads);
+            this->SetStructuralMatrix(struct_mat);
+#else
+            TPZSkylineNSymStructMatrix struct_mat(Mesh());
+            struct_mat.SetNumThreads(number_threads);
+            this->SetStructuralMatrix(struct_mat);
+#endif
+            
+        }
+            break;
         default:
         {
             DebugStop();
@@ -140,7 +155,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
-        if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
+        if (residual_stop_criterion_Q &&  correction_stop_criterion_Q) {
 #ifdef PZDEBUG
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
