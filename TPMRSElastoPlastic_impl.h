@@ -343,7 +343,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute_Biot_Stress(TPZMaterialData &data, R
     int gp_index = data.intGlobPtIndex;
     REAL p_0 = this->MemItem(gp_index).p_0();
     REAL p_n = this->MemItem(gp_index).p_n();
-    REAL alpha = this->MemItem(gp_index).GetAlpha();
+    REAL alpha = this->MemItem(gp_index).Alpha();
     
     if (m_dimension == 2) {
         for(int iu = 0; iu < n_phi_u; iu++ )

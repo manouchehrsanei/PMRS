@@ -121,8 +121,10 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
 
         REAL phi_0   = undrained_pars[2];
         REAL kappa_0 = undrained_pars[3];
+        REAL Eyoung  = poroperm_pars[0];
+        REAL nu      = poroperm_pars[1];
         REAL alpha   = poroperm_pars[2];
-        REAL Se      = poroperm_pars[3];
+        REAL Kdr     = Eyoung/(3.0*(1.0-2.0*nu));
         
         std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
         
@@ -131,7 +133,7 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
             memory_vector.get()->operator [](i).Setphi_0(phi_0);
             memory_vector.get()->operator [](i).Setkappa_0(kappa_0);
             memory_vector.get()->operator [](i).SetAlpha(alpha);
-            memory_vector.get()->operator [](i).SetSe(Se);
+            memory_vector.get()->operator [](i).SetKdr(Kdr);
         }
         
     }
@@ -459,13 +461,25 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             DebugStop();
         }
         
+        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    m_simulation_data->MaterialProps()[iregion];
+        
+        TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+        std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
+        REAL cf      = poroperm_pars[3];
+        
         std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
         
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
+            
             /// Because we reused the same memory items
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
-            REAL p_0 = -(sigma_total_0.I1()/3);
+            REAL alpha = memory_vector.get()->operator [](i).Alpha();
+            REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
+            REAL Kdr = memory_vector.get()->operator [](i).Kdr();
+            REAL Se = ((1.0-alpha)*(alpha - phi_0)/(Kdr)) + phi_0*cf;
+            REAL p_0 = -alpha*(sigma_total_0.I1()/3)/(Se * Kdr+alpha*alpha);
+            
             memory_vector.get()->operator [](i).Setp_0(p_0);
             memory_vector.get()->operator [](i).Setp(p_0);
             memory_vector.get()->operator [](i).Setp_n(p_0);
@@ -477,10 +491,10 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setu_0(u_null);
             memory_vector.get()->operator [](i).Setu(u_null);
             memory_vector.get()->operator [](i).Setu_n(u_null);
-            /// Cleaning elasto-plastic states
-            memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
-            memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
-            memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
+//            /// Cleaning elasto-plastic states
+//            memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
+//            memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
+//            memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
 
         }
         

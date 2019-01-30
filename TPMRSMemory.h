@@ -19,8 +19,8 @@ private:
     /// Biot-Willis coefficient
     REAL m_alpha;
     
-    /// Constrained specific storage at constant strain
-    REAL m_Se;
+    /// Drained bulk modulus
+    REAL m_Kdr;
     
 public:
     
@@ -60,16 +60,16 @@ public:
         m_alpha  = alpha;
     }
     
-    REAL GetAlpha(){
+    REAL Alpha(){
         return m_alpha;
     }
     
-    void SetSe(REAL Se){
-        m_Se  = Se;
+    void SetKdr(REAL Kdr){
+        m_Kdr  = Kdr;
     }
     
-    REAL GetSe(){
-        return m_Se;
+    REAL Kdr(){
+        return m_Kdr;
     }
     
 };

@@ -380,56 +380,55 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         u_pars.SetParameters(pars);
         
         sub_container = container->FirstChild("PoroMechParameters")->ToElement();
-        pars.resize(8);
+        pars.resize(7);
         char_container = sub_container->Attribute("Eyoung");
         if (!char_container) {
             std::cout << "Please provide Eyoung." << std::endl;
             DebugStop();
         }
         pars[0] = std::atof(char_container);
+        
         char_container = sub_container->Attribute("nu");
         if (!char_container) {
             std::cout << "Please provide nu." << std::endl;
             DebugStop();
         }
         pars[1] = std::atof(char_container);
+        
         char_container = sub_container->Attribute("alpha");
         if (!char_container) {
             std::cout << "Please provide alpha." << std::endl;
             DebugStop();
         }
         pars[2] = std::atof(char_container);
-        char_container = sub_container->Attribute("Se");
+        
+        char_container = sub_container->Attribute("c_f");
         if (!char_container) {
-            std::cout << "Please provide Se." << std::endl;
+            std::cout << "Please provide c_f." << std::endl;
             DebugStop();
         }
         pars[3] = std::atof(char_container);
+        
         char_container = sub_container->Attribute("eta");
         if (!char_container) {
             std::cout << "Please provide eta." << std::endl;
             DebugStop();
         }
         pars[4] = std::atof(char_container);
+        
         char_container = sub_container->Attribute("rho_f");
         if (!char_container) {
             std::cout << "Please provide rho_f." << std::endl;
             DebugStop();
         }
         pars[5] = std::atof(char_container);
+        
         char_container = sub_container->Attribute("rho_s");
         if (!char_container) {
             std::cout << "Please provide rho_s." << std::endl;
             DebugStop();
         }
         pars[6] = std::atof(char_container);
-        char_container = sub_container->Attribute("c_f");
-        if (!char_container) {
-            std::cout << "Please provide c_f." << std::endl;
-            DebugStop();
-        }
-        pars[7] = std::atof(char_container);
-        
         poro_pars.SetParameters(pars);
         
         /// Porosity model data

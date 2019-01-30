@@ -74,8 +74,9 @@ void TPMRSPhiParameters::SetModel(std::string model){
     }
 }
 
-void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha, REAL &Se){
+void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha){
     
+    REAL S = (1.0-alpha)*(alpha-phi_0)/m_K;
     switch (m_model)
     {
         case p_constant : {
@@ -84,8 +85,8 @@ void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p
         }
             break;
         case p_linear : {
-            phi     = phi_0 + (alpha/m_K) * (sigma_v-sigma_v_0) + (Se + (alpha*alpha)/m_K) * (p - p_0);
-            dphi_dp = (Se + (alpha*alpha)/m_K);
+            phi     = phi_0 + (alpha/m_K) * (sigma_v-sigma_v_0) + (S + (alpha*alpha)/m_K) * (p - p_0);
+            dphi_dp = (S + (alpha*alpha)/m_K);
         }
             break;
         default : {
