@@ -1,6 +1,6 @@
 
 ////////////////////////////////////////////////////////////////
-// 3D poroelastic
+// Terzaghi_2D
 // Created 14/06/2018 by Manouchehr Sanei
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
@@ -10,10 +10,10 @@
 ////////////////////////////////////////////////////////////////
 
 lc =1.0e1;
-r =0.1;
-h =1.0;
-nh = 3;
-nr = 2;
+r =0.01;
+h =0.1;
+nh = 2;
+nr = 1;
 Is3DQ = 1;
 
 If(Is3DQ)
@@ -38,10 +38,13 @@ s1 = news; Plane Surface(s1) = {ll1};
 
 Transfinite Line {l1,l2,l3,l4} = nr;
 
-Recombine Surface"*";
+
 out[] = Extrude {0,0,h} {
   Surface{s1}; Layers{nh}; Recombine;
 };
+
+Recombine Surface"*";
+Recombine Volume"*";
 
 lateral[] = {15,19,23,27};
 top[] = {28};
@@ -101,3 +104,7 @@ Physical Line("lateral") = {lateral[]};
 
 
 EndIf
+
+Coherence;
+Coherence Mesh;
+

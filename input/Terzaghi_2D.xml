@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
+        <StepSize dt="1000.0" />
         <StepNumber n_time_steps="2" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -17,7 +17,7 @@
         <Residue res_tolerance="0.001" />
         <Correction cor_tolerance="0.001" />
     </NewtonControls>
-        <!-- Fixed Stress Split Scheme  -->
+    <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="20" />
         <EnfFssIterations n_enforce_fss_iterations="5" />
@@ -32,7 +32,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_Analytic_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -86,7 +86,7 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duy" uy="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="0.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-1.0" />
         <UndrainedGeomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
@@ -95,8 +95,8 @@
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Nq" qn="0.0" />
-        <Reservoir bc_id="3" type="Dp" p="0.0" />
+        <Reservoir bc_id="2" type="Dp" p="10.0" />
+        <Reservoir bc_id="3" type="Dp" p="1.0" />
         <Reservoir bc_id="4" type="Nq" qn="0.0" />
     </BCReservoirs>     
 </CaseData>

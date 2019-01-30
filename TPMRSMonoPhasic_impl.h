@@ -284,8 +284,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     int firstq       = 0;
     int firstp       = nphi_q + firstq;
     
-    STATE rho = m_rho_0 * (1 + m_c*(p-p_0));
-    STATE rho_n = m_rho_0 * (1 + m_c*(p_n-p_0));
+    STATE rho   = m_rho_0 * (1 + m_c*(p-p_0)); //  Provide the compressibility in MPa
+    STATE rho_n = m_rho_0 * (1 + m_c*(p_n-p_0)); //  Provide the compressibility in MPa
     STATE drho_ndp_n = m_c;
     STATE lambda = rho_n/m_eta;
     
@@ -353,16 +353,16 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     for (int ip = 0; ip < nphi_p; ip++)
     {
         
-        ef(ip + firstp) += -1.0 * m_scale_factor * weight * (div_q + (1.0/dt) * ( phi_n*rho_n - phi*rho )) * phi_ps(ip,0);
+        ef(ip + firstp) += -1.0 * weight * (div_q + (1.0/dt) * ( phi_n*rho_n - phi*rho )) * phi_ps(ip,0);
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
-            ek(ip + firstp, jq + firstq) += -1.0 * m_scale_factor * weight * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
+            ek(ip + firstp, jq + firstq) += -1.0 * weight * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
         }
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(ip + firstp, jp + firstp) += -1.0 * m_scale_factor * weight * ( (1.0/dt) * ((phi_n * drho_ndp_n + dphi_ndp * rho_n) * phi_ps(jp,0) ) ) * phi_ps(ip,0);
+            ek(ip + firstp, jp + firstp) += -1.0 * weight * ( (1.0/dt) * ((phi_n * drho_ndp_n + dphi_ndp * rho_n) * phi_ps(jp,0) ) ) * phi_ps(ip,0);
         }
         
     }
@@ -436,7 +436,7 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             STATE p_D = Value;
             for (int iq = 0; iq < nphi_q; iq++)
             {
-                ef(iq + first_q) += m_scale_factor * weight * p_D * phi_qs(iq,0);
+                ef(iq + first_q) += weight * p_D * phi_qs(iq,0);
             }
         }
 
@@ -448,12 +448,12 @@ void TPMRSMonoPhasic<TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
             for (int iq = 0; iq < nphi_q; iq++)
             {
                 STATE qn_N = Value, qn = q[0];
-                ef(iq + first_q) += m_scale_factor * weight * BigNumber * (qn - qn_N) * phi_qs(iq,0);
+                ef(iq + first_q) += weight * BigNumber * (qn - qn_N) * phi_qs(iq,0);
                 
                 for (int jq = 0; jq < nphi_q; jq++)
                 {
                     
-                    ek(iq + first_q,jq + first_q) += m_scale_factor * weight * BigNumber * phi_qs(jq,0) * phi_qs(iq,0);
+                    ek(iq + first_q,jq + first_q) += weight * BigNumber * phi_qs(jq,0) * phi_qs(iq,0);
                 }
             }
             

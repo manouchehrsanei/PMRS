@@ -3,19 +3,19 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_3D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_3D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.01" />
-        <StepNumber n_time_steps="10" />
+        <StepNumber n_time_steps="2" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="40" />
-        <Residue res_tolerance="0.000001" />
-        <Correction cor_tolerance="0.000001" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -41,38 +41,20 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_3D" n_divisions="1" n_outputs_geo="21" n_outputs_res="7" />
+        <PostProcessing vtk_file="Terzaghi_3D" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
-            <Var s_name="ux" />
-            <Var s_name="uy" />
-            <Var s_name="uz" />
-            <Var s_name="sxx" />
-            <Var s_name="sxy" />
-            <Var s_name="sxz" />
-            <Var s_name="syy" />
-            <Var s_name="syz" />
-            <Var s_name="szz" />
-            <Var s_name="exx" />
-            <Var s_name="exy" />
-            <Var s_name="exz" />
-            <Var s_name="eyy" />
-            <Var s_name="eyz" />
-            <Var s_name="ezz" />
-            <Var s_name="epxx" />
-            <Var s_name="epxy" />
-            <Var s_name="epxz" />
-            <Var s_name="epyy" />
-            <Var s_name="epyz" />
-            <Var s_name="epzz" />
+            <Var v_name="u" />
+            <Var t_name="s" />
+            <Var t_name="e" />
+            <Var t_name="ep" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
             <Var s_name="phi" />
             <Var s_name="kappa" />
             <Var s_name="div_q" />
-            <Var s_name="qx" />
-            <Var s_name="qy" />
-            <Var s_name="qz" />      
+            <Var v_name="q" /> 
+        </OutputControlsRes>  
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
@@ -85,11 +67,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="36495.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-11" />            
-            <PoroMechParameters Eyoung="29269.0" nu="0.20300" alpha="1.0" Se="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" c_f="0.0" />
+            <PoroMechUndrainedParameters Eyoung_u="100.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-10" />            
+            <PoroMechParameters Eyoung="100.0" nu="0.2" alpha="1.0" Se="0.0e-10" eta="1.0" rho_f="1.0" rho_s="1.0" c_f="0.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Davies" n_parameters="1" c="0.02"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="30" friction="10.0"/>            
+            <KappaParameters kappa_model="Constant" n_parameters="0" />
+            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="100.0" friction="90.0"/>           
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -104,12 +86,12 @@
     </RegionsDefinition>
     <BCUndrainedGeomechanics>
         <UndrainedGeomechanic bc_id="2" type="Duz" uz="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-10.0" />
+        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-1.0" />
         <UndrainedGeomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0" />
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Duz" uz="0.0" />
-        <Geomechanic bc_id="3" type="Ntn" tn="0.0" />
+        <Geomechanic bc_id="3" type="Ntn" tn="-1.0" />
         <Geomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>

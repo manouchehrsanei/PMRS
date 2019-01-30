@@ -169,8 +169,8 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     dKdp(1,1) = dkappa_ndp;
     dKdp(2,2) = dkappa_ndp;
     
-    STATE rho        = m_rho_0 * (1 + m_c*(p-p_0));
-    STATE rho_n      = m_rho_0 * (1 + m_c*(p_n-p_0));
+    STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
+    STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
     STATE drho_ndp_n = m_c;
     STATE lambda     = rho_n/m_eta;
     
@@ -182,7 +182,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         STATE dKdpdot = 0.0;
         for (int j = 0; j < Dimension(); j++)
         {
-            dot        += K(i,j)*grad_p(j,0);
+            dot        += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
             dKdpdot    += dKdp(i,j)*grad_p(j,0);
         }
         
@@ -210,7 +210,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
             
         }
         
-        ef(ip) +=  weight * ( Kl_grad_p_dot_grad_phi + m_scale_factor * (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
+        ef(ip) +=  weight * ( Kl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
         
         for (int jp = 0; jp < n_phi_p; jp++)
         {
@@ -220,7 +220,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
                 STATE dot = 0.0;
                 for (int j =0; j < Dimension(); j++)
                 {
-                    dot    += K(i,j)*grad_phi_p(j,jp);
+                    dot    += (1.0/m_scale_factor)*K(i,j)*grad_phi_p(j,jp);
                 }
                 
                 Kl_grad_phi_j_(i,0)     = lambda * dot;
@@ -233,7 +233,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
                 
             }
             
-            ek(ip,jp) +=  weight * ( Kl_grad_phi_j_dot_grad_phi_j + dKdpl_grad_p_dot_grad_phi + m_scale_factor * (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
+            ek(ip,jp) +=  weight * ( Kl_grad_phi_j_dot_grad_phi_j + dKdpl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
         }
         
     }
@@ -260,7 +260,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         {
             REAL p_0      = this->MemItem(gp_index).p_0();
             REAL p_n      = this->MemItem(gp_index).p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0)); //  Provide the compressibility in MPa
             REAL lambda   = rho_n/m_eta;
             REAL k        = this->MemItem(gp_index).kappa_n();
             TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
@@ -315,15 +315,15 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
   
         case 0 :    /// Dirichlet BC  PD
         {
-            REAL p_D = m_scale_factor * Value;
+            REAL p_D = Value;
             for (int ip = 0; ip < n_phi_p; ip++)
             {
-                ef(ip) += m_scale_factor * weight * BigNumber * (p - p_D) * phi_p(ip,0);
+                ef(ip) += weight * BigNumber * (p - p_D) * phi_p(ip,0);
                 
                 for (int jp = 0; jp < n_phi_p; jp++)
                 {
                     
-                    ek(ip,jp) += m_scale_factor * weight * BigNumber * phi_p(jp,0) * phi_p(ip,0);
+                    ek(ip,jp) += weight * BigNumber * phi_p(jp,0) * phi_p(ip,0);
                 }
             }
             
@@ -336,7 +336,7 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
             STATE qn_N = Value;
             for (int ip = 0; ip < n_phi_p; ip++)
             {
-                ef(ip) += -1.0 * m_scale_factor * weight * qn_N * phi_p(ip,0);
+                ef(ip) += -1.0 * weight * qn_N * phi_p(ip,0);
             }
         }
             
