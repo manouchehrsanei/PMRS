@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-    
+    sim_data->PrintGeometry();
     RuningSegregatedSolver(sim_data);
     
 #ifdef USING_BOOST
@@ -305,11 +305,7 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     }
  
     TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
-    if (sim_data->Get_is_dual_formulation_Q()) {
-        segregated_analysis->ConfigurateAnalysis(ELU, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
-    }else{
-        segregated_analysis->ConfigurateAnalysis(ELU, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
-    }
+    segregated_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
 
     segregated_analysis->ConfigurateBConditions(true);
     segregated_analysis->ExecuteStaticSolution();
@@ -655,6 +651,16 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSS
     TPZBuildMultiphysicsMesh::AddElements(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::AddConnects(mesh_vector, cmesh);
     TPZBuildMultiphysicsMesh::TransferFromMeshes(mesh_vector, cmesh);
+    
+    int nel_res = cmesh->NElements();
+    for (long el = 0; el < nel_res; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->PrepareIntPtIndices();
+    }
     
 #ifdef PZDEBUG
     std::ofstream out("CmeshReservoir.txt");

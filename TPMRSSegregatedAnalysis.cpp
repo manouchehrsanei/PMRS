@@ -7,6 +7,7 @@
 
 #include "TPMRSSegregatedAnalysis.h"
 
+//#define Animated_Convergence_Q
 
 TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(){
     m_simulation_data       = NULL;
@@ -64,11 +65,13 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     bool mustOptimizeBandwidth = false;
 
     if (simulation_data->ElasticityOrder()==simulation_data->DiffusionOrder() && simulation_data->Get_is_dual_formulation_Q()) {
-        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
         this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
+        this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
+//        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+//        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
     }else{
-        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
         this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
+        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
     }
 
     /// The Geomechanics Simulator
@@ -139,9 +142,7 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
 
 void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
-    /// Assuming the cmesh_o as directive.
-    
-    cmesh_d->LoadReferences();
+
     int nel_o = cmesh_o->NElements();
     int nel_d = cmesh_d->NElements();
     
@@ -150,6 +151,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         DebugStop();
     }
     
+    /// Assuming the cmesh_o as directive.
+    cmesh_d->LoadReferences();
     for (long el = 0; el < nel_o; el++) {
         TPZCompEl *cel_o = cmesh_o->Element(el);
         if (!cel_o) {
@@ -166,8 +169,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         if (!cel_d) {
             continue;
         }
-        cel_o->SetFreeIntPtIndices();
-        cel_o->ForcePrepareIntPtIndices();
+//        cel_o->SetFreeIntPtIndices();
+//        cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
         TPZIntPoints * cloned_rule = rule.Clone();
         
@@ -221,7 +224,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             this->ExecuteOneTimeStep();
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
             dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
+#ifdef Animated_Convergence_Q
             this->PostProcessTimeStep(file_geo, file_res);
+#endif
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) && dx_stop_criterion_Q) {
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
