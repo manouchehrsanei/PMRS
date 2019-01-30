@@ -67,8 +67,6 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     if (simulation_data->ElasticityOrder()==simulation_data->DiffusionOrder() && simulation_data->Get_is_dual_formulation_Q()) {
         this->AdjustIntegrationOrder(cmesh_reservoir,cmesh_geomechanics);
         this->ApplyMemoryLink(cmesh_reservoir,cmesh_geomechanics);
-//        this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
-//        this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);
     }else{
         this->AdjustIntegrationOrder(cmesh_geomechanics,cmesh_reservoir);
         this->ApplyMemoryLink(cmesh_geomechanics,cmesh_reservoir);

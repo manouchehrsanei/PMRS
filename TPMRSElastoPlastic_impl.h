@@ -68,6 +68,10 @@ int TPMRSElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
     if (!strcmp("epyy", name.c_str())) return 18;
     if (!strcmp("epyz", name.c_str())) return 19;
     if (!strcmp("epzz", name.c_str())) return 20;
+    if (!strcmp("u", name.c_str()))     return  21;
+    if (!strcmp("s", name.c_str()))     return  22;
+    if (!strcmp("e", name.c_str()))     return  23;
+    if (!strcmp("ep", name.c_str()))    return  24;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -121,6 +125,14 @@ int TPMRSElastoPlastic<T,TMEM>::NSolutionVariables(int var){
             return 1; // Scalar
         case 20:
             return 1; // Scalar
+        case 21:
+            return m_dimension; // Vector
+        case 22:
+            return 9; // Tensor
+        case 23:
+            return 9; // Tensor
+        case 24:
+            return 9; // Tensor
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -239,6 +251,43 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
         case 20:
         {
             Solout[0] = epsilon_p.ZZ();
+        }
+            break;
+        case 21:
+        {
+            for(int i = 0; i < m_dimension; i++){
+                Solout[i] = memory.Getu_n()[i];
+            }
+        }
+            break;
+        case 22:
+        {
+            Solout[0] = memory.GetSigma_n().XX();
+            Solout[1] = Solout[3] = memory.GetSigma_n().XY();
+            Solout[2] = Solout[6] = memory.GetSigma_n().XZ();
+            Solout[4] = memory.GetSigma_n().YY();
+            Solout[5] = Solout[7] = memory.GetSigma_n().YZ();
+            Solout[8] = memory.GetSigma_n().ZZ();
+        }
+            break;
+        case 23:
+        {
+            Solout[0] = epsilon_t.XX();
+            Solout[1] = Solout[3] = epsilon_t.XY();
+            Solout[2] = Solout[6] = epsilon_t.XZ();
+            Solout[4] = epsilon_t.YY();
+            Solout[5] = Solout[7] = epsilon_t.YZ();
+            Solout[8] = epsilon_t.ZZ();
+        }
+            break;
+        case 24:
+        {
+            Solout[0] = epsilon_p.XX();
+            Solout[1] = Solout[3] = epsilon_p.XY();
+            Solout[2] = Solout[6] = epsilon_p.XZ();
+            Solout[4] = epsilon_p.YY();
+            Solout[5] = Solout[7] = epsilon_p.YZ();
+            Solout[8] = epsilon_p.ZZ();
         }
             break;
         default:

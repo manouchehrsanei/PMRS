@@ -102,18 +102,23 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
         post_mat_id[iregion] = matid;
     }
     
-    TPZManVector<std::string,50> scalnames;
-    TPZManVector<std::string,50> vecnames;
-    TPZManVector<std::string,50> tensnames;
-    
+    TPZManVector<std::string,50> scalnames,vecnames,tensnames;
+    TPZStack<std::string> names;
     scalnames = m_simulation_data->s_names_geo();
     vecnames  = m_simulation_data->v_names_geo();
     tensnames = m_simulation_data->t_names_geo();
     
-    m_post_processor->SetPostProcessVariables(post_mat_id, scalnames);
-//    m_post_processor->SetPostProcessVariables(post_mat_id, vecnames);
-//    m_post_processor->SetPostProcessVariables(post_mat_id, tensnames);
+    for (auto i : scalnames) {
+        names.push_back(i);
+    }
+    for (auto i : vecnames) {
+        names.push_back(i);
+    }
+    for (auto i : tensnames) {
+        names.push_back(i);
+    }
     
+    m_post_processor->SetPostProcessVariables(post_mat_id, names);
     TPZFStructMatrix structmatrix(m_post_processor->Mesh());
     structmatrix.SetNumThreads(n_threads);
     m_post_processor->SetStructuralMatrix(structmatrix);
@@ -226,17 +231,11 @@ void TPMRSGeomechanicAnalysis::PostProcessTimeStep(std::string & file){
     int dim = Mesh()->Dimension();
     int div = m_simulation_data->n_div();
     
-    TPZManVector<std::string,50> scalnames;
-//    TPZManVector<std::string,50> vecnames;
-//    TPZManVector<std::string,50> tensnames;
-
+    TPZManVector<std::string,50> scalnames,vecnames,tensnames;
     scalnames = m_simulation_data->s_names_geo();
-//    vecnames  = m_simulation_data->v_names_geo();
-//    tensnames = m_simulation_data->t_names_geo();
+    vecnames  = m_simulation_data->v_names_geo();
+    tensnames = m_simulation_data->t_names_geo();
     
-    TPZStack< std::string> vecnames;
-    TPZStack< std::string> tensnames;
-
     m_post_processor->TransferSolution();
     m_post_processor->DefineGraphMesh(dim,scalnames,vecnames,tensnames,file);
     m_post_processor->PostProcess(div,dim);
