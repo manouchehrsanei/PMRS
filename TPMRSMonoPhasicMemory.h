@@ -35,6 +35,9 @@ private:
     /// flux at current state (n+1)
     TPZManVector<STATE,3> m_q_n;
     
+    /// flux divergence (n+1)
+    STATE m_div_q_n;
+    
     /// absolute permeability at initial state
     STATE m_kappa_0;
     
@@ -145,6 +148,17 @@ public:
         return m_q_n;
     }
     
+    /// Set flux divergence at current state
+    void Setdiv_q_n(STATE div_q_n)
+    {
+        m_div_q_n = div_q_n;
+    }
+    
+    /// Get flux divergence at current state
+    STATE div_q_n()
+    {
+        return m_div_q_n;
+    }
     
     /// Set absolute permeability at initial state
     void Setkappa_0(STATE kappa_0)

@@ -385,6 +385,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         TPZManVector<STATE,3> q  = datavec[q_b].sol[0];
         STATE p                  = datavec[p_b].sol[0][0];
+        TPZFMatrix<STATE> dqdx   = datavec[q_b].dsol[0];
+        STATE div_q              = dqdx(0,0) + dqdx(1,1) + dqdx(2,2);
         
         if (m_simulation_data->IsInitialStateQ()) {
             this->MemItem(gp_index).Setp_0(p);
@@ -393,6 +395,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         if (m_simulation_data->IsCurrentStateQ()) {
             this->MemItem(gp_index).Setp_n(p);
             this->MemItem(gp_index).Setq_n(q);
+            this->MemItem(gp_index).Setdiv_q_n(div_q);
         }else{
             this->MemItem(gp_index).Setp(p);
             this->MemItem(gp_index).Setq(q);
@@ -479,6 +482,7 @@ int TPMRSMonoPhasic<TMEM>::VariableIndex(const std::string &name) {
     if (!strcmp("qx"    , name.c_str())) return 4;
     if (!strcmp("qy"    , name.c_str())) return 5;
     if (!strcmp("qz"    , name.c_str())) return 6;
+    if (!strcmp("q"    , name.c_str()))  return 7;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -500,6 +504,8 @@ int TPMRSMonoPhasic<TMEM>::NSolutionVariables(int var) {
             return 1; /// Scalar
         case 6:
             return 1; /// Scalar
+        case 7:
+            return m_dimension; /// Vector
             
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -557,7 +563,15 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             Solout[0] = qb[2];
         }
             break;
+        case 7:
+        {
+            for (int i = 0; i < m_dimension; i++)
+            {
+                Solout[i] = qb[i];
+            }
             
+        }
+            break;
         default:
         {
             std::cout << "TPMRSMonoPhasic<TMEM>:: Variable not implemented." << std::endl;

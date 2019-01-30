@@ -252,7 +252,24 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
             return;
         }
         
+        // Pressure variable
         STATE p = data.sol[0][0];
+        
+        // flux variable
+        TPZManVector<REAL,3> q(3);
+        {
+            REAL p_0      = this->MemItem(gp_index).p_0();
+            REAL p_n      = this->MemItem(gp_index).p_n();
+            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
+            REAL lambda   = rho_n/m_eta;
+            REAL k        = this->MemItem(gp_index).kappa_n();
+            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
+            for (int i = 0; i < m_dimension; i++)
+            {
+                q[i] = (- (1.0/m_scale_factor) * k * lambda * grad_p[i]);
+            }
+        }
         
         if (m_simulation_data->IsInitialStateQ()) {
             this->MemItem(gp_index).Setp_0(p);
@@ -260,8 +277,10 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         
         if (m_simulation_data->IsCurrentStateQ()) {
             this->MemItem(gp_index).Setp_n(p);
+            this->MemItem(gp_index).Setq_n(q);
         }else{
             this->MemItem(gp_index).Setp(p);
+            this->MemItem(gp_index).Setq(q);
         }
         
     }
@@ -344,6 +363,7 @@ int TPMRSMonoPhasicCG<TMEM>::VariableIndex(const std::string &name) {
     if (!strcmp("qx"    , name.c_str())) return 4;
     if (!strcmp("qy"    , name.c_str())) return 5;
     if (!strcmp("qz"    , name.c_str())) return 6;
+    if (!strcmp("q"    , name.c_str()))  return 7;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -364,6 +384,8 @@ int TPMRSMonoPhasicCG<TMEM>::NSolutionVariables(int var) {
             return 1; /// Scalar
         case 6:
             return 1; /// Scalar
+        case 7:
+            return m_dimension; /// Vector
 
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -375,8 +397,6 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
     long gp_index = data.intGlobPtIndex;
     TMEM & memory = this->GetMemory().get()->operator[](gp_index);
     Solout.Resize( this->NSolutionVariables(var));
-    
-    REAL scal =  1./m_scale_factor;
     
     switch (var) {
         case 0:
@@ -396,62 +416,33 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             break;
         case 3:
         {
-            REAL p_0      = memory.p_0();
-            REAL p_n      = memory.p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
-            REAL lambda   = rho_n/m_eta;
-            REAL k        = memory.kappa_n();
-            Solout[0] = 0;
-            for (int i = 0; i < m_dimension; i++)
-            {
-                TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
-                TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-                Solout[0] += (- scal * k * lambda * grad_p[i]);
-            }
+            Solout[0] = memory.div_q_n(); //  Variable without meaning.
         }
             break;
         case 4:
         {
-            REAL p_0      = memory.p_0();
-            REAL p_n      = memory.p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
-            REAL lambda   = rho_n/m_eta;
-            REAL k        = memory.kappa_n();
-            
-            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
-            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - scal * k * lambda * grad_p[0];
+            Solout[0] = memory.q_n()[0];
         }
             break;
         case 5:
         {
-            REAL p_0      = memory.p_0();
-            REAL p_n      = memory.p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
-            REAL lambda   = rho_n/m_eta;
-            REAL k        = memory.kappa_n();
-        
-            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
-            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - scal * k * lambda * grad_p[1];
+            Solout[0] = memory.q_n()[1];
 
         }
             break;
         case 6:
         {
-            REAL p_0      = memory.p_0();
-            REAL p_n      = memory.p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0));
-            REAL lambda   = rho_n/m_eta;
-            REAL k        = memory.kappa_n();
-            
-            TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
-            TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], grad_p, data.axes);
-            Solout[0] = - scal * k * lambda * grad_p[2];
-
+            Solout[0] = memory.q_n()[2];
         }
             break;
-            
+        case 7:
+        {
+            for (int i = 0; i < m_dimension; i++)
+            {
+                Solout[i] = memory.q_n()[i];
+            }
+        }
+            break;
         default:
         {
             std::cout << "TPMRSMonoPhasicCG<TMEM>:: Variable not implemented." << std::endl;

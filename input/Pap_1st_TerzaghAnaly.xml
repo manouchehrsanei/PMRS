@@ -24,7 +24,7 @@
     </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="0" />
+        <Numthreads n_threads="8" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -32,7 +32,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_Analytic_CG" n_divisions="1" n_outputs_geo="8" n_outputs_res="6" />
+        <PostProcessing vtk_file="Terzaghi_Analytic_CG" n_divisions="1" n_outputs_geo="8" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var s_name="ux" />
             <Var s_name="uy" />
@@ -57,8 +57,7 @@
             <Var s_name="phi" />
             <Var s_name="kappa" />
             <Var s_name="div_q" />
-            <Var s_name="qx" />
-            <Var s_name="qy" />
+            <Var v_name="q" />
         </OutputControlsRes>        
     </OutputControls>
     <Physics>
