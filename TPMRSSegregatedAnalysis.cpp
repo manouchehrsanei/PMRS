@@ -288,8 +288,8 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 nu = poroperm_pars[1];
             }
             
-            /// Updating bulk modulus for porosity model
-            std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
+//            /// Updating bulk modulus for porosity model
+//            std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
             
             TPZElasticResponse ER;
             ER.SetUp(E, nu);

@@ -20,7 +20,7 @@
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="20" />
-        <EnfFssIterations n_enforce_fss_iterations="5" />
+        <EnfFssIterations n_enforce_fss_iterations="2" />
     </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
@@ -32,7 +32,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />

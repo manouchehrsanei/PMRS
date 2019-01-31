@@ -400,8 +400,8 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     REAL E  = e_pars[0];
     REAL nu = e_pars[1];
     
-    // Updating bulk modulus for porosity model
-    std::get<2>(sim_data->MaterialProps()[index]).SetBulkModulus(E, nu);
+//     Updating bulk modulus for porosity model
+//    std::get<2>(sim_data->MaterialProps()[index]).SetBulkModulus(E, nu);
     
     TPZElasticResponse ER;
     ER.SetUp(E, nu);
