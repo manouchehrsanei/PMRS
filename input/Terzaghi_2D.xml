@@ -7,14 +7,14 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="5" />
+        <StepSize dt="1.0" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="40" />
-        <Residue res_tolerance="0.001" />
+        <Residue res_tolerance="0.00001" />
         <Correction cor_tolerance="0.001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
@@ -91,7 +91,7 @@
     </BCUndrainedGeomechanics>     
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Duy" uy="0.0" />
-        <Geomechanic bc_id="3" type="Ntn" tn="-1.0" />
+        <Geomechanic bc_id="3" type="Ntn" tn="0.0" />
         <Geomechanic bc_id="4" type="Dux" ux="0.0" />
     </BCGeomechanics> 
     <BCReservoirs>

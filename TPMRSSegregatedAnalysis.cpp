@@ -491,11 +491,6 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setu_0(u_null);
             memory_vector.get()->operator [](i).Setu(u_null);
             memory_vector.get()->operator [](i).Setu_n(u_null);
-//            /// Cleaning elasto-plastic states
-//            memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
-//            memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
-//            memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
-
         }
         
     }
