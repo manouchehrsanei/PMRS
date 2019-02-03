@@ -285,7 +285,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             std::cout << std::endl;
             
             m_cpu_time_summary(it,0) = time_value;
-            m_cpu_time_summary(it,3) = fss_solving_time;
+            m_cpu_time_summary(it,3) += fss_solving_time;
             
 #endif
             m_iterations_summary(it,0) = time_value;
