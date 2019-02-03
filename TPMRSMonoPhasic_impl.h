@@ -284,8 +284,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     int firstq       = 0;
     int firstp       = nphi_q + firstq;
     
-    STATE rho   = m_rho_0 * (1 + m_c*(p-p_0)); //  Provide the compressibility in MPa
-    STATE rho_n = m_rho_0 * (1 + m_c*(p_n-p_0)); //  Provide the compressibility in MPa
+    STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
+    STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
     STATE drho_ndp_n = m_c;
     STATE lambda = rho_n/m_eta;
     

@@ -7,20 +7,20 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="1.0" />
+        <StepSize dt="0.001" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="40" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.001" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="20" />
-        <EnfFssIterations n_enforce_fss_iterations="2" />
+        <EnfFssIterations n_enforce_fss_iterations="0" />
     </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
@@ -32,7 +32,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_cf_mixed" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -67,8 +67,8 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="100.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-10" />            
-            <PoroMechParameters Eyoung="100.0" nu="0.2" alpha="1.0" c_f="0.0e-10" eta="1.0" rho_f="1.0" rho_s="1.0" />
+            <PoroMechUndrainedParameters Eyoung_u="1000.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="1.0e-8" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="100.0" friction="90.0"/>            

@@ -732,9 +732,9 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
     // Reservoir parameters
     TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
     std::vector<REAL> res_pars = poro_parameters.GetParameters();
+    REAL c_f   = res_pars[3];
     REAL eta   = res_pars[4];
     REAL rho_0 = res_pars[5];
-    REAL c_f   = res_pars[7];
 
 
     if (IsMixedQ) {

@@ -157,7 +157,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
-        if (residual_stop_criterion_Q &&  correction_stop_criterion_Q) {
+        if (residual_stop_criterion_Q /*&& correction_stop_criterion_Q*/) {
 #ifdef PZDEBUG
             std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
