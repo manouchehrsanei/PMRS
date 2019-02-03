@@ -404,7 +404,7 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     std::get<2>(sim_data->MaterialProps()[index]).SetBulkModulus(E, nu);
     
     TPZElasticResponse ER;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
 
     // Plastic corrector
     TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
@@ -1002,7 +1002,7 @@ void LEDSPorosityReductionPlot()
     
     REAL Pc = -100.0;
 
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     
     // Mohr Coulomb data
     REAL mc_cohesion    = 25.0;

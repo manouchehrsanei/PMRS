@@ -290,7 +290,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
             
             TPZElasticResponse ER;
-            ER.SetUp(E, nu);
+            ER.SetEngineeringData(E, nu);
             
             /// Plastic corrector
             TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
