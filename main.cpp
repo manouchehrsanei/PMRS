@@ -203,11 +203,12 @@ int main(int argc, char *argv[])
     
 //    RuningFullCoupling(sim_data);
 
+    sim_data->PrintGeometry();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-    sim_data->PrintGeometry();
+
     RuningSegregatedSolver(sim_data);
     
 #ifdef USING_BOOST
@@ -219,6 +220,8 @@ int main(int argc, char *argv[])
     std::cout << "Case closed in :" << setw(10) <<  case_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
     std::cout << std::endl;
 #endif
+    
+
     
 	return EXIT_SUCCESS;
 }
@@ -311,6 +314,15 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     segregated_analysis->ExecuteStaticSolution();
     segregated_analysis->ConfigurateBConditions(false);
     segregated_analysis->ExecuteTimeEvolution();
+    
+    /// Writing summaries
+    TPZFMatrix<REAL> iterations = segregated_analysis->IterationsSummary();
+    TPZFMatrix<REAL> residuals  = segregated_analysis->ResidualsSummary();
+    TPZFMatrix<REAL> cpu_time   = segregated_analysis->TimeSummary();
+    
+    iterations.Print("iteraions = ",std::cout,EMathematicaInput);
+    residuals.Print("residuals = ",std::cout,EMathematicaInput);
+    cpu_time.Print("time = ",std::cout,EMathematicaInput);
 }
 
 

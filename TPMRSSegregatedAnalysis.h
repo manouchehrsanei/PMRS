@@ -20,6 +20,11 @@
 #include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
 #include "TPMRSElastoPlastic.h"
+#include "pzfmatrix.h"
+
+#ifdef USING_BOOST
+#include "boost/date_time/posix_time/posix_time.hpp"
+#endif
 
 class TPMRSSegregatedAnalysis {
     
@@ -34,6 +39,15 @@ private:
     /// Pointer to reservoir analysis object
     TPMRSMonoPhasicAnalysis * m_reservoir_analysis;
     
+    /// Object that store the history of segregated and internal iteraions
+    TPZFMatrix<REAL> m_iterations_summary;
+    
+    /// Object that store the cpu time of segregated and internal process
+    TPZFMatrix<REAL> m_cpu_time_summary;
+    
+    /// Object that store the residuals of segregated and internal process
+    TPZFMatrix<REAL> m_residuals_summary;
+    
 public:
     
     /// Default constructor
@@ -46,10 +60,7 @@ public:
     TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis & other);
     
     /// Set the pointer of Simulation data object
-    void SetSimulationData(TPMRSSimulationData * simulation_data)
-    {
-        m_simulation_data = simulation_data;
-    }
+    void SetSimulationData(TPMRSSimulationData * simulation_data);
 
     /// Attach materials with the same share pointer (For now just volumeric linking)
     void ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d);
@@ -64,7 +75,7 @@ public:
     void FillMemory(TPZCompMesh * cmesh);
     
     /// Execute the evolution for a single time step
-    void ExecuteOneTimeStep();
+    void ExecuteOneTimeStep(int i_time_step);
     
     /// Post-processing the variables for a single time step
     void PostProcessTimeStep(std::string & geo_file, std::string & res_file);
@@ -83,6 +94,18 @@ public:
     
     /// Execute initial problem
     void ExecuteStaticSolution();
+    
+    /// Get the object that store the history of segregated and internal iteraions
+    TPZFMatrix<REAL> & IterationsSummary();
+    
+    /// Get the object that store the cpu time of segregated and internal process
+    TPZFMatrix<REAL> & TimeSummary();
+
+    /// Get the object that store the residuals of segregated and internal process
+    TPZFMatrix<REAL> & ResidualsSummary();
+    
+    /// Resize and storage the positions to track iteraions and cpu time during the entire simulation
+    void ConfigurateHistorySummaries();
     
 };
 

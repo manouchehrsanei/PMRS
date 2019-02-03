@@ -13,6 +13,9 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(){
     m_simulation_data       = NULL;
     m_geomechanic_analysis  = NULL;
     m_reservoir_analysis    = NULL;
+    m_iterations_summary.Resize(0, 0);
+    m_cpu_time_summary.Resize(0, 0);
+    m_residuals_summary.Resize(0, 0);
 }
 
 TPMRSSegregatedAnalysis::~TPMRSSegregatedAnalysis(){
@@ -23,6 +26,9 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis &
     m_simulation_data       = other.m_simulation_data;
     m_geomechanic_analysis  = other.m_geomechanic_analysis;
     m_reservoir_analysis    = other.m_reservoir_analysis;
+    m_iterations_summary    = other.m_iterations_summary;
+    m_cpu_time_summary      = other.m_cpu_time_summary;
+    m_residuals_summary     = other.m_residuals_summary;
 }
 
 void TPMRSSegregatedAnalysis::ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
@@ -194,9 +200,46 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
-void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(){
+void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     m_reservoir_analysis->ExecuteOneTimeStep();
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime res_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    REAL res_solving_time = boost::numeric_cast<double>((res_t2-res_t1).total_milliseconds());
+    std::cout << "TPMRSMonoPhasicAnalysis:: Newton process closed in :" << setw(10) <<  res_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+    std::cout << std::endl;
+    
+    m_cpu_time_summary(i_time_step,1) += res_solving_time;
+
+#endif
+    
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
     m_geomechanic_analysis->ExecuteOneTimeStep();
+    
+#ifdef USING_BOOST
+    boost::posix_time::ptime geo_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef USING_BOOST
+    REAL geo_solving_time = boost::numeric_cast<double>((geo_t2-geo_t1).total_milliseconds());
+    std::cout << "TPMRSGeomechanicAnalysis:: Newton process closed in :" << setw(10) <<  geo_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+    std::cout << std::endl;
+    
+    m_cpu_time_summary(i_time_step,2) += geo_solving_time;
+#endif
+    
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
@@ -205,6 +248,9 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 }
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
+    
+    // Resize the summaries matrices
+    ConfigurateHistorySummaries();
     
     /// vtk files
     std::string name = m_simulation_data->name_vtk_file();
@@ -216,12 +262,42 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
-
+    REAL dt = m_simulation_data->dt();
+    REAL time_value;
+    
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
+        time_value = dt * (it+1);
+        
         for (int k = 1; k <= n_max_fss_iterations; k++) {
-            this->ExecuteOneTimeStep();
+#ifdef USING_BOOST
+            boost::posix_time::ptime fss_t1 = boost::posix_time::microsec_clock::local_time();
+#endif
+            this->ExecuteOneTimeStep(it);
+#ifdef USING_BOOST
+            boost::posix_time::ptime fss_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+            
+#ifdef USING_BOOST
+            REAL fss_solving_time = boost::numeric_cast<double>((fss_t2-fss_t1).total_milliseconds());
+            std::cout << "TPMRSSegregatedAnalysis:: Fixed stress process closed in :" << setw(10) <<  fss_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
+            std::cout << std::endl;
+            
+            m_cpu_time_summary(it,0) = time_value;
+            m_cpu_time_summary(it,3) = fss_solving_time;
+            
+#endif
+            m_iterations_summary(it,0) = time_value;
+            m_iterations_summary(it,1) += m_reservoir_analysis->Get_k_iterations();
+            m_iterations_summary(it,2) += m_geomechanic_analysis->Get_k_iterations();
+            m_iterations_summary(it,3) = k;
+            
+            m_residuals_summary(it,0) = time_value;
+            m_residuals_summary(it,1) += m_reservoir_analysis->Get_error();
+            m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
+            m_residuals_summary(it,3) = m_reservoir_analysis->Get_dx_norm() + m_geomechanic_analysis->Get_dx_norm();
+            
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
             dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
 #ifdef Animated_Convergence_Q
@@ -230,6 +306,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) && dx_stop_criterion_Q) {
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
+                std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
+                std::cout << std::endl;
+                std::cout << std::endl;
 //                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
                 this->PostProcessTimeStep(file_geo, file_res);
@@ -496,3 +575,33 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
     }
     
 }
+
+void TPMRSSegregatedAnalysis::SetSimulationData(TPMRSSimulationData * simulation_data)
+{
+    m_simulation_data = simulation_data;
+}
+
+void TPMRSSegregatedAnalysis::ConfigurateHistorySummaries(){
+    int n_time_steps = m_simulation_data->ReportingTimes().size();
+    m_iterations_summary.Resize(n_time_steps, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
+    m_cpu_time_summary.Resize(n_time_steps, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
+    m_residuals_summary.Resize(n_time_steps, 4); // (time,res_resdials,geo_resdials,fss_corrections)
+    
+    m_iterations_summary.Zero();
+    m_cpu_time_summary.Zero();
+    m_residuals_summary.Zero();
+}
+
+TPZFMatrix<REAL> & TPMRSSegregatedAnalysis::IterationsSummary(){
+    return m_iterations_summary;
+}
+
+TPZFMatrix<REAL> & TPMRSSegregatedAnalysis::TimeSummary(){
+    return m_cpu_time_summary;
+}
+
+TPZFMatrix<REAL> & TPMRSSegregatedAnalysis::ResidualsSummary(){
+    return m_residuals_summary;
+}
+
+
