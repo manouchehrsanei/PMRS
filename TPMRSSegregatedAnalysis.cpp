@@ -200,7 +200,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
-#define EC_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
     
@@ -249,6 +248,9 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
     m_reservoir_analysis->PostProcessTimeStep(res_file);
     m_geomechanic_analysis->PostProcessTimeStep(geo_file);
 }
+
+
+#define EC_Q
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
@@ -324,7 +326,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 #ifdef EC_Q
                 /// Enhance pressure
                 {
-                    REAL s = 1.0;
+                    REAL s = 0.5;
                     m_xp_m = m_reservoir_analysis->X_n();
                     int n_dof = m_xp_m.Rows();
                     REAL dt = m_simulation_data->dt();
@@ -353,7 +355,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 #ifdef EC_Q
                 /// Enhance displacement
                 {
-                    REAL s = 1.0;
+                    REAL s = 0.5;
                     m_xu_m = m_geomechanic_analysis->X_n();
                     int n_dof = m_xp_m.Rows();
                     REAL dt = m_simulation_data->dt();
