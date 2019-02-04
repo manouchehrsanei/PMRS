@@ -223,34 +223,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
 
 #endif
     
-#ifdef EC_Q
-    /// Enhance pressure
-    {
-        REAL s = -0.0;
-        m_xp_m = m_reservoir_analysis->X_n();
-        int n_dof = m_xp_m.Rows();
-        REAL dt = m_simulation_data->dt();
-        REAL f1,f2,f3,t1,t2,t3, t;
-        t = (i_time_step+1) * dt + s*dt;
-        t3 = (i_time_step+1) * dt;
-        t2 = t3 - dt;
-        t1 = t2 - dt;
-        
-//        m_xp_m_2.Print("xp_2 = ",std::cout);
-//        m_xp_m_1.Print("xp_1 = ",std::cout);
-//        m_xp_m.Print("xp = ",std::cout);
-        for (int i = 0; i < n_dof; i++) {
-            f1 = m_xp_m_2(i,0);
-            f2 = m_xp_m_1(i,0);
-            f3 = m_xp_m(i,0);
-            m_reservoir_analysis->X_n()(i,0) = quadratic_extrapolation(f1, f2, f3, t1, t2, t3, t);
-        }
-//        m_reservoir_analysis->X_n().Print("p = ",std::cout);
-        m_reservoir_analysis->LoadMemorySolution();
-        m_xp_m_2 = m_xp_m_1;
-        m_xp_m_1 = m_xp_m;
-    }
-#endif
+
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
@@ -268,34 +241,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
     std::cout << std::endl;
     
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
-#endif
-    
-#ifdef EC_Q
-    /// Enhance displacement
-    {
-        REAL s = -0.0;
-        m_xu_m = m_geomechanic_analysis->X_n();
-        int n_dof = m_xp_m.Rows();
-        REAL dt = m_simulation_data->dt();
-        REAL f1,f2,f3,t1,t2,t3, t;
-        t = (i_time_step+1) * dt + s*dt;
-        t3 = (i_time_step+1) * dt;
-        t2 = t3 - dt;
-        t1 = t2 - dt;
-//        m_xu_m_2.Print("xu_2 = ",std::cout);
-//        m_xu_m_1.Print("xu_1 = ",std::cout);
-//        m_xu_m.Print("xu = ",std::cout);
-        for (int i = 0; i < n_dof; i++) {
-            f1 = m_xu_m_2(i,0);
-            f2 = m_xu_m_1(i,0);
-            f3 = m_xu_m(i,0);
-            m_geomechanic_analysis->X_n()(i,0) = quadratic_extrapolation(f1, f2, f3, t1, t2, t3, t);
-        }
-//        m_geomechanic_analysis->X_n().Print("u = ",std::cout);
-        m_geomechanic_analysis->LoadMemorySolution();
-        m_xu_m_2 = m_xu_m_1;
-        m_xu_m_1 = m_xu_m;
-    }
 #endif
     
 }
@@ -374,6 +319,64 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 //                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
                 this->PostProcessTimeStep(file_geo, file_res);
+                
+                
+#ifdef EC_Q
+                /// Enhance pressure
+                {
+                    REAL s = 1.0;
+                    m_xp_m = m_reservoir_analysis->X_n();
+                    int n_dof = m_xp_m.Rows();
+                    REAL dt = m_simulation_data->dt();
+                    REAL f1,f2,f3,t1,t2,t3, t;
+                    t = (it+1) * dt + s*dt;
+                    t3 = (it+1) * dt;
+                    t2 = t3 - dt;
+                    t1 = t2 - dt;
+                    
+                    //        m_xp_m_2.Print("xp_2 = ",std::cout);
+                    //        m_xp_m_1.Print("xp_1 = ",std::cout);
+                    //        m_xp_m.Print("xp = ",std::cout);
+                    for (int i = 0; i < n_dof; i++) {
+                        f1 = m_xp_m_2(i,0);
+                        f2 = m_xp_m_1(i,0);
+                        f3 = m_xp_m(i,0);
+                        m_reservoir_analysis->X_n()(i,0) = quadratic_extrapolation(f1, f2, f3, t1, t2, t3, t);
+                    }
+                    //        m_reservoir_analysis->X_n().Print("p = ",std::cout);
+                    m_reservoir_analysis->LoadMemorySolution();
+                    m_xp_m_2 = m_xp_m_1;
+                    m_xp_m_1 = m_xp_m;
+                }
+#endif
+                
+#ifdef EC_Q
+                /// Enhance displacement
+                {
+                    REAL s = 1.0;
+                    m_xu_m = m_geomechanic_analysis->X_n();
+                    int n_dof = m_xp_m.Rows();
+                    REAL dt = m_simulation_data->dt();
+                    REAL f1,f2,f3,t1,t2,t3, t;
+                    t = (it+1) * dt + s*dt;
+                    t3 = (it+1) * dt;
+                    t2 = t3 - dt;
+                    t1 = t2 - dt;
+                    //        m_xu_m_2.Print("xu_2 = ",std::cout);
+                    //        m_xu_m_1.Print("xu_1 = ",std::cout);
+                    //        m_xu_m.Print("xu = ",std::cout);
+                    for (int i = 0; i < n_dof; i++) {
+                        f1 = m_xu_m_2(i,0);
+                        f2 = m_xu_m_1(i,0);
+                        f3 = m_xu_m(i,0);
+                        m_geomechanic_analysis->X_n()(i,0) = quadratic_extrapolation(f1, f2, f3, t1, t2, t3, t);
+                    }
+                    //        m_geomechanic_analysis->X_n().Print("u = ",std::cout);
+                    m_geomechanic_analysis->LoadMemorySolution();
+                    m_xu_m_2 = m_xu_m_1;
+                    m_xu_m_1 = m_xu_m;
+                }
+#endif
                 break;
             }
         }
