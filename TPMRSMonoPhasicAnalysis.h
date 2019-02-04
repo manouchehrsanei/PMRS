@@ -32,6 +32,9 @@ private:
     /// Solution at n (past) state
     TPZFMatrix<STATE> m_X;
     
+    /// Solution at n+1 state but coming from the last iteration
+    TPZFMatrix<STATE> m_X_m;
+    
     /// Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> m_mesh_vec;
     
@@ -132,6 +135,18 @@ public:
     int Get_k_iterations()
     {
         return m_k_iterations;
+    }
+    
+    /// Set Solution at n+1 state
+    void SetX_n(TPZFMatrix<STATE> & X_n)
+    {
+        m_X_n = X_n;
+    }
+    
+    /// Get Solution at n+1 state
+    TPZFMatrix<STATE> & X_n()
+    {
+        return m_X_n;
     }
     
     

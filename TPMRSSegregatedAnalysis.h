@@ -48,6 +48,18 @@ private:
     /// Object that store the residuals of segregated and internal process
     TPZFMatrix<REAL> m_residuals_summary;
     
+    TPZFMatrix<REAL> m_xp_m;
+    
+    TPZFMatrix<REAL> m_xp_m_1;
+    
+    TPZFMatrix<REAL> m_xp_m_2;
+    
+    TPZFMatrix<REAL> m_xu_m;
+    
+    TPZFMatrix<REAL> m_xu_m_1;
+    
+    TPZFMatrix<REAL> m_xu_m_2;
+    
 public:
     
     /// Default constructor
@@ -106,6 +118,10 @@ public:
     
     /// Resize and storage the positions to track iteraions and cpu time during the entire simulation
     void ConfigurateHistorySummaries();
+    
+    REAL linear_extrapolation(REAL & f_1, REAL & f_2, REAL & t_1, REAL & t_2, REAL & t);
+    
+    REAL quadratic_extrapolation(REAL & f_1, REAL & f_2, REAL & f_3, REAL & t_1, REAL & t_2,  REAL & t_3, REAL & t);
     
 };
 

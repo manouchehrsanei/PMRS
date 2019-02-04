@@ -126,6 +126,17 @@ public:
         return m_k_iterations;
     }
     
+    /// Set Solution at n+1 state
+    void SetX_n(TPZFMatrix<STATE> & X_n)
+    {
+        m_X_n = X_n;
+    }
+    
+    /// Get Solution at n+1 state
+    TPZFMatrix<STATE> & X_n()
+    {
+        return m_X_n;
+    }
     
 };
 

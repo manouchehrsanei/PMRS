@@ -12,6 +12,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
     m_simulation_data = NULL;
     m_X_n.Resize(0, 0);
     m_X.Resize(0, 0);
+    m_X_m.Resize(0, 0);
     m_mesh_vec.Resize(0);
     m_error          = 0;
     m_dx_norm        = 0;
@@ -31,6 +32,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis &
     m_simulation_data   = other.m_simulation_data;
     m_X_n               = other.m_X_n;
     m_X                 = other.m_X;
+    m_X_m               = other.m_X_m;
     m_mesh_vec          = other.m_mesh_vec;
     m_error             = other.m_error;
     m_dx_norm           = other.m_dx_norm;
@@ -146,8 +148,36 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         dx = Solution();
         norm_dx  = Norm(dx);
         m_X_n += dx;
+        
+//        if (i > 1) {
+//            LoadMemorySolution();
+//            m_X_m.Print("res_m = ",std::cout);
+//            Rhs().Print("res_m+1 = ",std::cout);
+//            m_X_n.Print("x = ",std::cout);
+//            TPZFMatrix<STATE> dr = Rhs() + m_X_m;
+//            dr.Print("dr = ",std::cout);
+//            Rhs() = dr;
+//            Solve();
+////            dx.Print("delta x = ",std::cout);
+//            Solution().Print("dx = ",std::cout);
+//            m_X_n = m_X_n + Solution() + dx;
+//            m_X_n.Print("x_star = ",std::cout);
+//            
+//            LoadMemorySolution();
+//            //        m_X_n.Print("x_n = ",std::cout, EMathematicaInput);
+//            norm_res = Norm(Rhs());
+//            m_X_m = Rhs();
+//
+//        }else{
+//            LoadMemorySolution();
+//            //        m_X_n.Print("x_n = ",std::cout, EMathematicaInput);
+//            norm_res = Norm(Rhs());
+//            m_X_m = Rhs();
+//        }
+        
+        
         LoadMemorySolution();
-//        m_X_n.Print("x_n = ",std::cout, EMathematicaInput);
+        //        m_X_n.Print("x_n = ",std::cout, EMathematicaInput);
         norm_res = Norm(Rhs());
         
         residual_stop_criterion_Q   = norm_res < r_norm;
@@ -157,6 +187,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
+
         if (residual_stop_criterion_Q /*&& correction_stop_criterion_Q*/) {
 #ifdef PZDEBUG
             std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;

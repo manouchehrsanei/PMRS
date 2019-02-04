@@ -152,6 +152,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
         LoadMemorySolution();
+        m_X_n = dx;
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
