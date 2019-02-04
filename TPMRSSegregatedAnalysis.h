@@ -60,6 +60,12 @@ private:
     
     TPZFMatrix<REAL> m_xu_m_2;
     
+    /// Reservoir state at last fixed stress cycle
+    TPZFMatrix<REAL> m_p_m;
+    
+    /// Geomechanic state at last fixed stress cycle
+    TPZFMatrix<REAL> m_u_m;
+    
 public:
     
     /// Default constructor
@@ -87,7 +93,7 @@ public:
     void FillMemory(TPZCompMesh * cmesh);
     
     /// Execute the evolution for a single time step
-    void ExecuteOneTimeStep(int i_time_step);
+    void ExecuteOneTimeStep(int i_time_step, int k);
     
     /// Post-processing the variables for a single time step
     void PostProcessTimeStep(std::string & geo_file, std::string & res_file);
@@ -122,6 +128,18 @@ public:
     REAL linear_extrapolation(REAL & f_1, REAL & f_2, REAL & t_1, REAL & t_2, REAL & t);
     
     REAL quadratic_extrapolation(REAL & f_1, REAL & f_2, REAL & f_3, REAL & t_1, REAL & t_2,  REAL & t_3, REAL & t);
+    
+    /// Define a quase Newton acceleration for the outer loop k iteration for reservoir module
+    void QNAccelerationRes(int k);
+    
+    /// Define a quase Newton acceleration for the outer loop k iteration for geomechanic module
+    void QNAccelerationGeo(int k);
+    
+    /// Define a  Aitken acceleration for the outer loop k iteration for reservoir module
+    void AitkenAccelerationRes(int k);
+    
+    /// Define a  Aitken acceleration for the outer loop k iteration for geomechanic module
+    void AitkenAccelerationGeo(int k);
     
 };
 

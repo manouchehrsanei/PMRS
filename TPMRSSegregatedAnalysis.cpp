@@ -200,8 +200,12 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
+//#define QNAcceleration_Q
+#define AitkenAcceleration_Q
 
-void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
+void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
+    
+    
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
@@ -222,6 +226,13 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
 
 #endif
     
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationRes(k);
+#endif
+    
+#ifdef QNAcceleration_Q
+    QNAccelerationRes(k);
+#endif
 
     
 #ifdef USING_BOOST
@@ -242,6 +253,100 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationGeo(k);
+#endif
+    
+#ifdef QNAcceleration_Q
+    QNAccelerationGeo(k);
+#endif
+    
+}
+
+void TPMRSSegregatedAnalysis::QNAccelerationRes(int k){
+    if (k>1) {
+        m_xp_m = m_reservoir_analysis->Rhs();
+        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
+        m_reservoir_analysis->Solve();
+        TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
+//                m_reservoir_analysis->X_n().Print("p = ", std::cout);
+//                dp.Print("dp = ", std::cout);
+        m_reservoir_analysis->Solution() = m_reservoir_analysis->X_n() + dp;
+//                m_reservoir_analysis->Solution().Print("p = ", std::cout);
+        m_reservoir_analysis->LoadMemorySolution();
+        m_xp_m_1 = m_reservoir_analysis->Rhs();
+        
+    }else{
+        m_xp_m_1 = m_reservoir_analysis->Rhs();
+    }
+}
+
+void TPMRSSegregatedAnalysis::QNAccelerationGeo(int k){
+    if (k>1) {
+        TPZFMatrix<REAL> du = m_geomechanic_analysis->Solution();
+        m_xu_m = m_geomechanic_analysis->Rhs();
+        m_geomechanic_analysis->Rhs() = m_xu_m - m_xu_m_1;
+        m_geomechanic_analysis->Solve();
+        TPZFMatrix<REAL> delta_du = m_geomechanic_analysis->Solution();
+        m_geomechanic_analysis->Solution() = du + delta_du;
+        m_geomechanic_analysis->LoadSolution(m_geomechanic_analysis->Solution());
+        m_geomechanic_analysis->LoadMemorySolution();
+        m_xu_m_1 = m_geomechanic_analysis->Rhs();
+        
+    }else{
+        m_xu_m_1 = m_geomechanic_analysis->Rhs();
+    }
+}
+
+void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
+    
+    if (k>2) {
+        m_xu_m = m_geomechanic_analysis->Solution();
+        int n_dof = m_xp_m.Rows();
+        REAL denom = 0.0;
+        REAL numer = 0.0;
+        for (int i = 0; i < n_dof; i++) {
+            numer += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_1(i,0)-m_xu_m(i,0));
+            denom += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_2(i,0)-2.0*m_xu_m_1(i,0)+m_xu_m(i,0));
+        }
+        m_xu_m.Print("u = ", std::cout);
+        REAL s = numer / denom;
+        m_geomechanic_analysis->Solution() = m_xu_m + s*(m_xu_m-m_xu_m_1);
+        m_geomechanic_analysis->LoadMemorySolution();
+        m_xu_m_2 = m_xu_m_1;
+        m_xu_m_1 = m_xu_m;
+        m_geomechanic_analysis->Solution().Print("u new = ", std::cout);
+    }else if(k>1){
+        m_xu_m_1 = m_geomechanic_analysis->Solution();
+    }else{
+        m_xu_m_2 = m_geomechanic_analysis->Solution();
+    }
+    
+}
+
+void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
+    
+    if (k>2) {
+        m_xp_m = m_reservoir_analysis->X_n();
+        int n_dof = m_xp_m.Rows();
+        REAL denom = 0.0;
+        REAL numer = 0.0;
+        for (int i = 0; i < n_dof; i++) {
+            numer += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_1(i,0)-m_xp_m(i,0));
+            denom += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_2(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m(i,0));
+        }
+        //        m_xp_m.Print("p = ", std::cout);
+        REAL s = numer / denom;
+        m_reservoir_analysis->X_n() = m_xp_m + s*(m_xp_m-m_xp_m_1);
+        m_reservoir_analysis->LoadMemorySolution();
+        m_xp_m_2 = m_xp_m_1;
+        m_xp_m_1 = m_xp_m;
+        //        m_reservoir_analysis->X_n().Print("p new = ", std::cout);
+    }else if(k>1){
+        m_xp_m_1 = m_reservoir_analysis->X_n();
+    }else{
+        m_xp_m_2 = m_reservoir_analysis->X_n();
+    }
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
@@ -250,7 +355,7 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 }
 
 
-#define EC_Q
+//#define EC_Q
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
@@ -270,9 +375,20 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL dt = m_simulation_data->dt();
     REAL time_value;
     
+#ifdef QNAcceleration_Q
     /// Loading initial data
     m_xp_m = m_xp_m_1 = m_xp_m_2 = m_reservoir_analysis->X_n();
     m_xu_m = m_xu_m_1 = m_xu_m_2 = m_geomechanic_analysis->X_n();
+#endif
+    
+#ifdef EC_Q
+    /// Loading initial data
+    m_xp_m = m_xp_m_1 = m_xp_m_2 = m_reservoir_analysis->X_n();
+    m_xu_m = m_xu_m_1 = m_xu_m_2 = m_geomechanic_analysis->X_n();
+#endif
+    
+    m_p_m = m_reservoir_analysis->X_n();
+    m_u_m = m_geomechanic_analysis->Solution();
     
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
@@ -283,7 +399,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
-            this->ExecuteOneTimeStep(it);
+            this->ExecuteOneTimeStep(it,k);
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -305,10 +421,15 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_residuals_summary(it,0) = time_value;
             m_residuals_summary(it,1) += m_reservoir_analysis->Get_error();
             m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
-            m_residuals_summary(it,3) = m_reservoir_analysis->Get_dx_norm() + m_geomechanic_analysis->Get_dx_norm();
+            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m);
+            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m);
+            m_p_m = m_reservoir_analysis->X_n();
+            m_u_m = m_geomechanic_analysis->Solution();
+            m_residuals_summary(it,3) = fss_dp_norm + fss_du_norm;
             
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
-            dx_stop_criterion_Q = (m_reservoir_analysis->Get_dx_norm() < dx_norm) && (m_geomechanic_analysis->Get_dx_norm() < dx_norm);
+            dx_stop_criterion_Q = (fss_dp_norm < dx_norm) && (fss_du_norm < dx_norm);
+            
 #ifdef Animated_Convergence_Q
             this->PostProcessTimeStep(file_geo, file_res);
 #endif
