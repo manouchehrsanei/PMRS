@@ -318,12 +318,12 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
             REAL p_D = Value;
             for (int ip = 0; ip < n_phi_p; ip++)
             {
-                ef(ip) += weight * BigNumber * (p - p_D) * phi_p(ip,0);
+                ef(ip) += weight * m_scale_factor * BigNumber * (p - p_D) * phi_p(ip,0);
                 
                 for (int jp = 0; jp < n_phi_p; jp++)
                 {
                     
-                    ek(ip,jp) += weight * BigNumber * phi_p(jp,0) * phi_p(ip,0);
+                    ek(ip,jp) += weight * m_scale_factor *  BigNumber * phi_p(jp,0) * phi_p(ip,0);
                 }
             }
             

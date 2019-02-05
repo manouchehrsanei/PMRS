@@ -13,8 +13,8 @@ Mesh.SecondOrderLinear = 0;
 wr = 0.10795;
 fr = 3.0;
 
-nt = 8;
-nr = 8;
+nt = 6;
+nr = 6;
 radial_progression = 2.0;
 
 // center point

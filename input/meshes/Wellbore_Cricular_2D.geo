@@ -13,7 +13,7 @@ Mesh.SecondOrderLinear = 0;
 wr = 0.10795;
 fr = 1.0;
 
-nt = 12;
+nt = 8;
 //nr = 10;
 
 
