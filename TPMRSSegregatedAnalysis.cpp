@@ -201,7 +201,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-#define AitkenAcceleration_Q
+//#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -301,32 +301,6 @@ void TPMRSSegregatedAnalysis::QNAccelerationGeo(int k){
 void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
     
     if (k>2) {
-        m_xu_m = m_geomechanic_analysis->Solution();
-        int n_dof = m_xp_m.Rows();
-        REAL denom = 0.0;
-        REAL numer = 0.0;
-        for (int i = 0; i < n_dof; i++) {
-            numer += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_1(i,0)-m_xu_m(i,0));
-            denom += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_2(i,0)-2.0*m_xu_m_1(i,0)+m_xu_m(i,0));
-        }
-        m_xu_m.Print("u = ", std::cout);
-        REAL s = numer / denom;
-        m_geomechanic_analysis->Solution() = m_xu_m + s*(m_xu_m-m_xu_m_1);
-        m_geomechanic_analysis->LoadMemorySolution();
-        m_xu_m_2 = m_xu_m_1;
-        m_xu_m_1 = m_xu_m;
-        m_geomechanic_analysis->Solution().Print("u new = ", std::cout);
-    }else if(k>1){
-        m_xu_m_1 = m_geomechanic_analysis->Solution();
-    }else{
-        m_xu_m_2 = m_geomechanic_analysis->Solution();
-    }
-    
-}
-
-void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
-    
-    if (k>2) {
         m_xp_m = m_reservoir_analysis->X_n();
         int n_dof = m_xp_m.Rows();
         REAL denom = 0.0;
@@ -336,7 +310,12 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
             denom += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_2(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m(i,0));
         }
         //        m_xp_m.Print("p = ", std::cout);
-        REAL s = numer / denom;
+        REAL s;
+        if(IsZero(denom)){
+            s = 0;
+        }else{
+            s = numer / denom;
+        }
         m_reservoir_analysis->X_n() = m_xp_m + s*(m_xp_m-m_xp_m_1);
         m_reservoir_analysis->LoadMemorySolution();
         m_xp_m_2 = m_xp_m_1;
@@ -346,6 +325,37 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
         m_xp_m_1 = m_reservoir_analysis->X_n();
     }else{
         m_xp_m_2 = m_reservoir_analysis->X_n();
+    }
+    
+}
+
+void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
+    
+    if (k>2) {
+        m_xu_m = m_geomechanic_analysis->Solution();
+        int n_dof = m_xp_m.Rows();
+        REAL denom = 0.0;
+        REAL numer = 0.0;
+        for (int i = 0; i < n_dof; i++) {
+            numer += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_1(i,0)-m_xu_m(i,0));
+            denom += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_2(i,0)-2.0*m_xu_m_1(i,0)+m_xu_m(i,0));
+        }
+//        m_xu_m.Print("u = ", std::cout);
+        REAL s;
+        if(IsZero(denom)){
+            s = 0;
+        }else{
+            s = numer / denom;
+        }
+        m_geomechanic_analysis->Solution() = m_xu_m + s*(m_xu_m-m_xu_m_1);
+        m_geomechanic_analysis->LoadMemorySolution();
+        m_xu_m_2 = m_xu_m_1;
+        m_xu_m_1 = m_xu_m;
+//        m_geomechanic_analysis->Solution().Print("u new = ", std::cout);
+    }else if(k>1){
+        m_xu_m_1 = m_geomechanic_analysis->Solution();
+    }else{
+        m_xu_m_2 = m_geomechanic_analysis->Solution();
     }
 }
 
