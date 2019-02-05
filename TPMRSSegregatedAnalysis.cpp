@@ -7,8 +7,6 @@
 
 #include "TPMRSSegregatedAnalysis.h"
 
-//#define Animated_Convergence_Q
-
 TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(){
     m_simulation_data       = NULL;
     m_geomechanic_analysis  = NULL;
@@ -312,7 +310,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
         //        m_xp_m.Print("p = ", std::cout);
         REAL s;
         if(IsZero(denom)){
-            s = 0;
+            s = numer / denom;
         }else{
             s = numer / denom;
         }
@@ -343,7 +341,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
 //        m_xu_m.Print("u = ", std::cout);
         REAL s;
         if(IsZero(denom)){
-            s = 0;
+            s = numer / denom;
         }else{
             s = numer / denom;
         }
@@ -366,6 +364,7 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 
 
 //#define EC_Q
+//#define Animated_Convergence_Q
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
@@ -436,6 +435,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_p_m = m_reservoir_analysis->X_n();
             m_u_m = m_geomechanic_analysis->Solution();
             m_residuals_summary(it,3) = fss_dp_norm + fss_du_norm;
+            
+            std::cout << "fss_dp_norm = " << fss_dp_norm << std::endl;
+            std::cout << "fss_du_norm = " << fss_du_norm << std::endl;
             
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
             dx_stop_criterion_Q = (fss_dp_norm < dx_norm) && (fss_du_norm < dx_norm);
