@@ -259,8 +259,8 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         TPZManVector<REAL,3> q(3);
         {
             REAL p_0      = this->MemItem(gp_index).p_0();
-            REAL p_n      = this->MemItem(gp_index).p_n();
-            REAL rho_n    = m_rho_0 * (1 + m_c*(p_n-p_0)); //  Provide the compressibility in MPa
+            REAL p_n      = p;
+            REAL rho_n    = m_rho_0 * (1 + m_c/m_scale_factor*(p_n-p_0)); //  Provide the compressibility in MPa
             REAL lambda   = rho_n/m_eta;
             REAL k        = this->MemItem(gp_index).kappa_n();
             TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
@@ -457,23 +457,20 @@ template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
     
     TMEM & memory = this->MemItem(gp_index);
+    phi     = memory.phi();
+    phi_n   = memory.phi_n(); //  Getting geomechanical porosity.
     
     REAL alpha = memory.Alpha();
     REAL Kdr   = memory.Kdr();
-    REAL phi_0 = memory.phi_0();
+//    REAL phi_0 = memory.phi_0();
     
-    REAL p_0   = memory.p_0();
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
 
-    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
-    REAL sigma_t_v   = (memory.GetSigma().I1()/3)   - alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma().I1()/3) - alpha * p;
-    
-    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Kdr);
-    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Kdr);
-    
-    this->MemItem(gp_index).Setphi_n(phi_n);
+    REAL sigma_v_0 = (memory.GetSigma_0().I1()/3);
+    REAL sigma_v_n = (memory.GetSigma_n().I1()/3);
+
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi, p_n, p, sigma_v_n, sigma_v_0, alpha, Kdr);
 }
 
 template <class TMEM>

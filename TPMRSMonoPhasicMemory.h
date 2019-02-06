@@ -46,6 +46,9 @@ private:
     
     /// lagrangian porosity at intial state
     STATE m_phi_0;
+
+    /// lagrangian porosity at last state (n)
+    STATE m_phi;
     
     /// lagrangian porosity at current state (n+1)
     STATE m_phi_n;
@@ -198,6 +201,17 @@ public:
         return m_phi_0;
     }
     
+    /// Set lagrangian porosity at last state
+    void Setphi(STATE phi)
+    {
+        m_phi = phi;
+    }
+    
+    /// Get lagrangian porosity at last state
+    STATE phi()
+    {
+        return m_phi;
+    }
     
     /// Set lagrangian porosity at current state
     void Setphi_n(STATE phi_n)

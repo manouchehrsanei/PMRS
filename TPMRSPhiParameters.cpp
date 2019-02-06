@@ -70,19 +70,19 @@ void TPMRSPhiParameters::SetModel(std::string model){
     }
 }
 
-void TPMRSPhiParameters::Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha, REAL &Kdr){
+void TPMRSPhiParameters::Porosity(REAL &phi_n, REAL &dphi_dp, REAL &phi, REAL &p_n, REAL &p, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha, REAL &Kdr){
     
-    REAL S = (1.0-alpha)*(alpha-phi_0)/Kdr;
+//    REAL S = (1.0-alpha)*(alpha-phi)/Kdr;
     switch (m_model)
     {
         case p_constant : {
-            phi     = phi_0;
+            phi     = phi_n;
             dphi_dp = 0.0;
         }
             break;
         case p_linear : {
-            phi     = phi_0 + (alpha/Kdr) * (sigma_v-sigma_v_0) + (S + (alpha*alpha)/Kdr) * (p - p_0);
-            dphi_dp = (S + (alpha*alpha)/Kdr);
+            phi     = phi + ( ( alpha/(Kdr*Kdr)) * (Kdr + sigma_v-sigma_v_0) - (phi/Kdr) ) * (p_n - p); //  Geomechanic update.
+            dphi_dp = ( ( alpha/(Kdr*Kdr)) * (Kdr + sigma_v-sigma_v_0) - (phi/Kdr) );
         }
             break;
         default : {

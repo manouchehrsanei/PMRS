@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.01" />
+        <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_ev_0" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -70,7 +70,7 @@
             <PoroMechUndrainedParameters Eyoung_u="1000.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Petunin" n_parameters="1" a="10.0"/>
+            <KappaParameters kappa_model="Constant" n_parameters="0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="20.0" friction="30.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
