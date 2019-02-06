@@ -7,15 +7,15 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.001" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.000001" />
-        <Correction cor_tolerance="0.00001" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>

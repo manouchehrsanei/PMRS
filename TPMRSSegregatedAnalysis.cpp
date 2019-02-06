@@ -199,7 +199,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-//#define AitkenAcceleration_Q
+#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -251,13 +251,13 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
-#ifdef AitkenAcceleration_Q
-    AitkenAccelerationGeo(k);
-#endif
-    
-#ifdef QNAcceleration_Q
-    QNAccelerationGeo(k);
-#endif
+//#ifdef AitkenAcceleration_Q
+//    AitkenAccelerationGeo(k);
+//#endif
+//
+//#ifdef QNAcceleration_Q
+//    QNAccelerationGeo(k);
+//#endif
     
 }
 

@@ -203,7 +203,7 @@ void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
-        if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
+        if (residual_stop_criterion_Q &&  correction_stop_criterion_Q) {
 #ifdef PZDEBUG
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
