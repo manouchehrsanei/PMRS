@@ -73,18 +73,7 @@ public:
     EPhiModel GetModel();
     
     /// Computes the porosity using the selected model
-    void Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &sigma_v, REAL &sigma_v_0, REAL &alpha, REAL &Kdr);
-    
-//    /// Set the bulk modulus
-//    void SetBulkModulus(REAL E, REAL nu){
-//        REAL K = E/(3.0*(1.0-2.0*nu));
-//        m_K = K;
-//    }
-//
-//    /// Get the bulk modulus
-//    REAL GetBulkModulus(){
-//        return m_K;
-//    }
+    void Porosity(REAL &phi, REAL &dphi_dp, REAL &phi_0, REAL &p, REAL &p_0, REAL &alpha, REAL &Kdr, REAL & geo_phi_correction);
     
 };
 

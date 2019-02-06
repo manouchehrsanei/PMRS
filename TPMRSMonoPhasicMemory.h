@@ -47,8 +47,9 @@ private:
     /// lagrangian porosity at intial state
     STATE m_phi_0;
 
-    /// lagrangian porosity at last state (n)
-    STATE m_phi;
+    //@TODO:: relocated this memory memeber to TPMRSMemory.
+    /// lagrangian porosity correction realted to geomechanics
+    STATE m_delta_phi;
     
     /// lagrangian porosity at current state (n+1)
     STATE m_phi_n;
@@ -201,16 +202,16 @@ public:
         return m_phi_0;
     }
     
-    /// Set lagrangian porosity at last state
-    void Setphi(STATE phi)
+    /// Set lagrangian porosity correction realted to geomechanics
+    void Setdelta_phi(STATE delta_phi)
     {
-        m_phi = phi;
+        m_delta_phi = delta_phi;
     }
     
-    /// Get lagrangian porosity at last state
-    STATE phi()
+    /// Get lagrangian porosity correction realted to geomechanics
+    STATE delta_phi()
     {
-        return m_phi;
+        return m_delta_phi;
     }
     
     /// Set lagrangian porosity at current state

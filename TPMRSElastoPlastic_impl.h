@@ -1050,7 +1050,6 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
             this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
             this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
-            this->MemItem(gp_index).Setphi(this->MemItem(gp_index).phi_n());
             return;
         }
         
@@ -1059,23 +1058,6 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         Epsilon(data,epsilon);
         T plastic_integrator(m_plastic_integrator);
         plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
-        
-        /// Update porosity
-        {
-            REAL alpha = this->MemItem(gp_index).Alpha();
-            REAL Kdr   = this->MemItem(gp_index).Kdr();
-            REAL phi_0 = this->MemItem(gp_index).phi_0();
-            
-            REAL p_0   = this->MemItem(gp_index).p_0();
-            REAL p_n   = this->MemItem(gp_index).p_n();
-            REAL S     = (1.0-alpha)*(alpha-phi_0)/Kdr;
-            
-            REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
-            REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3) - alpha * p_n;
-            
-            REAL phi_n = phi_0 + (alpha/Kdr) * (sigma_t_v_n-sigma_t_v_0) + (S + (alpha*alpha)/Kdr) * (p_n - p_0); //  Geomechanic update.
-            this->MemItem(gp_index).Setphi_n(phi_n);
-        }
         
         if (m_simulation_data->IsCurrentStateQ()) {
             this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
@@ -1089,12 +1071,25 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             }
             this->MemItem(gp_index).Setu_n(u_n);
             
+            /// Geomechanics porosity correction.
+            {
+                REAL alpha = this->MemItem(gp_index).Alpha();
+                REAL Kdr   = this->MemItem(gp_index).Kdr();
+                REAL p_0   = this->MemItem(gp_index).p_0();
+                REAL p_n   = this->MemItem(gp_index).p_n();
+                REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
+                REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
+                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0); //  Geomechanic update.
+                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
+            }
+            
         }else{
             this->MemItem(gp_index).SetPlasticState(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma(sigma);
             
             TPZManVector<STATE,3> u    = data.sol[0];
             this->MemItem(gp_index).Setu(u);
+            
         }
 
     }

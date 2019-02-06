@@ -457,20 +457,24 @@ template <class TMEM>
 void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
     
     TMEM & memory = this->MemItem(gp_index);
-    phi     = memory.phi();
-    phi_n   = memory.phi_n(); //  Getting geomechanical porosity.
     
     REAL alpha = memory.Alpha();
     REAL Kdr   = memory.Kdr();
-//    REAL phi_0 = memory.phi_0();
+    REAL phi_0 = memory.phi_0();
     
+    REAL p_0   = memory.p_0();
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
+    
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3)  - alpha * p;
+    
+    REAL geo_delta_phi   = (alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
+    REAL geo_delta_phi_n = memory.delta_phi();
 
-    REAL sigma_v_0 = (memory.GetSigma_0().I1()/3);
-    REAL sigma_v_n = (memory.GetSigma_n().I1()/3);
-
-    m_phi_model.Porosity(phi_n, dphi_ndp, phi, p_n, p, sigma_v_n, sigma_v_0, alpha, Kdr);
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
+    this->MemItem(gp_index).Setphi_n(phi_n);
 }
 
 template <class TMEM>

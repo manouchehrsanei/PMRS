@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
-        <StepNumber n_time_steps="1" />
+        <StepSize dt="0.0001" />
+        <StepNumber n_time_steps="100" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_ev_0" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />

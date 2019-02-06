@@ -766,6 +766,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma_n(sigma_total_0);
+            memory_vector.get()->operator [](i).Setdelta_phi(0.0); //  Initial porosity correction is zero.
             /// Cleaning u
             memory_vector.get()->operator [](i).Setu_0(u_null);
             memory_vector.get()->operator [](i).Setu(u_null);
