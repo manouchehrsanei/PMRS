@@ -18,8 +18,9 @@ TPMRSMonoPhasicMemory::TPMRSMonoPhasicMemory(){
     m_kappa_0   = 1.0e-13;
     m_kappa_n   = 1.0e-13;
     m_phi_0     = 0.1;
-    m_delta_phi       = 0.1;
     m_phi_n     = 0.1;
+    m_f         = 0.0;
+    m_f_vec.Resize(3,0.);
 }
 
 TPMRSMonoPhasicMemory::TPMRSMonoPhasicMemory(const TPMRSMonoPhasicMemory & other){
@@ -32,8 +33,9 @@ TPMRSMonoPhasicMemory::TPMRSMonoPhasicMemory(const TPMRSMonoPhasicMemory & other
     m_kappa_0   = other.m_kappa_0;
     m_kappa_n   = other.m_kappa_n;
     m_phi_0     = other.m_phi_0;
-    m_delta_phi       = other.m_delta_phi;
     m_phi_n     = other.m_phi_n;
+    m_f         = other.m_f;
+    m_f_vec     = other.m_f_vec;
 }
 
 const TPMRSMonoPhasicMemory & TPMRSMonoPhasicMemory::operator=(const TPMRSMonoPhasicMemory & other){
@@ -51,8 +53,9 @@ const TPMRSMonoPhasicMemory & TPMRSMonoPhasicMemory::operator=(const TPMRSMonoPh
     m_kappa_0   = other.m_kappa_0;
     m_kappa_n   = other.m_kappa_n;
     m_phi_0     = other.m_phi_0;
-    m_delta_phi       = other.m_delta_phi;
     m_phi_n     = other.m_phi_n;
+    m_f         = other.m_f;
+    m_f_vec     = other.m_f_vec;
     
     return *this;
 }
@@ -74,8 +77,9 @@ void TPMRSMonoPhasicMemory::Write(TPZStream &buf, int withclassid) const {
     buf.Write(&m_kappa_0);
     buf.Write(&m_kappa_n);
     buf.Write(&m_phi_0);
-    buf.Write(&m_delta_phi);
     buf.Write(&m_phi_n);
+    buf.Write(&m_f);
+    buf.Write(m_f_vec);
 }
 
 
@@ -88,8 +92,9 @@ void TPMRSMonoPhasicMemory::Read(TPZStream &buf, void *context){
     buf.Read(&m_kappa_0);
     buf.Read(&m_kappa_n);
     buf.Read(&m_phi_0);
-    buf.Read(&m_delta_phi);
     buf.Read(&m_phi_n);
+    buf.Read(&m_f);
+    buf.Read(m_f_vec);
 }
 
 void TPMRSMonoPhasicMemory::Print(std::ostream &out) const{
@@ -102,8 +107,9 @@ void TPMRSMonoPhasicMemory::Print(std::ostream &out) const{
     out << "\n Initial absolute permeability = " << m_kappa_0;
     out << "\n Current absolute permeability = " << m_kappa_n;
     out << "\n Initial porosity              = " << m_phi_0;
-    out << "\n Porosity correction           = " << m_delta_phi;
     out << "\n Current porosity              = " << m_phi_n;
+    out << "\n Function f(q,p) at last state = " << m_f;
+    out << "\n Function f(q,p) at last state = " << m_f_vec;
 }
 
 int TPMRSMonoPhasicMemory::ClassId() const{

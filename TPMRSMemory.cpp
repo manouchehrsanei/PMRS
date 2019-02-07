@@ -52,6 +52,9 @@ void TPMRSMemory::Read(TPZStream &buf, void *context){
 void TPMRSMemory::Print(std::ostream &out) const {
     TPMRSMonoPhasicMemory::Print(out);
     TPMRSElastoPlasticMemory::Print(out);
+    out << "\n Biot-Willis coefficient          = " << m_alpha;
+    out << "\n Drained bulk modulus             = " << m_Kdr;
+    out << "\n lagrangian porosity correction   = " << m_delta_phi;
 }
 
 int TPMRSMemory::ClassId() const {

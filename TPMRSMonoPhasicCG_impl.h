@@ -16,6 +16,7 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG() : m_phi_model(), m_kappa_model(){
     m_eta               = 0;
     m_rho_0             = 0;
     m_scale_factor      = 1;
+    m_theta_scheme      = 1;
 }
 
 template <class TMEM>
@@ -26,6 +27,7 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(int mat_id, int dimension) :  TPZMatW
     m_eta               = 0;
     m_rho_0             = 0;
     m_scale_factor      = 1;
+    m_theta_scheme      = 1;
 }
 
 template <class TMEM>
@@ -38,6 +40,7 @@ TPMRSMonoPhasicCG<TMEM>::TPMRSMonoPhasicCG(const TPMRSMonoPhasicCG & other){
     m_scale_factor      = other.m_scale_factor;
     m_phi_model         = other.m_phi_model;
     m_kappa_model       = other.m_kappa_model;
+    m_theta_scheme      = other.m_theta_scheme;
 }
 
 template <class TMEM>
@@ -56,6 +59,7 @@ TPMRSMonoPhasicCG<TMEM> & TPMRSMonoPhasicCG<TMEM>::operator=(const TPMRSMonoPhas
     m_scale_factor      = other.m_scale_factor;
     m_phi_model         = other.m_phi_model;
     m_kappa_model       = other.m_kappa_model;
+    m_theta_scheme      = other.m_theta_scheme;
     return *this;
 }
 
@@ -74,6 +78,7 @@ void TPMRSMonoPhasicCG<TMEM>::Print(std::ostream &out){
     out << " Fluid viscosity : " << m_eta << "\n";
     out << " Fluid density : " << m_rho_0 << "\n";
     out << " Scale factor  : " << m_scale_factor << "\n";
+    out << " Theta scheme  : " << m_theta_scheme << "\n";
     m_phi_model.Print(out);
     m_kappa_model.Print(out);
     out << "\t Base class print:\n";
@@ -148,6 +153,8 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
     
+    TPZManVector<STATE,3> & last_Kl_grad_p        = memory.f_vec();
+    
     STATE phi_n,dphi_ndp,phi;
     REAL phi_0 = memory.phi_0();
     this->porosity(gp_index,phi_n,dphi_ndp,phi);
@@ -201,16 +208,19 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     for (int ip = 0; ip < n_phi_p; ip++)
     {
         
-        STATE Kl_grad_p_dot_grad_phi    = 0.0;
-        STATE dKdpl_grad_p_dot_grad_phi = 0.0;
+        STATE Kl_grad_p_dot_grad_phi        = 0.0;
+        STATE last_Kl_grad_p_dot_grad_phi   = 0.0;
+        STATE dKdpl_grad_p_dot_grad_phi     = 0.0;
         for (int i = 0; i < Dimension(); i++)
         {
             Kl_grad_p_dot_grad_phi      += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
+            last_Kl_grad_p_dot_grad_phi += last_Kl_grad_p[i]*grad_phi_p(i,ip);
             dKdpl_grad_p_dot_grad_phi   += dKdpl_grad_p_(i,0)*grad_phi_p(i,ip);
             
         }
-        
-        ef(ip) +=  weight * ( Kl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
+
+        REAL Kl_grad_p_dot_grad_phi_avg = m_theta_scheme*Kl_grad_p_dot_grad_phi + (1.0-m_theta_scheme)*last_Kl_grad_p_dot_grad_phi;
+        ef(ip) +=  weight * ( Kl_grad_p_dot_grad_phi_avg + (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
         
         for (int jp = 0; jp < n_phi_p; jp++)
         {
@@ -238,6 +248,15 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         
     }
     
+    if (m_simulation_data->GetTransferCurrentToLastQ()) { // Update process for f function.
+        for (int i = 0; i < Dimension(); i++)
+        {
+            last_Kl_grad_p[i] = Kl_grad_p_(i,0);
+        }
+        this->MemItem(gp_index).Setf_vec(last_Kl_grad_p);
+        this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
+    }
+    
 }
 
 template <class TMEM>
@@ -246,11 +265,6 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
 
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         long gp_index = data.intGlobPtIndex;
-        
-        if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n()) ;
-            return;
-        }
         
         // Pressure variable
         STATE p = data.sol[0][0];
@@ -303,6 +317,11 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
         return;
     }
     
+    int gp_index = data.intGlobPtIndex;
+    TPZBndCondWithMem<TPMRSMonoPhasicMemory>  & bc_mem = dynamic_cast<TPZBndCondWithMem<TPMRSMonoPhasicMemory> & >(bc);
+    TPMRSMonoPhasicMemory & memory = bc_mem.MemItem(gp_index);
+
+    
     TPZFNMatrix<100,STATE> phi_p       = data.phi;
     int n_phi_p       = phi_p.Rows();
     
@@ -333,10 +352,16 @@ void TPMRSMonoPhasicCG<TMEM>::ContributeBC(TPZMaterialData &data, REAL weight, T
             
         case 1 :    /// Neumann BC  Normal flux qn_N
         {
-            STATE qn_N = Value;
+            
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
             for (int ip = 0; ip < n_phi_p; ip++)
             {
                 ef(ip) += -1.0 * weight * qn_N * phi_p(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
             }
         }
             

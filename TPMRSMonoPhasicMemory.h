@@ -46,13 +46,15 @@ private:
     
     /// lagrangian porosity at intial state
     STATE m_phi_0;
-
-    //@TODO:: relocated this memory memeber to TPMRSMemory.
-    /// lagrangian porosity correction realted to geomechanics
-    STATE m_delta_phi;
     
     /// lagrangian porosity at current state (n+1)
     STATE m_phi_n;
+    
+    /// Value function f(q,p) at last state (for CG right hand side and for Mixed div_q) (required for Crank-Nicolson method)
+    STATE m_f;
+    
+    /// Value vector function f(q,p) at last state (for CG right hand side) (required for Crank-Nicolson method)
+    TPZManVector<STATE,3> m_f_vec;
     
 public:
     
@@ -202,16 +204,10 @@ public:
         return m_phi_0;
     }
     
-    /// Set lagrangian porosity correction realted to geomechanics
-    void Setdelta_phi(STATE delta_phi)
+    /// Get lagrangian porosity at current state
+    STATE phi_n()
     {
-        m_delta_phi = delta_phi;
-    }
-    
-    /// Get lagrangian porosity correction realted to geomechanics
-    STATE delta_phi()
-    {
-        return m_delta_phi;
+        return m_phi_n;
     }
     
     /// Set lagrangian porosity at current state
@@ -220,12 +216,30 @@ public:
         m_phi_n = phi_n;
     }
     
-    /// Get lagrangian porosity at current state
-    STATE phi_n()
+   
+    /// Get Value function f(q,p) at last state
+    STATE f()
     {
-        return m_phi_n;
+        return m_f;
     }
     
+    /// Set Value function f(q,p) at last state
+    void Setf(STATE f)
+    {
+        m_f = f;
+    }
+    
+    /// Get Value vector function f(q,p) at last state
+    TPZManVector<STATE,3> & f_vec()
+    {
+        return m_f_vec;
+    }
+    
+    /// Set Value vector function f(q,p) at last state
+    void Setf_vec(TPZManVector<STATE,3> & f_vec)
+    {
+        m_f_vec = f_vec;
+    }
     
     
 };

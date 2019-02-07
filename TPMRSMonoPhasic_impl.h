@@ -15,6 +15,7 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic() : m_phi_model(), m_kappa_model(){
     m_eta               = 0;
     m_rho_0             = 0;
     m_scale_factor      = 1;
+    m_theta_scheme      = 1;
 }
 
 template <class TMEM>
@@ -25,6 +26,7 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(int mat_id, int dimension) : TPZMatWithMe
     m_eta               = 0;
     m_rho_0             = 0;
     m_scale_factor      = 1;
+    m_theta_scheme      = 1;
 }
 
 template <class TMEM>
@@ -37,6 +39,7 @@ TPMRSMonoPhasic<TMEM>::TPMRSMonoPhasic(const TPMRSMonoPhasic & other) : TPZMatWi
     m_scale_factor      = other.m_scale_factor;
     m_phi_model         = other.m_phi_model;
     m_kappa_model       = other.m_kappa_model;
+    m_theta_scheme      = other.m_theta_scheme;
 }
 
 template <class TMEM>
@@ -55,6 +58,7 @@ TPMRSMonoPhasic<TMEM> & TPMRSMonoPhasic<TMEM>::operator=(const TPMRSMonoPhasic &
     m_scale_factor      = other.m_scale_factor;
     m_phi_model         = other.m_phi_model;
     m_kappa_model       = other.m_kappa_model;
+    m_theta_scheme      = other.m_theta_scheme;
     return *this;
 }
 
@@ -73,6 +77,7 @@ void TPMRSMonoPhasic<TMEM>::Print(std::ostream &out){
     out << " Fluid viscosity : " << m_eta << "\n";
     out << " Fluid density : " << m_rho_0 << "\n";
     out << " Scale factor  : " << m_scale_factor << "\n";
+    out << " Theta scheme  : " << m_theta_scheme << "\n";
     m_phi_model.Print(out);
     m_kappa_model.Print(out);
     out << "\t Base class print:\n";
@@ -348,7 +353,9 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
     }
     
-    STATE div_q = (grad_q_axes(0,0) + grad_q_axes(1,1) + grad_q_axes(2,2));
+    STATE current_div_q = (grad_q_axes(0,0) + grad_q_axes(1,1) + grad_q_axes(2,2));
+    STATE last_div_q = memory.f();
+    STATE div_q = m_theta_scheme*current_div_q+(1.0-m_theta_scheme)*last_div_q;
     
     for (int ip = 0; ip < nphi_p; ip++)
     {
@@ -367,6 +374,12 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
     }
     
+    if (m_simulation_data->GetTransferCurrentToLastQ()) {
+        memory.Setf(current_div_q);
+        this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
+        return;
+    }
+    
 }
 
 template <class TMEM>
@@ -377,11 +390,6 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         long gp_index = datavec[0].intGlobPtIndex;
-        
-        if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n()) ;
-            return;
-        }
         
         TPZManVector<STATE,3> q  = datavec[q_b].sol[0];
         STATE p                  = datavec[p_b].sol[0][0];
@@ -584,7 +592,7 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
 
 template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
-
+    
     TMEM & memory = this->MemItem(gp_index);
     
     REAL alpha = memory.Alpha();
@@ -594,14 +602,17 @@ void TPMRSMonoPhasic<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp,
     REAL p_0   = memory.p_0();
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
+    
     REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
     REAL sigma_t_v   = (memory.GetSigma().I1()/3)  - alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma().I1()/3) - alpha * p;
-
-//    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, sigma_t_v, sigma_t_v_0, alpha, Kdr);
-//    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, sigma_t_v_n, sigma_t_v_0, alpha, Kdr);
-    DebugStop();
+    
+    REAL geo_delta_phi   = (alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
+    REAL geo_delta_phi_n = memory.delta_phi();
+    
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
     this->MemItem(gp_index).Setphi_n(phi_n);
+    
 }
 
 template <class TMEM>

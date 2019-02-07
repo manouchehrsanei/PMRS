@@ -739,6 +739,8 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
     REAL s  = sim_data->scale_factor_val();
     int dim = sim_data->Dimension();
     
+    bool  is_crank_nicolson_Q = sim_data->Get_is_crank_nicolson_Q();
+    
     std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
     
     // Reservoir parameters
@@ -757,6 +759,9 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
         material->SetPorosityParameters(std::get<2>(chunk));
         material->SetPermeabilityParameters(std::get<3>(chunk));
         cmesh->InsertMaterialObject(material);
+        if (is_crank_nicolson_Q) {
+            material->SetCrank_Nicolson();
+        }
         return material;
     }else{
         TPMRSMonoPhasicCG<TPMRSMemory> * material = new TPMRSMonoPhasicCG<TPMRSMemory>(matid,dim);
@@ -765,6 +770,9 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
         material->SetScaleFactor(s);
         material->SetPorosityParameters(std::get<2>(chunk));
         material->SetPermeabilityParameters(std::get<3>(chunk));
+        if (is_crank_nicolson_Q) {
+            material->SetCrank_Nicolson();
+        }
         cmesh->InsertMaterialObject(material);
         return material;
     }

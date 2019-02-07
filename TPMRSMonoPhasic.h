@@ -45,6 +45,9 @@ class TPMRSMonoPhasic : public TPZMatWithMem<TMEM> {
     /// Defines the permeability model
     TPMRSKappaParameters m_kappa_model;
     
+    /// Defines the use of Backward Euler or Crank–Nicolson method (theta_scheme = 1.0 or theta_scheme = 0.5)
+    REAL m_theta_scheme;
+    
 public:
     
     /// Default constructor
@@ -205,6 +208,11 @@ public:
         Setrho_0(rho);
         Seteta(eta);
         Setc(c);
+    }
+    
+    /// Set Crank-Nicolson method
+    void SetCrank_Nicolson(){
+        m_theta_scheme = 0.5;
     }
     
     void porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi);

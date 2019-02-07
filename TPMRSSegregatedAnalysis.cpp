@@ -147,6 +147,7 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
 void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
 
+    int dim   = cmesh_o->Dimension();
     int nel_o = cmesh_o->NElements();
     int nel_d = cmesh_d->NElements();
     
@@ -173,6 +174,15 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
         if (!cel_d) {
             continue;
         }
+        
+        if (gel->Dimension()!=dim) { /// boundary memory is no shared
+//            cel_o->SetFreeIntPtIndices();
+//            cel_o->ForcePrepareIntPtIndices();
+//            cel_d->SetFreeIntPtIndices();
+//            cel_d->ForcePrepareIntPtIndices();
+            continue;
+        }
+        
 //        cel_o->SetFreeIntPtIndices();
 //        cel_o->ForcePrepareIntPtIndices();
         const TPZIntPoints & rule = cel_o->GetIntegrationRule();
@@ -199,7 +209,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-#define AitkenAcceleration_Q
+//#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -251,13 +261,13 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
-//#ifdef AitkenAcceleration_Q
-//    AitkenAccelerationGeo(k);
-//#endif
-//
-//#ifdef QNAcceleration_Q
-//    QNAccelerationGeo(k);
-//#endif
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationGeo(k);
+#endif
+
+#ifdef QNAcceleration_Q
+    QNAccelerationGeo(k);
+#endif
     
 }
 
@@ -310,7 +320,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
         //        m_xp_m.Print("p = ", std::cout);
         REAL s;
         if(IsZero(denom)){
-            s = numer / denom;
+            s = 0.0;
         }else{
             s = numer / denom;
         }
@@ -341,7 +351,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
 //        m_xu_m.Print("u = ", std::cout);
         REAL s;
         if(IsZero(denom)){
-            s = numer / denom;
+            s = 0.0;
         }else{
             s = numer / denom;
         }
@@ -453,7 +463,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 std::cout << std::endl;
 //                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
+                
                 this->PostProcessTimeStep(file_geo, file_res);
+                /// Interpolate BC data.
                 
                 
 #ifdef EC_Q
@@ -762,6 +774,15 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setp_0(p_0);
             memory_vector.get()->operator [](i).Setp(p_0);
             memory_vector.get()->operator [](i).Setp_n(p_0);
+            
+            REAL f_0 = 0.0;
+            TPZManVector<REAL,3> f_vec_0(3);
+            f_vec_0[0] = f_0;
+            f_vec_0[1] = f_0;
+            f_vec_0[2] = f_0;
+            memory_vector.get()->operator [](i).Setf(f_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            memory_vector.get()->operator [](i).Setf_vec(f_vec_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            
             sigma_total_0.Zero();/// Converted to effecttive because initial deformation is Zero.
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma(sigma_total_0);

@@ -22,6 +22,9 @@ private:
     /// Drained bulk modulus
     REAL m_Kdr;
     
+    /// lagrangian porosity correction realted to geomechanics and fss iterations
+    STATE m_delta_phi;
+    
 public:
     
     /// Default constructor
@@ -70,6 +73,14 @@ public:
     
     REAL Kdr(){
         return m_Kdr;
+    }
+    
+    void Setdelta_phi(REAL delta_phi){
+        m_delta_phi  = delta_phi;
+    }
+    
+    REAL delta_phi(){
+        return m_delta_phi;
     }
     
 };
