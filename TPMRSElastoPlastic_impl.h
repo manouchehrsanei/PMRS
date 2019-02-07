@@ -321,10 +321,47 @@ void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> 
     epsilon_t += last_epsilon;
 }
 
+#define MEeuler_Q
+
 template <class T, class TMEM>
-void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep){
+void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep){
+    
+#ifdef MEeuler_Q
+    /// https://www.newcastle.edu.au/__data/assets/pdf_file/0017/22463/12_Substepping-schemes-for-the-numerical-integration-of-elastoplastic-stress-strain-relations.pdf
+     int gp_index = data.intGlobPtIndex;
+    /// Last plastic_strain state
+    TPZPlasticState<REAL> & plastic_strain = this->MemItem(gp_index).GetPlasticState(); // copy
+    TPZTensor<REAL> last_sigma = this->MemItem(gp_index).GetSigma();
+   
+    TPZTensor<REAL> last_epsilon_t = plastic_strain.m_eps_t;
+    TPZTensor<REAL> delta_epsilon_t = epsilon_t - last_epsilon_t;
+    
+    TPZTensor<REAL> delta_epsilon_t_1 = delta_epsilon_t;
+    delta_epsilon_t_1 *= 0.5;
+    TPZTensor<REAL> epsilon_t_1 = last_epsilon_t + delta_epsilon_t_1;
+    TPZTensor<REAL> sigma_1;
+    TPZFMatrix<REAL> Dep_1(6,6,0.0);
+    
+    T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.ApplyStrainComputeSigma(epsilon_t_1,sigma_1,&Dep_1);
+    
+    TPZTensor<REAL> epsilon_t_2 = epsilon_t_1 + delta_epsilon_t_1;
+    TPZTensor<REAL> sigma_2;
+    TPZFMatrix<REAL> Dep_2(6,6,0.0);
+    
+//    T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.ApplyStrainComputeSigma(epsilon_t_2,sigma_2,&Dep_2);
+    
+    TPZFNMatrix<6,STATE> l_sigma_vec(6,0.0);
+    TPZFNMatrix<6,STATE> delta_eps_t_1_vec, delta_sigma_1_vec(6,0.0);
+    TPZFNMatrix<6,STATE> l_sigma_vec(6,0.0);
+//    sigma = sigma_2 +
+    
+#else
     T plastic_integrator(m_plastic_integrator);
     plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
+#endif
+    
 }
 
 template <class T, class TMEM>
@@ -388,7 +425,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     TPZFNMatrix<36,STATE> De(6,6,0.0);
     
     Epsilon(data,epsilon);
-    Sigma(epsilon, sigma, &De);
+    Sigma(data, epsilon, sigma, &De);
     
     TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;

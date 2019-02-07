@@ -126,7 +126,7 @@ public:
     void Epsilon(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t);
     
     /// Brief of sigma function
-    void Sigma(TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep = NULL);
+    void Sigma(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep = NULL);
     
     /// Brief of contribute Biot stress
     void Contribute_Biot_Stress(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
