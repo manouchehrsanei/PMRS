@@ -329,37 +329,46 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
 #ifdef MEeuler_Q
     /// https://www.newcastle.edu.au/__data/assets/pdf_file/0017/22463/12_Substepping-schemes-for-the-numerical-integration-of-elastoplastic-stress-strain-relations.pdf
      int gp_index = data.intGlobPtIndex;
+    
+    TPZFNMatrix<6,STATE> delta_eps_t_vec(6,1,0.0),sigma_vec(6,1,0.0);
+    TPZFNMatrix<6,STATE> delta_sigma_1_vec, delta_sigma_2_vec;
+    
+    /// step one
+    TPZFNMatrix<36,REAL> & Dep_1 = this->MemItem(gp_index).Dep();
+    TPZTensor<REAL> last_sigma = this->MemItem(gp_index).GetSigma();
+    
     /// Last plastic_strain state
     TPZPlasticState<REAL> & plastic_strain = this->MemItem(gp_index).GetPlasticState(); // copy
-    TPZTensor<REAL> last_sigma = this->MemItem(gp_index).GetSigma();
-   
     TPZTensor<REAL> last_epsilon_t = plastic_strain.m_eps_t;
     TPZTensor<REAL> delta_epsilon_t = epsilon_t - last_epsilon_t;
     
-    TPZTensor<REAL> delta_epsilon_t_1 = delta_epsilon_t;
-    delta_epsilon_t_1 *= 0.5;
-    TPZTensor<REAL> epsilon_t_1 = last_epsilon_t + delta_epsilon_t_1;
-    TPZTensor<REAL> sigma_1;
-    TPZFMatrix<REAL> Dep_1(6,6,0.0);
+    delta_epsilon_t.CopyTo(delta_eps_t_vec);
+    Dep_1.Multiply(delta_eps_t_vec, delta_sigma_1_vec);
     
+    TPZTensor<REAL> sigma_star, eps_e;
+    sigma_star.CopyFrom(delta_sigma_1_vec);
+    sigma_star += last_sigma;
+    
+    m_plastic_integrator.GetElasticResponse().ComputeStrain(sigma_star, eps_e);
     T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.ApplyStrainComputeSigma(epsilon_t_1,sigma_1,&Dep_1);
+    plastic_integrator.fN.m_eps_p = epsilon_t - eps_e;
+    plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
     
-    TPZTensor<REAL> epsilon_t_2 = epsilon_t_1 + delta_epsilon_t_1;
-    TPZTensor<REAL> sigma_2;
-    TPZFMatrix<REAL> Dep_2(6,6,0.0);
+    Dep->Multiply(delta_eps_t_vec, delta_sigma_2_vec);
+    last_sigma.CopyTo(sigma_vec);
+    sigma_vec += 0.5*(delta_sigma_1_vec + delta_sigma_2_vec);
     
-//    T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.ApplyStrainComputeSigma(epsilon_t_2,sigma_2,&Dep_2);
-    
-    TPZFNMatrix<6,STATE> l_sigma_vec(6,0.0);
-    TPZFNMatrix<6,STATE> delta_eps_t_1_vec, delta_sigma_1_vec(6,0.0);
-    TPZFNMatrix<6,STATE> l_sigma_vec(6,0.0);
-//    sigma = sigma_2 +
+
+    Dep->operator*=(0.5);
+    Dep->operator+=(0.5*Dep_1);
+
+    sigma.CopyFrom(sigma_vec);
     
 #else
+    
     T plastic_integrator(m_plastic_integrator);
     plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
+    
 #endif
     
 }
@@ -1086,6 +1095,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         if (m_simulation_data->GetTransferCurrentToLastQ()) {
             this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
             this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
+            this->MemItem(gp_index).SetDep(this->MemItem(gp_index).Dep());
             this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n()) ;
             return;
         }
@@ -1094,11 +1104,13 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         TPZTensor<STATE> epsilon,sigma;
         Epsilon(data,epsilon);
         T plastic_integrator(m_plastic_integrator);
-        plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
+        TPZFNMatrix<36,STATE> Dep(6,6,0.0);
+        plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
         
         if (m_simulation_data->IsCurrentStateQ()) {
             this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma_n(sigma);
+            this->MemItem(gp_index).SetDep(Dep);
             
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
@@ -1123,6 +1135,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         }else{
             this->MemItem(gp_index).SetPlasticState(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma(sigma);
+            this->MemItem(gp_index).SetDep(Dep);
             
             TPZManVector<STATE,3> u    = data.sol[0];
             this->MemItem(gp_index).Setu(u);

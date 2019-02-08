@@ -37,6 +37,9 @@ private:
     /// Last plastic_strain state
     TPZPlasticState<REAL> m_plastic_strain;
     
+    /// Tangent operator at last state
+    TPZFNMatrix<36,REAL> m_Dep;
+    
     /// Last displacement field
     TPZManVector<REAL,3> m_u;
     
@@ -173,6 +176,16 @@ public:
     /// Get the initial displacement field
     TPZManVector<REAL,3> & Getu_0(){
         return m_u_0;
+    }
+    
+    /// Set the tangent operator at last state
+    void SetDep(TPZFNMatrix<36,REAL> & Dep){
+        m_Dep = Dep;
+    }
+    
+    /// Get the tangent operator at last state
+    TPZFNMatrix<36,REAL> & Dep(){
+        return m_Dep;
     }
     
 };

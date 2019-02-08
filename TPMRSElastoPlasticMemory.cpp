@@ -16,6 +16,8 @@ TPMRSElastoPlasticMemory::TPMRSElastoPlasticMemory(){
     m_u.resize(3);
     m_sigma_0.Zero();
     m_u_0.resize(3);
+    m_Dep.Resize(6, 6);
+    m_Dep.Zero();
     
 }
 
@@ -30,6 +32,7 @@ TPMRSElastoPlasticMemory::TPMRSElastoPlasticMemory(const TPMRSElastoPlasticMemor
     m_sigma_0           = other.m_sigma_0;
     m_plastic_strain_0  = other.m_plastic_strain_0;
     m_u_0               = other.m_u_0;
+    m_Dep               = other.m_Dep;
 }
 
 const TPMRSElastoPlasticMemory & TPMRSElastoPlasticMemory::operator=(const TPMRSElastoPlasticMemory & other){
@@ -48,6 +51,7 @@ const TPMRSElastoPlasticMemory & TPMRSElastoPlasticMemory::operator=(const TPMRS
     m_sigma_0           = other.m_sigma_0;
     m_plastic_strain_0  = other.m_plastic_strain_0;
     m_u_0               = other.m_u_0;
+    m_Dep               = other.m_Dep;
     
     return *this;
 }
@@ -70,6 +74,7 @@ void TPMRSElastoPlasticMemory::Write(TPZStream &buf, int withclassid) const {
     m_sigma_0.Write(buf, withclassid);
     m_plastic_strain_0.Write(buf, withclassid);
     buf.Write(m_u_0);
+    buf.Write(m_Dep);
 }
 
 
@@ -83,6 +88,7 @@ void TPMRSElastoPlasticMemory::Read(TPZStream &buf, void *context){
     m_sigma_0.Read(buf, context);
     m_plastic_strain_0.Read(buf, context);
     buf.Read(m_u_0);
+//    buf.Read(&m_Dep);
 }
 
 void TPMRSElastoPlasticMemory::Print(std::ostream &out) const{
@@ -96,6 +102,7 @@ void TPMRSElastoPlasticMemory::Print(std::ostream &out) const{
     out << "\n Initial state stress         = " << m_sigma_0;
     out << "\n Initial Plastic strain state = " << m_plastic_strain_0;
     out << "\n Initial displacement field   = " << m_u_0;
+    m_Dep.Print("Dep at last state = ",out);
 }
 
 int TPMRSElastoPlasticMemory::ClassId() const{
