@@ -243,7 +243,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
                 
             }
             
-            ek(ip,jp) +=  weight * ( Kl_grad_phi_j_dot_grad_phi_j + dKdpl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
+            ek(ip,jp) +=  weight * ( m_theta_scheme*Kl_grad_phi_j_dot_grad_phi_j + m_theta_scheme*dKdpl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
         }
         
     }

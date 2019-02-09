@@ -141,6 +141,21 @@ public:
     /// Define a  Aitken acceleration for the outer loop k iteration for geomechanic module
     void AitkenAccelerationGeo(int k);
     
+    /// Auxiliary function for compute power of integers
+    int power(int base, int exp)
+    {
+        int result = 1;
+        while (exp != 0)
+        {
+            if ((exp & 1) == 1)
+                result *= base;
+            exp >>= 1;
+            base *= base;
+        }
+        
+        return result;
+    }
+    
 };
 
 #endif /* TPMRSSegregatedAnalysis_h */

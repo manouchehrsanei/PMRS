@@ -37,11 +37,14 @@ private:
     /// Last plastic_strain state
     TPZPlasticState<REAL> m_plastic_strain;
     
-    /// Tangent operator at last state
-    TPZFNMatrix<36,REAL> m_Dep;
-    
     /// Last displacement field
     TPZManVector<REAL,3> m_u;
+    
+    /// Last plastic_strain state at substepping step
+    TPZPlasticState<REAL> m_plastic_strain_sub_step;
+    
+    /// Last displacement field at substepping step
+    TPZManVector<REAL,3> m_u_sub_step;
     
     /// Initial stress state
     TPZTensor<REAL> m_sigma_0;
@@ -148,6 +151,27 @@ public:
         return m_u;
     }
     
+    /// Set the initial plastic strain state
+    void SetPlasticStateSubStep(TPZPlasticState<REAL> & plastic_strain_sub_step){
+        m_plastic_strain_sub_step = plastic_strain_sub_step;
+    }
+    
+    /// Get the initial plastic strain state
+    TPZPlasticState<REAL> & GetPlasticStateSubStep(){
+        return m_plastic_strain_sub_step;
+    }
+    
+    /// Set the last displacement field at substepping step
+    void Setu_sub_step(TPZManVector<REAL,3> & u_sub_step){
+        m_u_sub_step = u_sub_step;
+    }
+    
+    /// Get the last displacement field at substepping step
+    TPZManVector<REAL,3> & Getu_sub_step(){
+        return m_u_sub_step;
+    }
+    
+    
     /// Set the initial stress state
     void SetSigma_0(TPZTensor<REAL> & sigma_0){
         m_sigma_0 = sigma_0;
@@ -178,15 +202,6 @@ public:
         return m_u_0;
     }
     
-    /// Set the tangent operator at last state
-    void SetDep(TPZFNMatrix<36,REAL> & Dep){
-        m_Dep = Dep;
-    }
-    
-    /// Get the tangent operator at last state
-    TPZFNMatrix<36,REAL> & Dep(){
-        return m_Dep;
-    }
     
 };
 

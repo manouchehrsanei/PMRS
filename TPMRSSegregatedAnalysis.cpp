@@ -247,7 +247,59 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    m_geomechanic_analysis->ExecuteOneTimeStep();
+    if(0){
+        
+        TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
+        
+        int n_level = 0;
+        int n_sub_steps = power(2,m_simulation_data->Get_n_sub_step_level());
+        for (int i = 1; i <= n_sub_steps; i++) {
+            REAL delta = 1.0/REAL(n_sub_steps);
+            REAL alpha = delta*i;
+            m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
+            m_reservoir_analysis->LoadMemorySolution();
+            m_geomechanic_analysis->ExecuteOneTimeStep();
+            bool check_for_sub_stepping_Q = m_simulation_data->Get_must_use_sub_stepping_Q();
+            if (check_for_sub_stepping_Q) {
+                n_level++;
+                m_simulation_data->Set_n_sub_step_level(n_level);
+                n_sub_steps = power(2,n_level);
+                if (n_level > 5) {
+                    n_sub_steps = 50;
+                    std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
+                    std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
+                    std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
+                }
+                /// It is required to restart the simulation
+                i = 1;
+                m_simulation_data->Set_must_use_sub_stepping_Q(false);
+                std::cout << "TPMRSSegregatedAnalysis:: Increase the level for substepping = " << n_level << std::endl;
+                std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
+                std::cout << "--------------------- Restarting step simulation -------------- " << std::endl;
+                std::cout << std::endl;
+                std::cout << std::endl;
+            }
+            else{
+                m_simulation_data->Set_must_use_sub_stepping_Q(true);
+                m_geomechanic_analysis->UpdateState();
+                m_simulation_data->Set_must_use_sub_stepping_Q(false);
+            }
+        }
+        
+        if(n_sub_steps > 1){
+            std::cout << "TPMRSSegregatedAnalysis:: Geomechanics solve with level of substepping = " << n_level << std::endl;
+            std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
+            std::cout << std::endl;
+            std::cout << std::endl;
+        }
+        
+        m_simulation_data->Set_must_use_sub_stepping_Q(false);
+        m_simulation_data->Set_n_sub_step_level(0);
+    }
+    else{
+        m_geomechanic_analysis->ExecuteOneTimeStep();
+    }
+    
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t2 = boost::posix_time::microsec_clock::local_time();
@@ -411,7 +463,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
-    for (int it = 0; it < n_time_steps; it++) {
+    for (int it = 0; it <= n_time_steps; it++) {
         time_value = dt * (it+1);
         
         for (int k = 1; k <= n_max_fss_iterations; k++) {
@@ -721,6 +773,9 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_reservoir_analysis->ExecuteUndrainedResponseStep();
     m_reservoir_analysis->PostProcessTimeStep(file_res);
     m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    /// Clean state variables
+    m_geomechanic_analysis->Solution().Zero();
+    m_geomechanic_analysis->X_n().Zero();
     std::cout << "TPMRSSegregatedAnalysis:: Ending for initialization process." <<std::endl;
     std::cout << std::endl << std::endl;
 }
@@ -792,10 +847,12 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setu_0(u_null);
             memory_vector.get()->operator [](i).Setu(u_null);
             memory_vector.get()->operator [](i).Setu_n(u_null);
+            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
             /// Cleaning elasto-plastic states
             memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
+            memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
         }
         
     }
@@ -809,9 +866,9 @@ void TPMRSSegregatedAnalysis::SetSimulationData(TPMRSSimulationData * simulation
 
 void TPMRSSegregatedAnalysis::ConfigurateHistorySummaries(){
     int n_time_steps = m_simulation_data->ReportingTimes().size();
-    m_iterations_summary.Resize(n_time_steps, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
-    m_cpu_time_summary.Resize(n_time_steps, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
-    m_residuals_summary.Resize(n_time_steps, 4); // (time,res_resdials,geo_resdials,fss_corrections)
+    m_iterations_summary.Resize(n_time_steps+1, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
+    m_cpu_time_summary.Resize(n_time_steps+1, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
+    m_residuals_summary.Resize(n_time_steps+1, 4); // (time,res_resdials,geo_resdials,fss_corrections)
     
     m_iterations_summary.Zero();
     m_cpu_time_summary.Zero();

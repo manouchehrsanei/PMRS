@@ -45,6 +45,8 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_is_initial_state_Q                 = false;
     m_is_current_state_Q                 = false;
     m_is_crank_nicolson_Q                = false;
+    m_n_sub_step_level                   = 0;
+    m_must_use_sub_stepping_Q            = false;
     
 }
 

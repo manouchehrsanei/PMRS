@@ -364,7 +364,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
-            ek(ip + firstp, jq + firstq) += -1.0 * weight * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
+            ek(ip + firstp, jq + firstq) += -1.0 * weight * m_theta_scheme * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
         }
         
         for (int jp = 0; jp < nphi_p; jp++)
