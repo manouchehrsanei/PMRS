@@ -141,6 +141,12 @@ public:
     /// Define a  Aitken acceleration for the outer loop k iteration for geomechanic module
     void AitkenAccelerationGeo(int k);
     
+    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for reservoir module
+    void GaussSeidelAccelerationRes(int k);
+    
+    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for geomechanic module
+    void GaussSeidelAccelerationGeo(int k);
+    
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)
     {

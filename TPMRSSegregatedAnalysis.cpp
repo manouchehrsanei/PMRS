@@ -209,7 +209,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-#define AitkenAcceleration_Q
+//#define AitkenAcceleration_Q
+#define GaussSeidelAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -324,7 +325,10 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     QNAccelerationGeo(k);
 #endif
     
-
+    
+#ifdef GaussSeidelAcceleration_Q
+    GaussSeidelAccelerationRes(k);
+#endif
     
 }
 
@@ -433,6 +437,30 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
     }else if(k==2){
         m_xu_m_2 = m_geomechanic_analysis->Solution();
     }
+}
+
+void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
+    /// https://arxiv.org/pdf/1310.4288.pdf
+    if (k>2) {
+        m_xp_m = m_reservoir_analysis->X_n();
+        REAL e_k_m_1 = Norm(m_xp_m_2-m_xp_m_1);
+        REAL e_k = Norm(m_xp_m_1-m_xp_m);
+        REAL lambda = e_k_m_1/e_k;
+        REAL factor = 1.0/(1.0-lambda);
+        m_reservoir_analysis->X_n() = m_xp_m + factor*(m_xp_m_1-m_xp_m);
+        m_reservoir_analysis->LoadMemorySolution();
+
+        m_xp_m_2 = m_xp_m_1;
+        m_xp_m_1 = m_xp_m;
+    }else if(k==1){
+        m_xp_m_1 = m_reservoir_analysis->X_n();
+    }else if(k==2){
+        m_xp_m_2 = m_reservoir_analysis->X_n();
+    }
+}
+
+void TPMRSSegregatedAnalysis::GaussSeidelAccelerationGeo(int k){
+    DebugStop();
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
