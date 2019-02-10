@@ -57,7 +57,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         case ELU:
         {
             
-#ifdef USING_MKL2
+#ifdef USING_MKL
             TPZSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -128,7 +128,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 //    Solution().Print("dp = ",std::cout,EMathematicaInput);
 }
 
-#define NMO9_Q
+//#define NMO9_Q
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     

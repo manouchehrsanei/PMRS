@@ -7,24 +7,24 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
-        <StepNumber n_time_steps="1" />
-        <CrankNicolsonQ useQ="0" />
+        <StepSize dt="0.1" />
+        <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.000001" />
-        <Correction cor_tolerance="0.000001" />
+        <Residue res_tolerance="0.0001" />
+        <Correction cor_tolerance="0.0001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
-        <FssIterations n_max_fss_iterations="20" />
+        <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
     </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="0" />
+        <Numthreads n_threads="4" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -68,10 +68,10 @@
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
             <PoroMechUndrainedParameters Eyoung_u="1000.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
+            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="1.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Constant" n_parameters="1" />
-            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="20.0" friction="30.0"/>              
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a = "10.0"/>
+            <PlasticityParameters plasticity_model="MC" n_parameters="1" cohesion="20.0" friction="30.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
