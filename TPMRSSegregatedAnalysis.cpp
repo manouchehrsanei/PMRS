@@ -440,14 +440,15 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
 }
 
 void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
+ 
     /// https://arxiv.org/pdf/1310.4288.pdf
     if (k>2) {
         m_xp_m = m_reservoir_analysis->X_n();
-        REAL e_k_m_1 = Norm(m_xp_m_2-m_xp_m_1);
-        REAL e_k = Norm(m_xp_m_1-m_xp_m);
+        REAL e_k_m_1 = Norm(m_xp_m-m_xp_m_1);
+        REAL e_k = Norm(m_xp_m_1-m_xp_m_2);
         REAL lambda = e_k_m_1/e_k;
         REAL factor = 1.0/(1.0-lambda);
-        m_reservoir_analysis->X_n() = m_xp_m + factor*(m_xp_m_1-m_xp_m);
+        m_reservoir_analysis->X_n() = m_xp_m_2 + factor*(m_xp_m_1-m_xp_m_2);
         m_reservoir_analysis->LoadMemorySolution();
 
         m_xp_m_2 = m_xp_m_1;
@@ -457,6 +458,29 @@ void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
     }else if(k==2){
         m_xp_m_2 = m_reservoir_analysis->X_n();
     }
+    
+//    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
+//    if (k>2) {
+//        m_xp_m = m_reservoir_analysis->X_n();
+//
+//        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
+//        int n_dof = x_k.Rows();
+//        for (int i = 0; i < n_dof; i++) {
+//            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
+//        }
+//
+//        m_reservoir_analysis->X_n() = x_k;
+//        m_reservoir_analysis->LoadMemorySolution();
+//
+//        m_xp_m_2 = m_xp_m_1;
+//        m_xp_m_1 = m_xp_m;
+//    }else if(k==1){
+//        m_xp_m_1 = m_reservoir_analysis->X_n();
+//    }else if(k==2){
+//        m_xp_m_2 = m_reservoir_analysis->X_n();
+//    }
+    
+    
 }
 
 void TPMRSSegregatedAnalysis::GaussSeidelAccelerationGeo(int k){
