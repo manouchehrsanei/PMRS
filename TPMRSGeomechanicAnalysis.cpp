@@ -130,6 +130,85 @@ void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     Solve();
 }
 
+void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
+    
+    TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
+    x_k = Solution();
+    
+    Assemble();
+    TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_x = Rhs();
+    Solve();
+    
+    TPZAutoPointer<TPZMatrix<REAL>> inv_j_x = Solver().Matrix()->Clone();
+    
+
+    TPZFMatrix<STATE> dx,dyx;
+    dx = Solution();
+    y = x_k + dx;
+    m_X_n = y;
+    LoadSolution(y);
+    LoadMemorySolution();
+    
+    Assemble();
+    TPZFMatrix<REAL> r_y = Rhs();
+    Rhs() = r_x;
+    Solve();
+    dyx = Solution();
+    TPZAutoPointer<TPZMatrix<REAL>> inv_j_y = Solver().Matrix()->Clone();
+    
+    z = x_k + 0.5*(dyx + dx);
+    m_X_n = z;
+    LoadSolution(z);
+    LoadMemorySolution();
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_z = Rhs();
+    Solve();
+    
+    TPZFMatrix<REAL> temp_y = Solution();
+    TPZFMatrix<REAL> temp_yy;
+    j_x->Multiply(temp_y, temp_yy);
+    Rhs() = temp_yy;
+    Solve();
+    TPZFMatrix<REAL> dz_1 = Solution();
+    
+    Solver().UpdateFrom(inv_j_x);
+    Rhs() = r_z;
+    Solve();
+    
+    TPZFMatrix<REAL> dz_2 = Solution();
+    TPZFMatrix<REAL> z_k_new = z + 0.5*(dz_1 + dz_2);
+    
+    Solver().UpdateFrom(inv_j_y);
+    m_X_n = z_k_new;
+    LoadSolution(z_k_new);
+    LoadMemorySolution();
+    Rhs() *= -1.0;
+    r_z = Rhs();
+    Solve();
+    
+    temp_y = Solution();
+    j_x->Multiply(temp_y, temp_yy);
+    Rhs() = temp_yy;
+    Solve();
+    dz_1 = Solution();
+    
+    Solver().UpdateFrom(inv_j_x);
+    Rhs() = r_z;
+    Solve();
+    
+    dz_2 = Solution();
+    
+    x_k_new = z_k_new + 0.5*(dz_1 + dz_2);
+    norm_dx = Norm(x_k_new - x_k);
+    m_X_n = x_k_new;
+    LoadSolution(x_k_new);
+}
+
+
+#define NMO9_Q
+
 void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     
     if (m_simulation_data->IsInitialStateQ()) {
@@ -147,12 +226,32 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
+        
+#ifdef NMO9_Q
+        /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
+        if (i >= 1 ) {
+            this->ExecuteNinthOrderNewtonInteration(norm_dx);
+        }
+        else{
+            this->ExecuteNewtonInteration();
+            dx += Solution();
+            norm_dx  = Norm(Solution());
+            LoadSolution(dx);
+            m_X_n = dx;
+        }
+#else
+        
         this->ExecuteNewtonInteration();
         dx += Solution();
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
-        LoadMemorySolution();
         m_X_n = dx;
+        
+#endif
+        
+
+        
+        LoadMemorySolution();
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
