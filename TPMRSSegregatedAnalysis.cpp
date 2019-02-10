@@ -208,10 +208,11 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
-#define QNAcceleration_Q
-//#define AitkenAcceleration_Q
+//#define QNAcceleration_Q
+#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
+    
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
@@ -231,7 +232,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,1) += res_solving_time;
 
 #endif
-
 
     
 #ifdef USING_BOOST
@@ -305,13 +305,17 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
-#ifdef AitkenAcceleration_Q
-    AitkenAccelerationGeo(k);
-#endif
     
-#ifdef AitkenAcceleration_Q
-    AitkenAccelerationRes(k);
-#endif
+//#ifdef AitkenAcceleration_Q
+//    AitkenAccelerationGeo(k);
+//#endif
+//
+//#ifdef AitkenAcceleration_Q
+//    AitkenAccelerationRes(k);
+//#endif
+
+    
+
     
 #ifdef QNAcceleration_Q
     QNAccelerationRes(k);
@@ -403,6 +407,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
 void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
     
     if (k>2) {
+        TPZFMatrix<REAL> dx = m_geomechanic_analysis->Solution();
         m_xu_m = m_geomechanic_analysis->Solution();
         int n_dof = m_xp_m.Rows();
         REAL denom = 0.0;
@@ -418,7 +423,8 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
         }else{
             s = numer / denom;
         }
-        m_geomechanic_analysis->Solution() = m_xu_m + s*(m_xu_m-m_xu_m_1);
+        dx = m_xu_m + s*(m_xu_m-m_xu_m_1);
+        m_geomechanic_analysis->LoadSolution(dx);
         m_geomechanic_analysis->LoadMemorySolution();
         m_xu_m_2 = m_xu_m_1;
         m_xu_m_1 = m_xu_m;
