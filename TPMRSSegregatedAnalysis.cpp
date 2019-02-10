@@ -232,7 +232,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,1) += res_solving_time;
 
 #endif
-
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
@@ -307,13 +306,13 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
     
 #ifdef AitkenAcceleration_Q
-    AitkenAccelerationGeo(k);
+//    AitkenAccelerationGeo(k);
 #endif
+
 
 #ifdef AitkenAcceleration_Q
     AitkenAccelerationRes(k);
 #endif
-
     
 
     
@@ -409,7 +408,7 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
     if (k>2) {
         TPZFMatrix<REAL> dx = m_geomechanic_analysis->Solution();
         m_xu_m = m_geomechanic_analysis->Solution();
-        int n_dof = m_xp_m.Rows();
+        int n_dof = m_xu_m.Rows();
         REAL denom = 0.0;
         REAL numer = 0.0;
         for (int i = 0; i < n_dof; i++) {
