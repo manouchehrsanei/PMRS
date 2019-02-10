@@ -306,13 +306,13 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 #endif
     
     
-//#ifdef AitkenAcceleration_Q
-//    AitkenAccelerationGeo(k);
-//#endif
-//
-//#ifdef AitkenAcceleration_Q
-//    AitkenAccelerationRes(k);
-//#endif
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationGeo(k);
+#endif
+
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationRes(k);
+#endif
 
     
 
