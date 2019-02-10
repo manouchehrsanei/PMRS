@@ -57,7 +57,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         case ELU:
         {
             
-#ifdef USING_MKL
+#ifdef USING_MKL2
             TPZSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -128,7 +128,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 //    Solution().Print("dp = ",std::cout,EMathematicaInput);
 }
 
-//#define NMO9_Q
+#define CheapNONM_Q
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
@@ -137,8 +137,10 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
-    
+
+#ifndef CheapNONM_Q
     TPZAutoPointer<TPZMatrix<REAL>> inv_j_x = Solver().Matrix()->Clone();
+#endif
     
     TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
     x_k = m_X_n;
@@ -148,7 +150,12 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     m_X_n = y;
     LoadMemorySolution();
     
+#ifndef CheapNONM_Q
     Assemble();
+#else
+    AssembleResidual();
+#endif
+    
     TPZFMatrix<REAL> r_y = Rhs();
     Rhs() = r_x;
     Solve();
@@ -169,14 +176,18 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     Solve();
     TPZFMatrix<REAL> dz_1 = Solution();
     
+#ifndef CheapNONM_Q
     Solver().UpdateFrom(inv_j_x);
+#endif
     Rhs() = r_z;
     Solve();
     
     TPZFMatrix<REAL> dz_2 = Solution();
     TPZFMatrix<REAL> z_k_new = z + 0.5*(dz_1 + dz_2);
 
+#ifndef CheapNONM_Q
     Solver().UpdateFrom(inv_j_y);
+#endif
     m_X_n = z_k_new;
     LoadMemorySolution();
     Rhs() *= -1.0;
@@ -189,7 +200,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     Solve();
     dz_1 = Solution();
     
+#ifndef CheapNONM_Q
     Solver().UpdateFrom(inv_j_x);
+#endif
     Rhs() = r_z;
     Solve();
     
@@ -200,6 +213,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     m_X_n = x_k_new;
 
 }
+
+#define NMO9_Q
 
 void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
@@ -219,7 +234,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
 
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i >= 1 ) {
+        if (i >= 5 ) {
             this->ExecuteNinthOrderNewtonInteration(norm_dx);
         }
         else{
@@ -250,7 +265,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
 
         if (residual_stop_criterion_Q /*&& correction_stop_criterion_Q */) {
 #ifdef PZDEBUG
-            std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
+//            std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
 #endif

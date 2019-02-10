@@ -65,7 +65,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
         case ELU:
         {
             
-#ifdef USING_MKL
+#ifdef USING_MKL2
             TPZSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -130,6 +130,8 @@ void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     Solve();
 }
 
+#define CheapNONM_Q
+
 void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
     TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
@@ -141,8 +143,9 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
     
+#ifndef    CheapNONM_Q
     TPZAutoPointer<TPZMatrix<REAL>> inv_j_x = Solver().Matrix()->Clone();
-    
+#endif
 
     TPZFMatrix<STATE> dx,dyx;
     dx = Solution();
@@ -151,12 +154,20 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     LoadSolution(y);
     LoadMemorySolution();
     
+#ifndef    CheapNONM_Q
     Assemble();
+#else
+    AssembleResidual();
+#endif
+    
     TPZFMatrix<REAL> r_y = Rhs();
     Rhs() = r_x;
     Solve();
     dyx = Solution();
+    
+#ifndef    CheapNONM_Q
     TPZAutoPointer<TPZMatrix<REAL>> inv_j_y = Solver().Matrix()->Clone();
+ #endif
     
     z = x_k + 0.5*(dyx + dx);
     m_X_n = z;
@@ -173,14 +184,19 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     Solve();
     TPZFMatrix<REAL> dz_1 = Solution();
     
+#ifndef    CheapNONM_Q
     Solver().UpdateFrom(inv_j_x);
+#endif
     Rhs() = r_z;
     Solve();
     
     TPZFMatrix<REAL> dz_2 = Solution();
     TPZFMatrix<REAL> z_k_new = z + 0.5*(dz_1 + dz_2);
     
+    
+#ifndef    CheapNONM_Q
     Solver().UpdateFrom(inv_j_y);
+#endif
     m_X_n = z_k_new;
     LoadSolution(z_k_new);
     LoadMemorySolution();
@@ -194,7 +210,9 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     Solve();
     dz_1 = Solution();
     
+#ifndef    CheapNONM_Q
     Solver().UpdateFrom(inv_j_x);
+#endif
     Rhs() = r_z;
     Solve();
     
@@ -207,9 +225,9 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
 }
 
 
-//#define NMO9_Q
+#define NMO9_Q
 
-void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
+bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     
     if (m_simulation_data->IsInitialStateQ()) {
         m_X = Solution();
@@ -229,7 +247,7 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i >= 1 ) {
+        if (i >= 5 ) {
             this->ExecuteNinthOrderNewtonInteration(norm_dx);
         }
         else{
@@ -249,10 +267,12 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
         
 #endif
         
-
-        
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
+        if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {
+            break;
+        }
+
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
         
@@ -272,8 +292,15 @@ void TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(){
     }
     
     if (residual_stop_criterion_Q == false) {
-        std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+        if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+            std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear need supstepping,  residue norm = " << norm_res << std::endl;
+        }else{
+            std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+        }
+        
     }
+    
+    return m_simulation_data->Get_must_use_sub_stepping_Q();
 }
 
 void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){

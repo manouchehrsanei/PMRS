@@ -338,7 +338,7 @@ void RuningGeomechanics(TPMRSSimulationData * sim_data){
     int n_time_steps = sim_data->ReportingTimes().size();
     std::string file_name("Geomechanic.vtk");
     for (int it = 0; it < n_time_steps; it++) {
-        analysis->ExecuteOneTimeStep();
+        analysis->ExecuteOneTimeStep(true);
         analysis->PostProcessTimeStep(file_name);
     }
 }

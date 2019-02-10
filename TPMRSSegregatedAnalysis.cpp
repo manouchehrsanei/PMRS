@@ -210,7 +210,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 //#define QNAcceleration_Q
 //#define AitkenAcceleration_Q
-#define GaussSeidelAcceleration_Q
+//#define GaussSeidelAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -242,28 +242,30 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     {
         
         TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
-        
+        TPZFMatrix<REAL> last_du = m_geomechanic_analysis->Solution();
         int n_level = 0;
+        bool enforced_execution_Q = false;
         int n_sub_steps = power(2,m_simulation_data->Get_n_sub_step_level());
         for (int i = 1; i <= n_sub_steps; i++) {
             REAL delta = 1.0/REAL(n_sub_steps);
             REAL alpha = delta*i;
             m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
             m_reservoir_analysis->LoadMemorySolution();
-            m_geomechanic_analysis->ExecuteOneTimeStep();
-            bool check_for_sub_stepping_Q = m_simulation_data->Get_must_use_sub_stepping_Q();
-            if (check_for_sub_stepping_Q) {
+            bool check_for_sub_stepping_Q = m_geomechanic_analysis->ExecuteOneTimeStep(enforced_execution_Q);
+            if (check_for_sub_stepping_Q && !enforced_execution_Q) {
                 n_level++;
                 m_simulation_data->Set_n_sub_step_level(n_level);
                 n_sub_steps = power(2,n_level);
-                if (n_level > 7) {
-                    n_sub_steps = 200;
+                if (n_level > 4) {
+                    n_sub_steps = 32;
                     std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
                     std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
                     std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
+                    enforced_execution_Q = true;
                 }
                 /// It is required to restart the simulation
                 i = 1;
+                m_geomechanic_analysis->LoadSolution(last_du);
                 m_simulation_data->Set_must_use_sub_stepping_Q(false);
                 std::cout << "TPMRSSegregatedAnalysis:: Increase the level for substepping = " << n_level << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
@@ -441,35 +443,14 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
 
 void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
  
-    /// https://arxiv.org/pdf/1310.4288.pdf
-    if (k>2) {
-        m_xp_m = m_reservoir_analysis->X_n();
-        REAL e_k_m_1 = Norm(m_xp_m-m_xp_m_1);
-        REAL e_k = Norm(m_xp_m_1-m_xp_m_2);
-        REAL lambda = e_k_m_1/e_k;
-        REAL factor = 1.0/(1.0-lambda);
-        m_reservoir_analysis->X_n() = m_xp_m_2 + factor*(m_xp_m_1-m_xp_m_2);
-        m_reservoir_analysis->LoadMemorySolution();
-
-        m_xp_m_2 = m_xp_m_1;
-        m_xp_m_1 = m_xp_m;
-    }else if(k==1){
-        m_xp_m_1 = m_reservoir_analysis->X_n();
-    }else if(k==2){
-        m_xp_m_2 = m_reservoir_analysis->X_n();
-    }
-    
-//    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
+//    /// https://arxiv.org/pdf/1310.4288.pdf
 //    if (k>2) {
 //        m_xp_m = m_reservoir_analysis->X_n();
-//
-//        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
-//        int n_dof = x_k.Rows();
-//        for (int i = 0; i < n_dof; i++) {
-//            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
-//        }
-//
-//        m_reservoir_analysis->X_n() = x_k;
+//        REAL e_k_m_1 = Norm(m_xp_m-m_xp_m_1);
+//        REAL e_k = Norm(m_xp_m_1-m_xp_m_2);
+//        REAL lambda = e_k_m_1/e_k;
+//        REAL factor = 1.0/(1.0-lambda);
+//        m_reservoir_analysis->X_n() = m_xp_m_2 + factor*(m_xp_m_1-m_xp_m_2);
 //        m_reservoir_analysis->LoadMemorySolution();
 //
 //        m_xp_m_2 = m_xp_m_1;
@@ -479,6 +460,27 @@ void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
 //    }else if(k==2){
 //        m_xp_m_2 = m_reservoir_analysis->X_n();
 //    }
+    
+    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
+    if (k>2) {
+        m_xp_m = m_reservoir_analysis->X_n();
+
+        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
+        int n_dof = x_k.Rows();
+        for (int i = 0; i < n_dof; i++) {
+            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
+        }
+
+        m_reservoir_analysis->X_n() = x_k;
+        m_reservoir_analysis->LoadMemorySolution();
+
+        m_xp_m_2 = m_xp_m_1;
+        m_xp_m_1 = m_xp_m;
+    }else if(k==1){
+        m_xp_m_1 = m_reservoir_analysis->X_n();
+    }else if(k==2){
+        m_xp_m_2 = m_reservoir_analysis->X_n();
+    }
     
     
 }
