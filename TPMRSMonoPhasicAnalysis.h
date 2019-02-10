@@ -75,6 +75,9 @@ public:
     /// Execute a single newton iteration
     void ExecuteNewtonInteration();
     
+    /// Execute a ninth order newton iteration
+    void ExecuteNinthOrderNewtonInteration(REAL & norm_dx);
+    
     /// Execute the evolution for a single time step
     void ExecuteOneTimeStep();
     

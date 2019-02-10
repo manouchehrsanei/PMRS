@@ -119,12 +119,86 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
+
     Assemble();
 //    Solver().Matrix()->Print("j = ",std::cout, EMathematicaInput);
     Rhs() *= -1.0;
 //    Rhs().Print("r = ",std::cout, EMathematicaInput);
     Solve();
 //    Solution().Print("dp = ",std::cout,EMathematicaInput);
+}
+
+#define NMO9_Q
+
+void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
+    
+    Assemble();
+    TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_x = Rhs();
+    Solve();
+    
+    TPZAutoPointer<TPZMatrix<REAL>> inv_j_x = Solver().Matrix()->Clone();
+    
+    TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
+    x_k = m_X_n;
+    TPZFMatrix<STATE> dx,dyx;
+    dx = Solution();
+    y = x_k + dx;
+    m_X_n = y;
+    LoadMemorySolution();
+    
+    Assemble();
+    TPZFMatrix<REAL> r_y = Rhs();
+    Rhs() = r_x;
+    Solve();
+    dyx = Solution();
+    TPZAutoPointer<TPZMatrix<REAL>> inv_j_y = Solver().Matrix()->Clone();
+    
+    z = x_k + 0.5*(dyx + dx);
+    m_X_n = z;
+    LoadMemorySolution();
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_z = Rhs();
+    Solve();
+    
+    TPZFMatrix<REAL> temp_y = Solution();
+    TPZFMatrix<REAL> temp_yy;
+    j_x->Multiply(temp_y, temp_yy);
+    Rhs() = temp_yy;
+    Solve();
+    TPZFMatrix<REAL> dz_1 = Solution();
+    
+    Solver().UpdateFrom(inv_j_x);
+    Rhs() = r_z;
+    Solve();
+    
+    TPZFMatrix<REAL> dz_2 = Solution();
+    TPZFMatrix<REAL> z_k_new = z + 0.5*(dz_1 + dz_2);
+
+    Solver().UpdateFrom(inv_j_y);
+    m_X_n = z_k_new;
+    LoadMemorySolution();
+    Rhs() *= -1.0;
+    r_z = Rhs();
+    Solve();
+    
+    temp_y = Solution();
+    j_x->Multiply(temp_y, temp_yy);
+    Rhs() = temp_yy;
+    Solve();
+    dz_1 = Solution();
+    
+    Solver().UpdateFrom(inv_j_x);
+    Rhs() = r_z;
+    Solve();
+    
+    dz_2 = Solution();
+    
+    x_k_new = z_k_new + 0.5*(dz_1 + dz_2);
+    norm_dx = Norm(x_k_new - x_k);
+    m_X_n = x_k_new;
+
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
@@ -142,10 +216,16 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
+
+#ifdef NMO9_Q3
+        this->ExecuteNinthOrderNewtonInteration(norm_dx);
+#else
         this->ExecuteNewtonInteration();
         dx = Solution();
         norm_dx  = Norm(dx);
         m_X_n += dx;
+#endif
+
         
         LoadMemorySolution();
         norm_res = Norm(Rhs());
