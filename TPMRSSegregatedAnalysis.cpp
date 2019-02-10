@@ -247,7 +247,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    if(0){
+    if(1){
         
         TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
         
@@ -287,7 +287,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         }
         
         if(n_sub_steps > 1){
-            std::cout << "TPMRSSegregatedAnalysis:: Geomechanics solve with level of substepping = " << n_level << std::endl;
+            std::cout << "TPMRSSegregatedAnalysis:: Geomechanics solved with level of substepping = " << n_level << std::endl;
             std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
             std::cout << std::endl;
             std::cout << std::endl;
