@@ -209,11 +209,9 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-//#define AitkenAcceleration_Q
+#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
-    
-    
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
@@ -234,20 +232,17 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 
 #endif
     
-#ifdef AitkenAcceleration_Q
-    AitkenAccelerationRes(k);
-#endif
+
     
-#ifdef QNAcceleration_Q
-    QNAccelerationRes(k);
-#endif
+
 
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    if(1){
+//    if(1)
+    {
         
         TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
         
@@ -264,8 +259,8 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
                 n_level++;
                 m_simulation_data->Set_n_sub_step_level(n_level);
                 n_sub_steps = power(2,n_level);
-                if (n_level > 5) {
-                    n_sub_steps = 50;
+                if (n_level > 7) {
+                    n_sub_steps = 200;
                     std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
                     std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
                     std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
@@ -296,9 +291,9 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         m_simulation_data->Set_must_use_sub_stepping_Q(false);
         m_simulation_data->Set_n_sub_step_level(0);
     }
-    else{
-        m_geomechanic_analysis->ExecuteOneTimeStep();
-    }
+//    else{
+//        m_geomechanic_analysis->ExecuteOneTimeStep();
+//    }
     
     
 #ifdef USING_BOOST
@@ -316,9 +311,17 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 #ifdef AitkenAcceleration_Q
     AitkenAccelerationGeo(k);
 #endif
+    
+#ifdef AitkenAcceleration_Q
+    AitkenAccelerationRes(k);
+#endif
 
 #ifdef QNAcceleration_Q
     QNAccelerationGeo(k);
+#endif
+    
+#ifdef QNAcceleration_Q
+    QNAccelerationRes(k);
 #endif
     
 }
@@ -326,12 +329,12 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 void TPMRSSegregatedAnalysis::QNAccelerationRes(int k){
     if (k>1) {
         m_xp_m = m_reservoir_analysis->Rhs();
-        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
+        m_reservoir_analysis->Rhs() = m_xp_m_1-m_xp_m;
         m_reservoir_analysis->Solve();
         TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
 //                m_reservoir_analysis->X_n().Print("p = ", std::cout);
 //                dp.Print("dp = ", std::cout);
-        m_reservoir_analysis->Solution() = m_reservoir_analysis->X_n() + dp;
+        m_reservoir_analysis->X_n() += dp;
 //                m_reservoir_analysis->Solution().Print("p = ", std::cout);
         m_reservoir_analysis->LoadMemorySolution();
         m_xp_m_1 = m_reservoir_analysis->Rhs();
@@ -345,7 +348,7 @@ void TPMRSSegregatedAnalysis::QNAccelerationGeo(int k){
     if (k>1) {
         TPZFMatrix<REAL> du = m_geomechanic_analysis->Solution();
         m_xu_m = m_geomechanic_analysis->Rhs();
-        m_geomechanic_analysis->Rhs() = m_xu_m - m_xu_m_1;
+        m_geomechanic_analysis->Rhs() = m_xu_m_1-m_xu_m;
         m_geomechanic_analysis->Solve();
         TPZFMatrix<REAL> delta_du = m_geomechanic_analysis->Solution();
         m_geomechanic_analysis->Solution() = du + delta_du;
@@ -381,9 +384,9 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
         m_xp_m_2 = m_xp_m_1;
         m_xp_m_1 = m_xp_m;
         //        m_reservoir_analysis->X_n().Print("p new = ", std::cout);
-    }else if(k>1){
+    }else if(k==1){
         m_xp_m_1 = m_reservoir_analysis->X_n();
-    }else{
+    }else if(k==2){
         m_xp_m_2 = m_reservoir_analysis->X_n();
     }
     
@@ -412,9 +415,9 @@ void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
         m_xu_m_2 = m_xu_m_1;
         m_xu_m_1 = m_xu_m;
 //        m_geomechanic_analysis->Solution().Print("u new = ", std::cout);
-    }else if(k>1){
+    }else if(k==1){
         m_xu_m_1 = m_geomechanic_analysis->Solution();
-    }else{
+    }else if(k==2){
         m_xu_m_2 = m_geomechanic_analysis->Solution();
     }
 }
@@ -463,7 +466,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
-    for (int it = 0; it <= n_time_steps; it++) {
+    for (int it = 0; it < n_time_steps; it++) {
         time_value = dt * (it+1);
         
         for (int k = 1; k <= n_max_fss_iterations; k++) {
@@ -866,9 +869,9 @@ void TPMRSSegregatedAnalysis::SetSimulationData(TPMRSSimulationData * simulation
 
 void TPMRSSegregatedAnalysis::ConfigurateHistorySummaries(){
     int n_time_steps = m_simulation_data->ReportingTimes().size();
-    m_iterations_summary.Resize(n_time_steps+1, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
-    m_cpu_time_summary.Resize(n_time_steps+1, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
-    m_residuals_summary.Resize(n_time_steps+1, 4); // (time,res_resdials,geo_resdials,fss_corrections)
+    m_iterations_summary.Resize(n_time_steps, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
+    m_cpu_time_summary.Resize(n_time_steps, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
+    m_residuals_summary.Resize(n_time_steps, 4); // (time,res_resdials,geo_resdials,fss_corrections)
     
     m_iterations_summary.Zero();
     m_cpu_time_summary.Zero();
