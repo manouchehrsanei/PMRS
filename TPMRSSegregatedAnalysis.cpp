@@ -208,8 +208,8 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
-//#define QNAcceleration_Q
-#define AitkenAcceleration_Q
+#define QNAcceleration_Q
+//#define AitkenAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -231,9 +231,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,1) += res_solving_time;
 
 #endif
-    
-
-    
 
 
     
@@ -315,49 +312,60 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 #ifdef AitkenAcceleration_Q
     AitkenAccelerationRes(k);
 #endif
+    
+#ifdef QNAcceleration_Q
+    QNAccelerationRes(k);
+#endif
 
 #ifdef QNAcceleration_Q
     QNAccelerationGeo(k);
 #endif
     
-#ifdef QNAcceleration_Q
-    QNAccelerationRes(k);
-#endif
+
     
 }
 
 void TPMRSSegregatedAnalysis::QNAccelerationRes(int k){
     if (k>1) {
+
         m_xp_m = m_reservoir_analysis->Rhs();
-        m_reservoir_analysis->Rhs() = m_xp_m_1-m_xp_m;
+        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
         m_reservoir_analysis->Solve();
         TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
-//                m_reservoir_analysis->X_n().Print("p = ", std::cout);
-//                dp.Print("dp = ", std::cout);
-        m_reservoir_analysis->X_n() += dp;
-//                m_reservoir_analysis->Solution().Print("p = ", std::cout);
+//        m_reservoir_analysis->X_n().Print("pb = ", std::cout,EMathematicaInput);
+//        dp.Print("dp = ", std::cout,EMathematicaInput);
+        REAL norm = Norm(m_xp_m_2-m_reservoir_analysis->X_n());///Norm(m_xp_m_2);
+//        norm=max(norm, 0.5);
+        m_reservoir_analysis->X_n() += norm*dp;
+//        m_reservoir_analysis->X_n().Print("pa = ", std::cout,EMathematicaInput);
         m_reservoir_analysis->LoadMemorySolution();
         m_xp_m_1 = m_reservoir_analysis->Rhs();
+        m_xp_m_2 = m_reservoir_analysis->X_n();
         
     }else{
         m_xp_m_1 = m_reservoir_analysis->Rhs();
+        m_xp_m_2 = m_reservoir_analysis->X_n();
     }
 }
 
 void TPMRSSegregatedAnalysis::QNAccelerationGeo(int k){
     if (k>1) {
         TPZFMatrix<REAL> du = m_geomechanic_analysis->Solution();
+        REAL norm = Norm(m_xu_m_2-m_geomechanic_analysis->Solution());///Norm(m_geomechanic_analysis->Solution());
+//        norm=max(norm, 0.25);
         m_xu_m = m_geomechanic_analysis->Rhs();
-        m_geomechanic_analysis->Rhs() = m_xu_m_1-m_xu_m;
+        m_geomechanic_analysis->Rhs() = m_xu_m-m_xu_m_1;
         m_geomechanic_analysis->Solve();
         TPZFMatrix<REAL> delta_du = m_geomechanic_analysis->Solution();
-        m_geomechanic_analysis->Solution() = du + delta_du;
+        m_geomechanic_analysis->Solution() = du + norm*delta_du;
         m_geomechanic_analysis->LoadSolution(m_geomechanic_analysis->Solution());
         m_geomechanic_analysis->LoadMemorySolution();
         m_xu_m_1 = m_geomechanic_analysis->Rhs();
+        m_xu_m_2 = m_geomechanic_analysis->Solution();
         
     }else{
         m_xu_m_1 = m_geomechanic_analysis->Rhs();
+        m_xu_m_2 = m_geomechanic_analysis->Solution();
     }
 }
 
@@ -495,8 +503,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_residuals_summary(it,0) = time_value;
             m_residuals_summary(it,1) += m_reservoir_analysis->Get_error();
             m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
-            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m);
-            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m);
+            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m);///Norm(m_reservoir_analysis->X_n());
+            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m);///Norm(m_geomechanic_analysis->Solution());
             m_p_m = m_reservoir_analysis->X_n();
             m_u_m = m_geomechanic_analysis->Solution();
             m_residuals_summary(it,3) = fss_dp_norm + fss_du_norm;

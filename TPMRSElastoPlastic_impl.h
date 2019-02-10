@@ -1188,7 +1188,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             
             { ///  Check for the need of substeps
                 REAL norm = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p - this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_p).Norm();
-                if (norm >= 0.001) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
+                if (norm >= 0.01) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
                     m_simulation_data->Set_must_use_sub_stepping_Q(true);
                 }
             }
