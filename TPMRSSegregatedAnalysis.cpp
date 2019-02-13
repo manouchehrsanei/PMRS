@@ -210,7 +210,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 //#define QNAcceleration_Q
 //#define AitkenAcceleration_Q
-#define GaussSeidelAcceleration_Q
+//#define GaussSeidelAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
@@ -1027,6 +1027,12 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             f_vec_0[2] = f_0;
             memory_vector.get()->operator [](i).Setf(f_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
             memory_vector.get()->operator [](i).Setf_vec(f_vec_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            
+            REAL geo_delta_phi_0 = 0.0;
+            memory_vector.get()->operator [](i).Setdelta_phi(geo_delta_phi_0);
+            
+            REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
+            memory_vector.get()->operator [](i).Setphi_n(phi_0);
             
             /// Cleaning u
             memory_vector.get()->operator [](i).Setu_0(u_null);

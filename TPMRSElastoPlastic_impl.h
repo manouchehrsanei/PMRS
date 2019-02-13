@@ -304,11 +304,14 @@ void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> 
     
     int gp_index = data.intGlobPtIndex;
     TPZTensor<REAL> last_epsilon;
+    // Applying prestress
+    TPZTensor<REAL> epsilon_t_0 = this->MemItem(gp_index).GetPlasticState_0().m_eps_t;
     if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
         last_epsilon = this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_t;
     }else{
         last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
     }
+    last_epsilon -= epsilon_t_0;
     TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u, grad_delta_u_t;
     TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
     TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);
@@ -474,11 +477,6 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     
     Epsilon(data,epsilon);
     Sigma(data, epsilon, sigma, &De);
-    
-    // Applying prestress
-    int gp_index = data.intGlobPtIndex;
-    TPZTensor<REAL> sigma_0 = this->MemItem(gp_index).GetSigma_0();
-    sigma -= sigma_0;
     
     TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;
@@ -1193,7 +1191,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             
             { ///  Check for the need of substeps
                 REAL norm = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p - this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_p).Norm();
-                if (norm >= 0.01) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
+                if (norm >= 0.001) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
                     m_simulation_data->Set_must_use_sub_stepping_Q(true);
                 }
             }
