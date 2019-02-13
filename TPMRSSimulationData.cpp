@@ -884,7 +884,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         
         char_container = container->Attribute("type");
         std::string condition(char_container);
-        chunk_geo = m_condition_type_to_index_value_names_res.find(condition);
+        chunk_res = m_condition_type_to_index_value_names_res.find(condition);
         
         bool bc_condition_not_available_Q = chunk_geo == m_condition_type_to_index_value_names_res.end();
         if (bc_condition_not_available_Q)

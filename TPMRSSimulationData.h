@@ -340,7 +340,10 @@ public:
         return m_reporting_times;
     }
     
-    /// Time step size
+    /// Set time step size
+    void Setdt(REAL & dt) { m_dt = dt; }
+    
+    /// Get time step size
     REAL dt() { return m_dt; }
     
     /// Set the current time value

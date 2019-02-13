@@ -51,13 +51,21 @@ TPMRSInterpolator::~TPMRSInterpolator(){
 
 std::vector<REAL> TPMRSInterpolator::f(REAL time){
     
+    std::vector<REAL> f_values(m_n_f_data);
+    if (m_n_time_data == 1) { // Constant values.
+        for (int i = 0; i < m_n_f_data; i++) {
+            f_values[i] =  m_points[0].second[i];
+        }
+        return f_values;
+    }
+    
     /// Add corresponging controls
     /// lower and upper bounds
     int t_interval = -1;
     for (int t = 0; t < m_n_time_data - 1; t++) {
         REAL t_i = m_points[t].first;
         REAL t_e = m_points[t+1].first;
-        if (t_i < time && time < t_e) {
+        if (t_i <= time && time <= t_e) {
             t_interval = t;
             break;
         }
@@ -70,7 +78,6 @@ std::vector<REAL> TPMRSInterpolator::f(REAL time){
     
     REAL t_i = m_points[t_interval].first;
     REAL t_e = m_points[t_interval+1].first;
-    std::vector<REAL> f_values(m_n_f_data);
     for (int i = 0; i < m_n_f_data; i++) {
         REAL f_i = m_points[t_interval].second[i];
         REAL f_e = m_points[t_interval+1].second[i];

@@ -514,7 +514,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
-    REAL time_value;
+    REAL time_value = dt;
+    
+    ConfigureGeomechanicsBC(time_value);
+    ConfigureReservoirBC(time_value);
     
 #ifdef QNAcceleration_Q
     /// Loading initial data
@@ -588,7 +591,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 
                 this->PostProcessTimeStep(file_geo, file_res);
                 /// Interpolate BC data.
-                
+                ConfigureGeomechanicsBC(time_value);
+                ConfigureReservoirBC(time_value);
                 
 #ifdef EC_Q
                 /// Enhance pressure
@@ -659,9 +663,8 @@ void TPMRSSegregatedAnalysis::UpdateState(){
     
 }
 
-void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
+void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialConditionsQ){
     
-#ifdef BS
     TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
     if (!cmesh)
     {
@@ -673,7 +676,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
     
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
@@ -701,9 +704,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
                 E = poroperm_pars[0];
                 nu = poroperm_pars[1];
             }
-            
-//            /// Updating bulk modulus for porosity model
-//            std::get<2>(m_simulation_data->MaterialProps()[iregion]).SetBulkModulus(E, nu);
+
             
             TPZElasticResponse ER;
             ER.SetEngineeringData(E, nu);
@@ -801,8 +802,8 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             int bc_id = material_ids[iregion].second.first [ibc];
             
             if (IsInitialConditionsQ) {
-                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeGeomechanicsUndrained().find(bc_id);
-                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesGeomechanicsUndrained().find(bc_id);
+                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeGeomechanicsInitial().find(bc_id);
+                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesGeomechanicsInitial().find(bc_id);
             }else{
                 it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeGeomechanics().find(bc_id);
                 it_bc_id_to_values = m_simulation_data->BCIdToBCValuesGeomechanics().find(bc_id);
@@ -812,7 +813,7 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             it_condition_type_to_index_value_names = m_simulation_data->ConditionTypeToBCIndexGeomechanics().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_bc_id_to_values->second.size();
+            int n_bc_values = it_bc_id_to_values->second.n_functions();
         
             TPZMaterial * bc_mat = cmesh->FindMaterial(bc_id);
             if (!bc_mat) {
@@ -824,15 +825,74 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             }
             
             bc->SetType(bc_index);
+            std::vector<REAL> f_values = it_bc_id_to_values->second.f(t);
             for (int i = 0; i < n_bc_values; i++) {
-                REAL value = it_bc_id_to_values->second[i];
+                REAL value = f_values[i];
                 bc->Val2()(i,0) = value;
             }
         }
     }
-#endif
     
 }
+
+void TPMRSSegregatedAnalysis::ConfigureReservoirBC(REAL t, bool IsInitialConditionsQ){
+ 
+    TPZCompMesh * cmesh = m_reservoir_analysis->Mesh();
+    if (!cmesh)
+    {
+        DebugStop();
+    }
+    
+    int n_regions = m_simulation_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
+    
+    std::map<int, std::string>::iterator it_bc_id_to_type;
+    std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
+    
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        /// Inserting boundary conditions
+        int n_bc = material_ids[iregion].second.first.size();
+        for (int ibc = 0; ibc < n_bc; ibc++)
+        {
+            int bc_id = material_ids[iregion].second.first [ibc];
+            
+            if (IsInitialConditionsQ) {
+                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeReservoirInitial().find(bc_id);
+                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesReservoirInitial().find(bc_id);
+            }else{
+                it_bc_id_to_type = m_simulation_data->BCIdToConditionTypeReservoir().find(bc_id);
+                it_bc_id_to_values = m_simulation_data->BCIdToBCValuesReservoir().find(bc_id);
+            }
+            
+            
+            it_condition_type_to_index_value_names = m_simulation_data->ConditionTypeToBCIndexReservoir().find(it_bc_id_to_type->second);
+            
+            int bc_index = it_condition_type_to_index_value_names->second.first;
+            int n_bc_values = it_bc_id_to_values->second.n_functions();
+            
+            TPZMaterial * bc_mat = cmesh->FindMaterial(bc_id);
+            if (!bc_mat) {
+                DebugStop();
+            }
+            TPZBndCond * bc = dynamic_cast<TPZBndCond *>(bc_mat);
+            if (!bc) {
+                DebugStop();
+            }
+            
+            bc->SetType(bc_index);
+            std::vector<REAL> f_values = it_bc_id_to_values->second.f(t);
+            for (int i = 0; i < n_bc_values; i++) {
+                REAL value = f_values[i];
+                bc->Val2()(i,0) = value;
+            }
+        }
+    }
+    
+}
+
+//#define Old_version_Q
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::cout << std::endl;
@@ -840,12 +900,39 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::string name = m_simulation_data->name_vtk_file();
     std::string file_geo = name + "_geo.vtk";
     std::string file_res = name + "_res.vtk";
+    
+#ifdef Old_version_Q
     m_geomechanic_analysis->ExecuteUndrainedResponseStep();
     m_geomechanic_analysis->UpdateState();
-    this->UpdateInitialSigmaAndPressure();
+    UpdateInitialSigmaAndPressure();
     m_reservoir_analysis->ExecuteUndrainedResponseStep();
     m_reservoir_analysis->PostProcessTimeStep(file_res);
     m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+#else
+    REAL dt = m_simulation_data->dt();
+    REAL dt_large = 1.0e10;
+    m_simulation_data->Setdt(dt_large);
+    
+    /// Initial reservoir state
+    m_reservoir_analysis->ExecuteOneTimeStep();
+    m_reservoir_analysis->UpdateState();
+    m_simulation_data->SetTransferCurrentToLastQ(true);
+    m_reservoir_analysis->UpdateState();
+    m_simulation_data->SetTransferCurrentToLastQ(false);
+    
+    /// Compute stress state corresponding to reservoir state
+    m_geomechanic_analysis->ExecuteOneTimeStep(true);
+    m_geomechanic_analysis->UpdateState();
+    m_simulation_data->SetTransferCurrentToLastQ(true);
+    m_geomechanic_analysis->UpdateState();
+    m_simulation_data->SetTransferCurrentToLastQ(false);
+    
+    UpdateInitialSigmaAndPressure();
+    m_reservoir_analysis->PostProcessTimeStep(file_res);
+    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    m_simulation_data->Setdt(dt);
+#endif
+    
     /// Clean state variables
     m_geomechanic_analysis->Solution().Zero();
     m_geomechanic_analysis->X_n().Zero();
@@ -891,6 +978,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
             
+#ifdef Old_version_Q
             /// Because we reused the same memory items
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             REAL alpha = memory_vector.get()->operator [](i).Alpha();
@@ -926,6 +1014,39 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
             memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
+            
+#else
+            REAL p_0 = memory_vector.get()->operator [](i).p_n();
+            memory_vector.get()->operator [](i).Setp_0(p_0);
+            memory_vector.get()->operator [](i).Setp(p_0);
+            
+            REAL f_0 = 0.0;
+            TPZManVector<REAL,3> f_vec_0(3);
+            f_vec_0[0] = f_0;
+            f_vec_0[1] = f_0;
+            f_vec_0[2] = f_0;
+            memory_vector.get()->operator [](i).Setf(f_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            memory_vector.get()->operator [](i).Setf_vec(f_vec_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            
+            /// Cleaning u
+            memory_vector.get()->operator [](i).Setu_0(u_null);
+            memory_vector.get()->operator [](i).Setu(u_null);
+            memory_vector.get()->operator [](i).Setu_n(u_null);
+            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+            
+            TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
+            memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
+            memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
+            
+            TPZPlasticState<REAL> plas_state_0 = memory_vector.get()->operator [](i).GetPlasticState_n();
+            memory_vector.get()->operator [](i).SetPlasticState_0(plas_state_0);
+            memory_vector.get()->operator [](i).SetPlasticState(plas_state_0);
+            
+            memory_vector.get()->operator [](i).SetPlasticStateSubStep(plas_state_0);
+            
+            
+#endif
+            
         }
         
     }

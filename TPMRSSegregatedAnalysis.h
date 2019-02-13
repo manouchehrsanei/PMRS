@@ -108,7 +108,10 @@ public:
     void UpdateInitialSigmaAndPressure();
     
     /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
-    void ConfigurateBConditions(bool IsInitialConditionsQ);
+    void ConfigureGeomechanicsBC(REAL t, bool IsInitialConditionsQ = false);
+    
+    /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
+    void ConfigureReservoirBC(REAL t, bool IsInitialConditionsQ = false);
     
     /// Execute initial problem
     void ExecuteStaticSolution();

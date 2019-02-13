@@ -475,6 +475,11 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     Epsilon(data,epsilon);
     Sigma(data, epsilon, sigma, &De);
     
+    // Applying prestress
+    int gp_index = data.intGlobPtIndex;
+    TPZTensor<REAL> sigma_0 = this->MemItem(gp_index).GetSigma_0();
+    sigma -= sigma_0;
+    
     TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;
     
