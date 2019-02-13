@@ -210,7 +210,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 //#define QNAcceleration_Q
 //#define AitkenAcceleration_Q
-//#define GaussSeidelAcceleration_Q
+#define GaussSeidelAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
