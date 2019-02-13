@@ -29,6 +29,7 @@
 #include "TPMRSPhiParameters.h"
 #include "TPMRSKappaParameters.h"
 #include "TPMRSPlasticityParameters.h"
+#include "TPMRSInterpolator.h"
 
 
 class TPMRSSimulationData
@@ -145,7 +146,7 @@ protected:
     bool m_is_crank_nicolson_Q;
         
     /// Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided (initial)
-    std::map<int, std::vector<REAL> > m_bc_id_to_values_geo_initial;
+    std::map<int, TPMRSInterpolator > m_bc_id_to_values_geo_initial;
     
     /// Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator (initial)
     std::map<int, std::string> m_bc_id_to_type_geo_initial;
@@ -154,7 +155,7 @@ protected:
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_geo;
     
     /// Map that storage the boundary condition of Geomechanic Simulator identifier with the numerical values provided
-    std::map<int, std::map<REAL,std::vector<REAL> > > m_bc_id_to_values_geo;
+    std::map<int, TPMRSInterpolator > m_bc_id_to_values_geo;
     
     /// Map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> m_bc_id_to_type_geo;
@@ -163,13 +164,13 @@ protected:
     std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_res;
     
     /// Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided (initial)
-    std::map<int, std::vector<REAL> > m_bc_id_to_values_res_initial;
+    std::map<int, TPMRSInterpolator > m_bc_id_to_values_res_initial;
     
     /// Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator (initial)
     std::map<int, std::string> m_bc_id_to_type_res_initial;
     
     /// Map that storage the boundary condition of Reservoir Simulator identifier with the numerical values provided
-    std::map<int, std::vector<REAL> > m_bc_id_to_values_res;
+    std::map<int, TPMRSInterpolator > m_bc_id_to_values_res;
     
     /// Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
     std::map<int, std::string> m_bc_id_to_type_res;
@@ -442,25 +443,31 @@ public:
     void PrintGeometry();
     
     /// Get the map that storage all the boundary conditions of Reservoir Simulator supported
-    std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexReservoirs() { return m_condition_type_to_index_value_names_res; }
+    std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexReservoir() { return m_condition_type_to_index_value_names_res; }
     
     /// Get the map that storage the type of boundary condition of Reservoir Simulator with the numerical values provided
-    std::map< int , std::vector<REAL> > & BCIdToBCValuesReservoirs() { return m_bc_id_to_values_res; }
+    std::map< int , TPMRSInterpolator > & BCIdToBCValuesReservoir() { return m_bc_id_to_values_res; }
     
     /// Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
-    std::map<int, std::string> & BCIdToConditionTypeReservoirs() { return m_bc_id_to_type_res; }
+    std::map<int, std::string> & BCIdToConditionTypeReservoir() { return m_bc_id_to_type_res; }
     
     /// Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided (initial)
-    std::map< int , std::vector<REAL> > & BCIdToBCValuesGeomechanicsUndrained() { return m_bc_id_to_values_geo_initial; }
+    std::map< int , TPMRSInterpolator > & BCIdToBCValuesGeomechanicsInitial() { return m_bc_id_to_values_geo_initial; }
     
     /// Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator (initial)
-    std::map<int, std::string> & BCIdToConditionTypeGeomechanicsUndrained() { return m_bc_id_to_type_geo_initial; }
+    std::map<int, std::string> & BCIdToConditionTypeGeomechanicsInitial() { return m_bc_id_to_type_geo_initial; }
+    
+    /// Get the map that storage the type of boundary condition of Reservoir Simulator with the numerical values provided
+    std::map< int , TPMRSInterpolator > & BCIdToBCValuesReservoirInitial() { return m_bc_id_to_values_res_initial; }
+    
+    /// Get the map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
+    std::map<int, std::string> & BCIdToConditionTypeReservoirInitial() { return m_bc_id_to_type_res_initial; }
     
     /// Get the map that storage all the boundary conditions of Geomechanic Simulator supported
     std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexGeomechanics() { return m_condition_type_to_index_value_names_geo; }
     
     /// Get the map that storage the type of boundary condition of Geomechanic Simulator with the numerical values provided
-    std::map< int , std::map<REAL,std::vector<REAL> > & BCIdToBCValuesGeomechanics() { return m_bc_id_to_values_geo; }
+    std::map<int, TPMRSInterpolator > & BCIdToBCValuesGeomechanics() { return m_bc_id_to_values_geo; }
     
     /// Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> & BCIdToConditionTypeGeomechanics() { return m_bc_id_to_type_geo; }

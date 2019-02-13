@@ -661,6 +661,7 @@ void TPMRSSegregatedAnalysis::UpdateState(){
 
 void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
     
+#ifdef BS
     TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
     if (!cmesh)
     {
@@ -829,6 +830,8 @@ void TPMRSSegregatedAnalysis::ConfigurateBConditions(bool IsInitialConditionsQ){
             }
         }
     }
+#endif
+    
 }
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){

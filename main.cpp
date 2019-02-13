@@ -355,7 +355,7 @@ TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data){
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
     
     for (int iregion = 0; iregion < n_regions; iregion++)
     {
@@ -374,10 +374,10 @@ TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data){
             it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexGeomechanics().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_bc_id_to_values->second.size();
+            int n_bc_values = it_bc_id_to_values->second.n_functions();
             TPZFMatrix<STATE> val1(0,0,0.), val2(dim,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
-                REAL value = it_bc_id_to_values->second[i];
+                REAL value = 0.0; // Values are currently interpolated using time functions
                 val2(i,0) = value;
             }
             
@@ -624,7 +624,7 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSS
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
     
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
@@ -639,14 +639,14 @@ TPZCompMesh * CMesh_Mixed(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSS
         {
             int bc_id = material_ids[iregion].second.second [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
-            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoirs().find(it_bc_id_to_type->second);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoir().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoir().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoir().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_bc_id_to_values->second.size();
+//            int n_bc_values = it_bc_id_to_values->second.n_functions();
             TPZFMatrix<STATE> val1(0,0,0.), val2(1,1,0.);
-            REAL value = it_bc_id_to_values->second[n_bc_values-1];
+            REAL value = 0; // Values are currently interpolated using time functions
             val2(0,0) = value;
             
             // Memory not used but is required for coherence with geomechanics integration points
@@ -689,7 +689,7 @@ TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data){
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
     
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
@@ -704,14 +704,14 @@ TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data){
         {
             int bc_id = material_ids[iregion].second.second [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
-            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoirs().find(it_bc_id_to_type->second);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoir().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoir().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoir().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_bc_id_to_values->second.size();
+            int n_bc_values = it_bc_id_to_values->second.n_functions();
             TPZFMatrix<STATE> val1(0,0,0.), val2(1,1,0.);
-            REAL value = it_bc_id_to_values->second[n_bc_values-1];
+            REAL value = 0; // Values are currently interpolated using time functions
             val2(0,0) = value;
             
             // Memory not used but is required for coherence with geomechanics integration points
@@ -875,7 +875,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     
     std::map<int, std::string>::iterator it_bc_id_to_type;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator  it_condition_type_to_index_value_names;
-    std::map<int , std::vector<REAL> >::iterator it_bc_id_to_values;
+    std::map<int , TPMRSInterpolator >::iterator it_bc_id_to_values;
     
     int n_regions = sim_data->NumberOfRegions();
     TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = sim_data->MaterialIds();
@@ -928,16 +928,16 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         {
             int bc_id = material_ids[iregion].second.first [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoirs().find(bc_id);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoir().find(bc_id);
             
-            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoirs().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoirs().find(it_bc_id_to_type->second);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoir().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoir().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
-            int n_bc_values = it_bc_id_to_values->second.size();
+            int n_bc_values = it_bc_id_to_values->second.n_functions();
             TPZFMatrix<STATE> val1(0,0,0.), val2(4,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
-                REAL value = it_bc_id_to_values->second[i];
+                REAL value = 0.0;// Values are currently interpolated using time functions
                 val2(i,0) = value;
             }
             

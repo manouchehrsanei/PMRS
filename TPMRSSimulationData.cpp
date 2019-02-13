@@ -689,21 +689,22 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     this->LoadBoundaryConditionsGeomechanics();
     
     std::pair<int, std::string > bc_id_to_type_chunk_geo;
-    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_geo;
+    std::pair<int , TPMRSInterpolator > bc_id_to_values_chunk_geo;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_geo;
     
     /// Intitial condition
+    TiXmlElement * sub_container_geo;
     container = doc_handler.FirstChild("CaseData").FirstChild("BCInitialGeomechanics").FirstChild("InitialGeomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
-        
+
         char_container = container->Attribute("bc_id");
         int bc_id = std::atoi(char_container);
-        
+
         char_container = container->Attribute("type");
         std::string condition(char_container);
         chunk_geo = m_condition_type_to_index_value_names_geo.find(condition);
-        
+
         bool bc_condition_not_available_Q = chunk_geo == m_condition_type_to_index_value_names_geo.end();
         if (bc_condition_not_available_Q)
         {
@@ -712,34 +713,75 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
             DebugStop();
         }
+
+        /// Association bc type with numerical values
+        bc_id_to_values_chunk_geo.first = bc_id;
+        bc_id_to_values_chunk_geo.second.Clear();
+        
+        char_container = container->Attribute("n_data");
+        if (!char_container)
+        {
+            std::cout << " The boundary " << condition << "  needs the number of data to be interporlated. " << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+            DebugStop();
+        }
+        int n_time_data = std::atoi(char_container);
+        std::vector<std::pair<REAL, std::vector<REAL>>> bc_points_geo(n_time_data);
         
         /// Association bc type with numerical values
         bc_id_to_values_chunk_geo.first = bc_id;
-        bc_id_to_values_chunk_geo.second.resize(0);
-        int n_data = chunk_geo->second.second.size();
-        for (int i = 0; i < n_data; i++)
+        bc_id_to_values_chunk_geo.second.Clear();
+        
+        sub_container_geo = container->FirstChild("Data")->ToElement();
+        int itime_data = 0;
+        for( ; sub_container_geo; sub_container_geo=sub_container_geo->NextSiblingElement())
         {
-            char_container = container->Attribute(chunk_geo->second.second[i].c_str());
+            char_container = sub_container_geo->Attribute("t");
             if (!char_container)
             {
-                std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
+                std::cout << " the boundary " << condition << "  needs the time value t ." << std::endl;
                 std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                 DebugStop();
             }
-            REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk_geo.second.push_back(bc_value);
+            REAL time_value = std::atoi(char_container);
+            
+            int n_data = chunk_geo->second.second.size();
+            bc_points_geo[itime_data].first = time_value;
+            bc_points_geo[itime_data].second.resize(n_data);
+            for (int i = 0; i < n_data; i++)
+            {
+                char_container = sub_container_geo->Attribute(chunk_geo->second.second[i].c_str());
+                if (!char_container)
+                {
+                    std::cout << " the boundary " << condition << "  needs the value " << chunk_geo->second.second[i] << std::endl;
+                    std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+                    DebugStop();
+                }
+                REAL bc_value = std::atof(char_container);
+                bc_points_geo[itime_data].second[i] = bc_value;
+            }
+            itime_data++;
         }
-        m_bc_id_to_values_geo_initial.insert(bc_id_to_values_chunk_geo);
         
+        if (itime_data != n_time_data) {
+            std::cout << " the boundary " << condition << " is not properly uploaded. " << std::endl;
+            std::cout << " It was provided n_time_data = " << n_time_data << std::endl;
+            std::cout << " It was uploaded this number of time data = " << itime_data << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+            DebugStop();
+        }
+        TPMRSInterpolator bc_interpolator_geo(bc_points_geo);
+        bc_id_to_values_chunk_geo.second = bc_interpolator_geo;
+        m_bc_id_to_values_geo_initial.insert(bc_id_to_values_chunk_geo);
+
         /// Association bc identifier with bc type
         bc_id_to_type_chunk_geo.first = bc_id;
         bc_id_to_type_chunk_geo.second = condition;
         m_bc_id_to_type_geo_initial.insert(bc_id_to_type_chunk_geo);
-        
+
     }
     
     /// Recurrent condition
-    TiXmlElement * sub_container_geo;
     container = doc_handler.FirstChild("CaseData").FirstChild("BCGeomechanics").FirstChild("Geomechanic").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
@@ -760,24 +802,24 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
+        char_container = container->Attribute("n_data");
+        if (!char_container)
+        {
+            std::cout << " The boundary " << condition << "  needs the number of data to be interporlated. " << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+            DebugStop();
+        }
+        int n_time_data = std::atoi(char_container);
+        std::vector<std::pair<REAL, std::vector<REAL>>> bc_points_geo(n_time_data);
+        
         /// Association bc type with numerical values
         bc_id_to_values_chunk_geo.first = bc_id;
-        bc_id_to_values_chunk_geo.second.resize(0);
-        int n_data = chunk_geo->second.second.size();
-        for (int i = 0; i < n_data; i++)
+        bc_id_to_values_chunk_geo.second.Clear();
+        
+        sub_container_geo = container->FirstChild("Data")->ToElement();
+        int itime_data = 0;
+        for( ; sub_container_geo; sub_container_geo=sub_container_geo->NextSiblingElement())
         {
-            char_container = container->Attribute("n_data");
-            if (!char_container)
-            {
-                std::cout << " The boundary " << condition << "  needs the number of data to be interporlated. " << std::endl;
-                std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
-                DebugStop();
-            }
-            int n_time_data = std::atoi(char_container);
-            sub_container_geo = container->FirstChild("Data")->ToElement();
-            int itime_data = 0;
-            for( ; sub_container_geo; sub_container_geo=sub_container_geo->NextSiblingElement())
-            {
                 char_container = sub_container_geo->Attribute("t");
                 if (!char_container)
                 {
@@ -785,7 +827,13 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                     std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                     DebugStop();
                 }
-                REAL time_value = std::atoi(char_container);
+            REAL time_value = std::atoi(char_container);
+                
+            int n_data = chunk_geo->second.second.size();
+            bc_points_geo[itime_data].first = time_value;
+            bc_points_geo[itime_data].second.resize(n_data);
+            for (int i = 0; i < n_data; i++)
+            {
                 char_container = sub_container_geo->Attribute(chunk_geo->second.second[i].c_str());
                 if (!char_container)
                 {
@@ -794,24 +842,20 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                     DebugStop();
                 }
                 REAL bc_value = std::atof(char_container);
-                
-                /// Insert in the undefined storage object ...
-                
-//                m_mat_ids[iregion].second.second[iboundary_r] = bc_id;
-                itime_data++;
+                bc_points_geo[itime_data].second[i] = bc_value;
             }
-            
-            if (itime_data != n_time_data) {
-                std::cout << " the boundary " << condition << " is not properly uploaded. " << std::endl;
-                std::cout << " It was provided n_time_data = " << n_time_data << std::endl;
-                std::cout << " It was uploaded this number of time data = " << itime_data << std::endl;
-                std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
-                DebugStop();
-            }
-
-            REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk_geo.second.push_back(bc_value);
+            itime_data++;
         }
+        
+        if (itime_data != n_time_data) {
+            std::cout << " the boundary " << condition << " is not properly uploaded. " << std::endl;
+            std::cout << " It was provided n_time_data = " << n_time_data << std::endl;
+            std::cout << " It was uploaded this number of time data = " << itime_data << std::endl;
+            std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
+            DebugStop();
+        }
+        TPMRSInterpolator bc_interpolator_geo(bc_points_geo);
+        bc_id_to_values_chunk_geo.second = bc_interpolator_geo;
         m_bc_id_to_values_geo.insert(bc_id_to_values_chunk_geo);
         
         /// Association bc identifier with bc type
@@ -826,10 +870,11 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     this->LoadBoundaryConditionsReservoirs();
     
     std::pair<int, std::string > bc_id_to_type_chunk_res;
-    std::pair<int , std::vector<REAL> > bc_id_to_values_chunk_res;
+    std::pair<int , TPMRSInterpolator > bc_id_to_values_chunk_res;
     std::map< std::string,std::pair<int,std::vector<std::string> > >::iterator chunk_res;
     
     /// Initial boundary conditions
+    TiXmlElement * sub_container_res;
     container = doc_handler.FirstChild("CaseData").FirstChild("BCInitialReservoir").FirstChild("InitialReservoir").ToElement();
     for( ; container; container=container->NextSiblingElement())
     {
@@ -850,22 +895,60 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
+        char_container = container->Attribute("n_data");
+        if (!char_container)
+        {
+            std::cout << " The boundary " << condition << "  needs the number of data to be interporlated. " << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
+        int n_time_data = std::atoi(char_container);
+        std::vector<std::pair<REAL, std::vector<REAL>>> bc_points_res(n_time_data);
+        
         /// Association bc type with numerical values
         bc_id_to_values_chunk_res.first = bc_id;
-        bc_id_to_values_chunk_res.second.resize(0);
-        int n_data = chunk_res->second.second.size();
-        for (int i = 0; i < n_data; i++)
+        bc_id_to_values_chunk_res.second.Clear();
+        
+        sub_container_res = container->FirstChild("Data")->ToElement();
+        int itime_data = 0;
+        for( ; sub_container_res; sub_container_res=sub_container_res->NextSiblingElement())
         {
-            char_container = container->Attribute(chunk_res->second.second[i].c_str());
+            char_container = sub_container_res->Attribute("t");
             if (!char_container)
             {
-                std::cout << " the boundary " << condition << "  needs the value " << chunk_res->second.second[i] << std::endl;
+                std::cout << " the boundary " << condition << "  needs the time value t ." << std::endl;
                 std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
                 DebugStop();
             }
-            REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk_res.second.push_back(bc_value);
+            REAL time_value = std::atoi(char_container);
+            
+            int n_data = chunk_res->second.second.size();
+            bc_points_res[itime_data].first = time_value;
+            bc_points_res[itime_data].second.resize(n_data);
+            for (int i = 0; i < n_data; i++)
+            {
+                char_container = sub_container_res->Attribute(chunk_res->second.second[i].c_str());
+                if (!char_container)
+                {
+                    std::cout << " the boundary " << condition << "  needs the value " << chunk_res->second.second[i] << std::endl;
+                    std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+                    DebugStop();
+                }
+                REAL bc_value = std::atof(char_container);
+                bc_points_res[itime_data].second[i] = bc_value;
+            }
+            itime_data++;
         }
+        
+        if (itime_data != n_time_data) {
+            std::cout << " the boundary " << condition << " is not properly uploaded. " << std::endl;
+            std::cout << " It was provided n_time_data = " << n_time_data << std::endl;
+            std::cout << " It was uploaded this number of time data = " << itime_data << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
+        TPMRSInterpolator bc_interpolator_res(bc_points_res);
+        bc_id_to_values_chunk_res.second = bc_interpolator_res;
         m_bc_id_to_values_res_initial.insert(bc_id_to_values_chunk_res);
         
         /// Association bc identifier with bc type
@@ -895,22 +978,60 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
             DebugStop();
         }
         
+        char_container = container->Attribute("n_data");
+        if (!char_container)
+        {
+            std::cout << " The boundary " << condition << "  needs the number of data to be interporlated. " << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
+        int n_time_data = std::atoi(char_container);
+        std::vector<std::pair<REAL, std::vector<REAL>>> bc_points_res(n_time_data);
+        
         /// Association bc type with numerical values
         bc_id_to_values_chunk_res.first = bc_id;
-        bc_id_to_values_chunk_res.second.resize(0);
-        int n_data = chunk_res->second.second.size();
-        for (int i = 0; i < n_data; i++)
+        bc_id_to_values_chunk_res.second.Clear();
+        
+        sub_container_res = container->FirstChild("Data")->ToElement();
+        int itime_data = 0;
+        for( ; sub_container_res; sub_container_res=sub_container_res->NextSiblingElement())
         {
-            char_container = container->Attribute(chunk_res->second.second[i].c_str());
+            char_container = sub_container_res->Attribute("t");
             if (!char_container)
             {
-                std::cout << " the boundary " << condition << "  needs the value " << chunk_res->second.second[i] << std::endl;
-                std::cout << " Please review the boundary conditions for Reservoir Module. " << std::endl;
+                std::cout << " the boundary " << condition << "  needs the time value t ." << std::endl;
+                std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
                 DebugStop();
             }
-            REAL bc_value = std::atof(char_container);
-            bc_id_to_values_chunk_res.second.push_back(bc_value);
+            REAL time_value = std::atoi(char_container);
+            
+            int n_data = chunk_res->second.second.size();
+            bc_points_res[itime_data].first = time_value;
+            bc_points_res[itime_data].second.resize(n_data);
+            for (int i = 0; i < n_data; i++)
+            {
+                char_container = sub_container_res->Attribute(chunk_res->second.second[i].c_str());
+                if (!char_container)
+                {
+                    std::cout << " the boundary " << condition << "  needs the value " << chunk_res->second.second[i] << std::endl;
+                    std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+                    DebugStop();
+                }
+                REAL bc_value = std::atof(char_container);
+                bc_points_res[itime_data].second[i] = bc_value;
+            }
+            itime_data++;
         }
+        
+        if (itime_data != n_time_data) {
+            std::cout << " the boundary " << condition << " is not properly uploaded. " << std::endl;
+            std::cout << " It was provided n_time_data = " << n_time_data << std::endl;
+            std::cout << " It was uploaded this number of time data = " << itime_data << std::endl;
+            std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
+            DebugStop();
+        }
+        TPMRSInterpolator bc_interpolator_res(bc_points_res);
+        bc_id_to_values_chunk_res.second = bc_interpolator_res;
         m_bc_id_to_values_res.insert(bc_id_to_values_chunk_res);
         
         /// Association bc identifier with bc type
