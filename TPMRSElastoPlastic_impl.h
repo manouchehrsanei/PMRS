@@ -1146,6 +1146,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
                 this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                 this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
+                
             }
 
             return;
@@ -1182,16 +1183,18 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 REAL alpha = this->MemItem(gp_index).Alpha();
                 REAL Kdr   = this->MemItem(gp_index).Kdr();
                 REAL p_0   = this->MemItem(gp_index).p_0();
+                REAL p      = this->MemItem(gp_index).p();
                 REAL p_n   = this->MemItem(gp_index).p_n();
                 REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
+                REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
                 REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
-                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0); //  Geomechanic update.
+                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
                 this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
             }
             
             { ///  Check for the need of substeps
                 REAL norm = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p - this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_p).Norm();
-                if (norm >= 0.001) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
+                if (norm >= 0.01) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
                     m_simulation_data->Set_must_use_sub_stepping_Q(true);
                 }
             }

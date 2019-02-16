@@ -234,14 +234,14 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
 
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i >= 5 ) {
-            this->ExecuteNinthOrderNewtonInteration(norm_dx);
-        }
-        else{
+        if (i <= 2) {
             this->ExecuteNewtonInteration();
             dx = Solution();
             norm_dx  = Norm(dx);
             m_X_n += dx;
+        }
+        else{
+            this->ExecuteNinthOrderNewtonInteration(norm_dx);
         }
 #else
         this->ExecuteNewtonInteration();

@@ -310,8 +310,9 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
     segregated_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
 
-    segregated_analysis->ConfigureGeomechanicsBC(0,true);
-    segregated_analysis->ConfigureReservoirBC(0,true);
+    REAL t_0 = 0;
+    segregated_analysis->ConfigureGeomechanicsBC(t_0,true);
+    segregated_analysis->ConfigureReservoirBC(t_0,true);
     segregated_analysis->ExecuteStaticSolution();
     segregated_analysis->ExecuteTimeEvolution();
     

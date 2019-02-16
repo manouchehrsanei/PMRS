@@ -65,7 +65,7 @@ std::vector<REAL> TPMRSInterpolator::f(REAL time){
     for (int t = 0; t < m_n_time_data - 1; t++) {
         REAL t_i = m_points[t].first;
         REAL t_e = m_points[t+1].first;
-        if (t_i <= time && time <= t_e) {
+        if ((IsZero(time-t_i) || t_i < time) && (IsZero(time-t_e) || time < t_e)) {
             t_interval = t;
             break;
         }

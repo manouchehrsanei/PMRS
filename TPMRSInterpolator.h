@@ -16,7 +16,6 @@
 #include <vector>
 
 
-/// @TODO:: check the requirements for a correct use of std::map
 class TPMRSInterpolator {
     
 private:

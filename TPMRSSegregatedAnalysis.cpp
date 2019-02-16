@@ -514,10 +514,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
-    REAL time_value = dt;
-    
-    ConfigureGeomechanicsBC(time_value);
-    ConfigureReservoirBC(time_value);
+    REAL time_value;
     
 #ifdef QNAcceleration_Q
     /// Loading initial data
@@ -538,6 +535,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
         time_value = dt * (it+1);
+        /// Interpolate BC data
+        ConfigureGeomechanicsBC(time_value);
+        ConfigureReservoirBC(time_value);
         
         for (int k = 1; k <= n_max_fss_iterations; k++) {
 #ifdef USING_BOOST
@@ -586,13 +586,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
                 std::cout << std::endl;
                 std::cout << std::endl;
-//                m_geomechanic_analysis->AssembleResidual();
                 UpdateState();
                 
                 this->PostProcessTimeStep(file_geo, file_res);
-                /// Interpolate BC data.
-                ConfigureGeomechanicsBC(time_value);
-                ConfigureReservoirBC(time_value);
                 
 #ifdef EC_Q
                 /// Enhance pressure

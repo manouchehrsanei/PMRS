@@ -86,7 +86,7 @@
             </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
-    <!-- Candidate to be renamed to BCInitialGeomechanics -->
+    <!-- BCInitialGeomechanics -->
     <BCInitialGeomechanics>
         <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
             <Data t="0" tn="-50.0" />
