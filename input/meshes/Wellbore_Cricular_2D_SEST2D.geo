@@ -10,8 +10,8 @@ IsquadQ = 1;
 Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
-wr = 0.10795;
-fr = 5.0;
+wr = 0.127;
+fr = 3.0;
 
 nt = 8;
 nr = 8;
