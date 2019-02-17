@@ -72,6 +72,7 @@ int TPMRSElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
     if (!strcmp("s", name.c_str()))     return  22;
     if (!strcmp("e", name.c_str()))     return  23;
     if (!strcmp("ep", name.c_str()))    return  24;
+    if (!strcmp("s_t", name.c_str()))     return  25;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -132,6 +133,8 @@ int TPMRSElastoPlastic<T,TMEM>::NSolutionVariables(int var){
         case 23:
             return 9; // Tensor
         case 24:
+            return 9; // Tensor
+        case 25:
             return 9; // Tensor
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -288,6 +291,16 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
             Solout[4] = epsilon_p.YY();
             Solout[5] = Solout[7] = epsilon_p.YZ();
             Solout[8] = epsilon_p.ZZ();
+        }
+            break;
+        case 25:
+        {
+            Solout[0] = memory.GetSigma_n().XX() - memory.Alpha()*memory.p_n();
+            Solout[1] = Solout[3] = memory.GetSigma_n().XY();
+            Solout[2] = Solout[6] = memory.GetSigma_n().XZ();
+            Solout[4] = memory.GetSigma_n().YY() - memory.Alpha()*memory.p_n();
+            Solout[5] = Solout[7] = memory.GetSigma_n().YZ();
+            Solout[8] = memory.GetSigma_n().ZZ() - memory.Alpha()*memory.p_n();
         }
             break;
         default:

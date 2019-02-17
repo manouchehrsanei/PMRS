@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
+        <StepSize dt="0.01" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="1" />
     </TimeControls>
@@ -41,12 +41,13 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Wellbore_2D_CG" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
             <Var t_name="e" />
             <Var t_name="ep" />
+            <Var t_name="s_t" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
@@ -118,10 +119,10 @@
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="NS" n_data="1" >
-            <Data t="0" sxx="-10.0" sxy="0.0" sxz="0.0" syy="-10.0" syz="0.0" szz="-10.0" />
+            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="NS" n_data="1" >
-            <Data t="0" sxx="-10.0" sxy="0.0" sxz="0.0" syy="-10.0" syz="0.0" szz="-10.0" />
+            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -132,7 +133,7 @@
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />
+            <Data t="0" p="40.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Nq" n_data="1" >
             <Data t="0" qn="0.0" />
