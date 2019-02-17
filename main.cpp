@@ -308,7 +308,7 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     }
  
     TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
-    segregated_analysis->ConfigurateAnalysis(ECholesky, ECholesky, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
 
     REAL t_0 = 0;
     segregated_analysis->ConfigureGeomechanicsBC(t_0,true);
@@ -376,7 +376,7 @@ TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data){
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.n_functions();
-            TPZFMatrix<STATE> val1(0,0,0.), val2(dim,1,0.);
+            TPZFMatrix<STATE> val1(0,0,0.), val2(n_bc_values,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
                 REAL value = 0.0; // Values are currently interpolated using time functions
                 val2(i,0) = value;

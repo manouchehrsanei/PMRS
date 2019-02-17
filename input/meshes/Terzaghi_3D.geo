@@ -12,8 +12,8 @@
 lc =1.0e1;
 r =0.01;
 h =0.1;
-nh = 2;
-nr = 1;
+nh = 10;
+nr = 3;
 Is3DQ = 1;
 
 If(Is3DQ)
@@ -43,6 +43,7 @@ out[] = Extrude {0,0,h} {
   Surface{s1}; Layers{nh}; Recombine;
 };
 
+Transfinite Surface"*";
 Recombine Surface"*";
 Recombine Volume"*";
 

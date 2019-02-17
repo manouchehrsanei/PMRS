@@ -78,7 +78,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             break;
         case ELDLt:
         {
-#ifdef USING_MKL2
+#ifdef USING_MKL
             TPZSymetricSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -134,6 +134,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 
     Assemble();
+    Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
 //    Solver().Matrix()->Print("j = ",std::cout, EMathematicaInput);
     Rhs() *= -1.0;
 //    Rhs().Print("r = ",std::cout, EMathematicaInput);

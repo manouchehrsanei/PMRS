@@ -57,12 +57,12 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
             break;
         case ELDLt:
         {
-#ifdef USING_MKL2
+#ifdef USING_MKL
             TPZSymetricSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
 #else
-            TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(Mesh());
+            TPZSkylineStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
 #endif
@@ -132,6 +132,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
 
 void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     Assemble();
+    Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
     Rhs() *= -1.0;
     Solve();
 }

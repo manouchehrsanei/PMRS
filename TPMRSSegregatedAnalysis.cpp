@@ -821,6 +821,7 @@ void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialCond
             }
             
             bc->SetType(bc_index);
+            bc->Val2().Resize(n_bc_values, 1);
             std::vector<REAL> f_values = it_bc_id_to_values->second.f(t);
             for (int i = 0; i < n_bc_values; i++) {
                 REAL value = f_values[i];
@@ -1031,10 +1032,10 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setphi_n(phi_0);
             
             /// Cleaning u
-            memory_vector.get()->operator [](i).Setu_0(u_null);
-            memory_vector.get()->operator [](i).Setu(u_null);
-            memory_vector.get()->operator [](i).Setu_n(u_null);
-            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+//            memory_vector.get()->operator [](i).Setu_0(u_null);
+//            memory_vector.get()->operator [](i).Setu(u_null);
+//            memory_vector.get()->operator [](i).Setu_n(u_null);
+//            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
             
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);

@@ -1257,6 +1257,24 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
+        /// Neumann for elasticity full tensor
+        chunkGeo.first = "NS"; // name
+        chunkGeo.second.first = 7; // index
+        chunkGeo.second.second.push_back("sxx");
+        chunkGeo.second.second.push_back("sxy");
+        chunkGeo.second.second.push_back("sxz");
+        chunkGeo.second.second.push_back("syy");
+        chunkGeo.second.second.push_back("syz");
+        chunkGeo.second.second.push_back("szz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
+        
+        /// Dirichlet for elasticity (normal displacement)
+        chunkGeo.first = "Dun"; // name
+        chunkGeo.second.first = 8; // index
+        chunkGeo.second.second.push_back("un");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
         
     }else
     {
@@ -1331,6 +1349,26 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         chunkGeo.second.second.push_back("uz");
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
+        
+        /// Neumann for elasticity full tensor
+        chunkGeo.first = "NS"; // name
+        chunkGeo.second.first = 11; // index
+        chunkGeo.second.second.push_back("sxx");
+        chunkGeo.second.second.push_back("sxy");
+        chunkGeo.second.second.push_back("sxz");
+        chunkGeo.second.second.push_back("syy");
+        chunkGeo.second.second.push_back("syz");
+        chunkGeo.second.second.push_back("szz");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
+        
+        /// Dirichlet for elasticity (normal displacement)
+        chunkGeo.first = "Dun"; // name
+        chunkGeo.second.first = 12; // index
+        chunkGeo.second.second.push_back("un");
+        m_condition_type_to_index_value_names_geo.insert(chunkGeo);
+        chunkGeo.second.second.resize(0);
+        
     }
     
     return;

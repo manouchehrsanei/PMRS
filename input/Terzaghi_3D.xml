@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <!-- Example 1: Simulating poroelastoplastic case -->
+    <!-- Example 4: Simulating poroelastoplastic case 3D -->
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
@@ -7,29 +7,29 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
-        <StepNumber n_time_steps="2" />
-        <CrankNicolsonQ useQ="0" />
+        <StepSize dt="0.001" />
+        <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="40" />
+        <Iterations n_iterations="50" />
         <Residue res_tolerance="0.001" />
         <Correction cor_tolerance="0.001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
-        <FssIterations n_max_fss_iterations="20" />
-        <EnfFssIterations n_enforce_fss_iterations="5" />
+        <FssIterations n_max_fss_iterations="50" />
+        <EnfFssIterations n_enforce_fss_iterations="0" />
     </FixedStressSplit>
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="0" />
+        <Numthreads n_threads="24" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
         <Valscalefactor scalfac_value="1.0e-6" />
-    </ScaleFactor>   
+    </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
@@ -41,7 +41,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_3D" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_3D_CG" n_divisions="0" n_outputs_geo="4" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -53,8 +53,8 @@
             <Var s_name="phi" />
             <Var s_name="kappa" />
             <Var s_name="div_q" />
-            <Var v_name="q" /> 
-        </OutputControlsRes>  
+            <Var v_name="q" />
+        </OutputControlsRes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />
@@ -67,11 +67,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <PoroMechUndrainedParameters Eyoung_u="100.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-10" />            
-            <PoroMechParameters Eyoung="100.0" nu="0.2" alpha="1.0" Se="0.0e-10" eta="1.0" rho_f="1.0" rho_s="1.0" c_f="0.0" />
+            <InitialPoroMechParameters Eyoung_u="1000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" />
-            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="100.0" friction="90.0"/>           
+            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="1.0" friction="30.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -84,19 +84,55 @@
             </ResBoundaries>            
         </RegionData>          
     </RegionsDefinition>
-    <BCUndrainedGeomechanics>
-        <UndrainedGeomechanic bc_id="2" type="Duz" uz="0.0" />
-        <UndrainedGeomechanic bc_id="3" type="Ntn" tn="-1.0" />
-        <UndrainedGeomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0" />
-    </BCUndrainedGeomechanics>     
+    <!-- BCInitialGeomechanics -->
+    <BCInitialGeomechanics>
+        <InitialGeomechanic bc_id="2" type="Dun" n_data="1" >
+            <Data t="0" un="0.0" />
+        </InitialGeomechanic>            
+        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
+            <Data t="0" tn="-10.0" />
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
+            <Data t="0" un="0.0" />             
+        </InitialGeomechanic>          
+    </BCInitialGeomechanics>
+    <BCInitialReservoir>
+        <InitialReservoir bc_id="2" type="Dp" n_data="1" >
+            <Data t="0" p="10.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="3" type="Dp" n_data="1" >
+            <Data t="0" p="10.0" />             
+        </InitialReservoir>
+        <InitialReservoir bc_id="4" type="Dp" n_data="1" >
+            <Data t="0" p="10.0" />             
+        </InitialReservoir>                        
+    </BCInitialReservoir>      
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Duz" uz="0.0" />
-        <Geomechanic bc_id="3" type="Ntn" tn="-1.0" />
-        <Geomechanic bc_id="4" type="Duxy" ux="0.0" uy="0.0" />
+        <Geomechanic bc_id="2" type="Dun" n_data="2" >
+            <Data t="0" un="0.0" />
+            <Data t="1" un="0.0" />
+        </Geomechanic>            
+        <Geomechanic bc_id="3" type="Ntn" n_data="2" >
+            <Data t="0" tn="0.0" />
+            <Data t="1" tn="0.0" />
+        </Geomechanic>
+        <Geomechanic bc_id="4" type="Dun" n_data="2" >
+            <Data t="0" un="0.0" />            
+            <Data t="1" un="0.0" />
+        </Geomechanic> 
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Nq" qn="0.0" />
-        <Reservoir bc_id="3" type="Dp" p="0.0" />
-        <Reservoir bc_id="4" type="Nq" qn="0.0" />
+        <Reservoir bc_id="2" type="Nq" n_data="2" >
+            <Data t="0" qn="0.0" />              
+            <Data t="1" qn="0.0" />
+        </Reservoir>
+        <Reservoir bc_id="3" type="Dp" n_data="2" >
+            <Data t="0" p="0.0" />
+            <Data t="1" p="0.0" />             
+        </Reservoir>
+        <Reservoir bc_id="4" type="Nq" n_data="2" >
+            <Data t="0" qn="0.0" />
+            <Data t="1" qn="0.0" />             
+        </Reservoir> 
     </BCReservoirs>     
 </CaseData>

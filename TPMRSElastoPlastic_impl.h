@@ -837,7 +837,60 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
             break;
         }
             
-    
+        case 7 : /// NSn
+            /// Neumann of normal sigma
+            
+        {
+            TPZManVector<REAL,3> n = data.normal;
+            TPZFNMatrix<9,REAL> sigma(3,3),normal(3,1),t(3,1);
+            sigma(0,0)              = bc.Val2()(0,0);    //    sigma_xx
+            sigma(0,1) = sigma(1,0) = bc.Val2()(1,0);    //    sigma_xy
+            sigma(0,2) = sigma(2,0) = bc.Val2()(2,0);    //    sigma_xz
+            sigma(1,1)              = bc.Val2()(3,0);    //    sigma_yy
+            sigma(1,2) = sigma(2,1) = bc.Val2()(4,0);    //    sigma_yz
+            sigma(2,2)              = bc.Val2()(5,0);    //    sigma_zz
+            normal(0,0) = n[0];
+            normal(1,0) = n[1];
+            normal(2,0) = n[2];
+            sigma.Multiply(normal, t);
+            
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(2*in+0,0)    += -1.0 * weight * t(0,0) * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * t(1,0) * phiu(in,0);        //    Tny
+            }
+            
+            break;
+        }
+            
+        case 8 : // Dun
+            /// Dirichlet of normal displacement
+        {
+            TPZManVector<REAL,3> n = data.normal;
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Un displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(2*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(2*in+0,2*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    
+                }
+            }
+            
+            break;
+        }
 
         default:
         {
@@ -1116,6 +1169,64 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             
             break;
         }
+        case 11 : /// NSn
+            /// Neumann of normal sigma
+            
+        {
+            TPZManVector<REAL,3> n = data.normal;
+            TPZFNMatrix<9,REAL> sigma(3,3),normal(3,1),t(3,1);
+            sigma(0,0)              = bc.Val2()(0,0);    //    sigma_xx
+            sigma(0,1) = sigma(1,0) = bc.Val2()(1,0);    //    sigma_xy
+            sigma(0,2) = sigma(2,0) = bc.Val2()(2,0);    //    sigma_xz
+            sigma(1,1)              = bc.Val2()(3,0);    //    sigma_yy
+            sigma(1,2) = sigma(2,1) = bc.Val2()(4,0);    //    sigma_yz
+            sigma(2,2)              = bc.Val2()(5,0);    //    sigma_zz
+            normal(0,0) = n[0];
+            normal(1,0) = n[1];
+            normal(2,0) = n[2];
+            sigma.Multiply(normal, t);
+            
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(3*in+0,0)    += -1.0 * weight * t(0,0) * phiu(in,0);        //    Tnx
+                ef(3*in+1,0)    += -1.0 * weight * t(1,0) * phiu(in,0);        //    Tny
+                ef(3*in+2,0)    += -1.0 * weight * t(2,0) * phiu(in,0);        //    Tnz
+            }
+            
+            break;
+        }
+            
+        case 12 : // Dun
+            /// Dirichlet of normal displacement
+            
+        {
+            TPZManVector<REAL,3> n = data.normal;
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Un displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(3*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(3*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(3*in+2,0)      += BigNumber*((u_n[2] - v[0])*n[2])*phiu(in,0)*weight;    // Y displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(3*in+0,3*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(3*in+1,3*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(3*in+2,3*jn+2)    += BigNumber*n[2]*phiu(in,0)*phiu(jn,0)*weight;    // Z displacement
+                    
+                }
+            }
+            
+            break;
+        }
             
         default:
         {
@@ -1194,7 +1305,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             
             { ///  Check for the need of substeps
                 REAL norm = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p - this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_p).Norm();
-                if (norm >= 0.01) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
+                if (norm >= 0.1) { /// @TODO:: MS insert this parameter as m_max_plastic_strain in Simulation data object and update xml file
                     m_simulation_data->Set_must_use_sub_stepping_Q(true);
                 }
             }

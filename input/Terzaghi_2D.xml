@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/wellbore_geo.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.00001" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -67,7 +67,7 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
-            <InitialPoroMechParameters Eyoung_u="1000.0" nu_u="0.4999" phi_0="0.1" kappa_0="1.0e-13" />            
+            <InitialPoroMechParameters Eyoung_u="1000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" />
@@ -86,14 +86,14 @@
     </RegionsDefinition>
     <!-- BCInitialGeomechanics -->
     <BCInitialGeomechanics>
-        <InitialGeomechanic bc_id="2" type="Duy" n_data="1" >
-            <Data t="0" uy="0.0" />
+        <InitialGeomechanic bc_id="2" type="Dun" n_data="1" >
+            <Data t="0" un="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
             <Data t="0" tn="-10.0" />
         </InitialGeomechanic>
-        <InitialGeomechanic bc_id="4" type="Dux" n_data="1" >
-            <Data t="0" ux="0.0" />            
+        <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
+            <Data t="0" un="0.0" />            
         </InitialGeomechanic>          
     </BCInitialGeomechanics>
     <BCInitialReservoir>
@@ -108,17 +108,17 @@
         </InitialReservoir>                        
     </BCInitialReservoir>      
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Duy" n_data="2" >
-            <Data t="0" uy="0.0" />
-            <Data t="1" uy="0.0" />
+        <Geomechanic bc_id="2" type="Dun" n_data="2" >
+            <Data t="0" un="0.0" />
+            <Data t="1" un="0.0" />
         </Geomechanic>            
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
             <Data t="0" tn="0.0" />
             <Data t="1" tn="0.0" />
         </Geomechanic>
-        <Geomechanic bc_id="4" type="Dux" n_data="2" >
-            <Data t="0" ux="0.0" />            
-            <Data t="1" ux="0.0" />
+        <Geomechanic bc_id="4" type="Dun" n_data="2" >
+            <Data t="0" un="0.0" />            
+            <Data t="1" un="0.0" />
         </Geomechanic> 
     </BCGeomechanics> 
     <BCReservoirs>

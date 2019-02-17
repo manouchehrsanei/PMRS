@@ -187,6 +187,9 @@ protected:
     /// Number of level of substeps during solving geomecanics
     int m_n_sub_step_level;
     
+    /// String that stands for the used acceleration method (None,Aitken,..,ect)
+    std::string m_nonlinear_acceleration;
+    
     
 public:
     
