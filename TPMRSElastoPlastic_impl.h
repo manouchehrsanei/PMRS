@@ -1182,10 +1182,10 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             {
                 REAL alpha = this->MemItem(gp_index).Alpha();
                 REAL Kdr   = this->MemItem(gp_index).Kdr();
-                REAL p_0   = this->MemItem(gp_index).p_0();
+//                REAL p_0   = this->MemItem(gp_index).p_0();
                 REAL p      = this->MemItem(gp_index).p();
                 REAL p_n   = this->MemItem(gp_index).p_n();
-                REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
+//                REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
                 REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
                 REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
                 REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.

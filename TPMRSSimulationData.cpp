@@ -1148,14 +1148,15 @@ void TPMRSSimulationData::Print()
 void TPMRSSimulationData::ReadGeometry()
 {
     TPZGmshReader Geometry;
-    REAL s = 1.0;
-    Geometry.SetfDimensionlessL(s);
+    REAL l = 1.0;
+    Geometry.SetCharacteristiclength(l);
+    Geometry.SetFormatVersion("4.0");
     m_geometry = Geometry.GeometricGmshMesh(m_geometry_file);
-    
+    Geometry.PrintPartitionSummary(std::cout);
 #ifdef PZDEBUG
     if (!m_geometry)
     {
-        std::cout << "The mesh was not generated." << std::endl;
+        std::cout << "The geometrical mesh was not generated." << std::endl;
         DebugStop();
     }
 #endif

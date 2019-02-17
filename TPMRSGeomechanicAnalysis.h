@@ -15,6 +15,7 @@
 #include "TPZSkylineNSymStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
+#include "TPZParFrontStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzbuildmultiphysicsmesh.h"

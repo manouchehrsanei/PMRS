@@ -751,7 +751,7 @@ void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialCond
                         REAL D    = p_pars[3];
                         REAL R    = p_pars[4];
                         REAL W    = p_pars[5];
-                        REAL X0   = p_pars[6];
+//                        REAL X0   = p_pars[6];
                         REAL phi = 0, psi = 1.0, N = 0;
                         
                         REAL Pc = -137;
@@ -967,7 +967,6 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         
         TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
         std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
-        REAL cf      = poroperm_pars[3];
         
         std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
         
@@ -975,6 +974,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
         for (int i = 0; i < ndata; i++) {
             
 #ifdef Old_version_Q
+            REAL cf      = poroperm_pars[3];
             /// Because we reused the same memory items
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             REAL alpha = memory_vector.get()->operator [](i).Alpha();
