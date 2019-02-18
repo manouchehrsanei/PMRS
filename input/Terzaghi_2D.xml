@@ -22,6 +22,10 @@
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
     </FixedStressSplit>
+    <!-- SubSteps controls  -->
+    <SubSteps>
+        <MaxPlasticNorm max_plastic_norm_value="0.1" />
+    </SubSteps> 
     <!-- Parallel controls  -->
     <ParallelControls>
         <Numthreads n_threads="0" />
