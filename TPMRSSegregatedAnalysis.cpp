@@ -209,7 +209,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 }
 
 //#define QNAcceleration_Q
-#define AitkenAcceleration_Q
+//#define AitkenAcceleration_Q
 //#define GaussSeidelAcceleration_Q
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
@@ -586,9 +586,6 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
                 std::cout << std::endl;
                 std::cout << std::endl;
-                UpdateState();
-                
-                this->PostProcessTimeStep(file_geo, file_res);
                 
 #ifdef EC_Q
                 /// Enhance pressure
@@ -649,6 +646,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 break;
             }
         }
+        this->PostProcessTimeStep(file_geo, file_res);
+        UpdateState();
+        /// Reset du for the next time step
+        m_geomechanic_analysis->Solution().Zero();
     }
     
 }
@@ -918,7 +919,7 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_simulation_data->SetTransferCurrentToLastQ(false);
     
     /// Compute stress state corresponding to reservoir state
-    m_geomechanic_analysis->ExecuteOneTimeStep(true);
+    m_geomechanic_analysis->ExecuteOneTimeStep(true,true);
     m_geomechanic_analysis->UpdateState();
     m_simulation_data->SetTransferCurrentToLastQ(true);
     m_geomechanic_analysis->UpdateState();
@@ -1032,10 +1033,10 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setphi_n(phi_0);
             
             /// Cleaning u
-//            memory_vector.get()->operator [](i).Setu_0(u_null);
-//            memory_vector.get()->operator [](i).Setu(u_null);
-//            memory_vector.get()->operator [](i).Setu_n(u_null);
-//            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+            memory_vector.get()->operator [](i).Setu_0(u_null);
+            memory_vector.get()->operator [](i).Setu(u_null);
+            memory_vector.get()->operator [](i).Setu_n(u_null);
+            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
             
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);

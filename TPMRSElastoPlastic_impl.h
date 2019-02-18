@@ -696,21 +696,32 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     if (m_simulation_data->Get_must_accept_solution_Q())
     {
         
-        if (m_simulation_data->GetTransferCurrentToLastQ())
-        {
-            bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n());
+            }else{
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+                bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n());
+                
+            }
             return;
         }
         
+        
         if (m_simulation_data->IsCurrentStateQ())
         {
-            
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
-            TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-            for (int i = 0; i < m_dimension; i++)
-            {
-                u_n[i] = delta_u[i] + u[i];
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }else{
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
             }
             bc_with_memory.MemItem(gp_index).Setu_n(u_n);
             
@@ -724,10 +735,16 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
     TPZFMatrix<REAL>  &phiu = data.phi;
     TPZManVector<STATE,3> delta_u    = data.sol[0];
     TPZManVector<STATE,3> u_n(m_dimension,0.0);
-    TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-    for (int i = 0; i < m_dimension; i++)
-    {
-        u_n[i] = delta_u[i] + u[i];
+    if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }else{
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
     }
     
     int phru = phiu.Rows();
@@ -923,7 +940,13 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         
         if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n());
+            }else{
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+                bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n());
+                
+            }
             return;
         }
         
@@ -932,9 +955,16 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
             
             TPZManVector<STATE,3> delta_u    = data.sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
-            TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-            for (int i = 0; i < m_dimension; i++) {
-                u_n[i] = delta_u[i] + u[i];
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }else{
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
             }
             bc_with_memory.MemItem(gp_index).Setu_n(u_n);
             
@@ -947,11 +977,18 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
     }
     
     TPZFMatrix<REAL>  &phiu = data.phi;
-    TPZManVector<STATE,3> delta_u = data.sol[0];
+    TPZManVector<STATE,3> delta_u    = data.sol[0];
     TPZManVector<STATE,3> u_n(m_dimension,0.0);
-    TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
-    for (int i = 0; i < m_dimension; i++) {
-        u_n[i] = delta_u[i] + u[i];
+    if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }else{
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
     }
     
     int phru = phiu.Rows();
@@ -1306,10 +1343,8 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             {
                 REAL alpha = this->MemItem(gp_index).Alpha();
                 REAL Kdr   = this->MemItem(gp_index).Kdr();
-//                REAL p_0   = this->MemItem(gp_index).p_0();
                 REAL p      = this->MemItem(gp_index).p();
                 REAL p_n   = this->MemItem(gp_index).p_n();
-//                REAL sigma_t_v_0 = (this->MemItem(gp_index).GetSigma_0().I1()/3) - alpha * p_0;
                 REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
                 REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
                 REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
