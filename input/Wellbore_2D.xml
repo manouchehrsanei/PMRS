@@ -24,7 +24,7 @@
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
-        <NormSubsteps substeps_norm_value="0.1" />
+        <MaxPlasticNorm max_plastic_norm_value="0.1" />
     </SubSteps>  
     <!-- Parallel controls  -->
     <ParallelControls>
