@@ -19,6 +19,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_epsilon_cor                         = 1.0;
     m_n_fss_iterations                    =   0;
     m_n_enf_fss_iterations                =   0;
+    m_max_plastic_strain                  = 0.0;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
     m_is_dual_formulation_Q               = true;
@@ -136,6 +137,14 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
     /// End:: Fixed Stress Split Scheme
 
+    
+    /// Begin:: Substeps controls
+    container = doc_handler.FirstChild("CaseData").FirstChild("SubSteps").FirstChild("NormSubsteps").ToElement();
+    char_container = container->Attribute("substeps_norm_value");
+    REAL substeps_norm_val = std::atof(char_container);
+    m_max_plastic_strain = substeps_norm_val;
+    /// End:: Substeps controls
+    
     
     /// Begin:: Parallel controls
     container = doc_handler.FirstChild("CaseData").FirstChild("ParallelControls").FirstChild("Numthreads").ToElement();
@@ -1094,6 +1103,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
     std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
+    std::cout << " m_max_plastic_strain = " << m_max_plastic_strain << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_scale_factor = " << m_scale_factor << std::endl;
     std::cout << " m_is_dual_formulation_Q = " << m_is_dual_formulation_Q << std::endl;

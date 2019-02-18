@@ -64,6 +64,9 @@ protected:
     /// Number of iteration for enforced fss scheme
     int m_n_enf_fss_iterations;
     
+    /// The maximum substeps of plasticity
+    REAL m_max_plastic_strain;
+    
     /// Number of thread
     int m_n_threads;
     
@@ -209,6 +212,7 @@ public:
         m_epsilon_cor                             = other.m_epsilon_cor;
         m_n_fss_iterations                        = other.m_n_fss_iterations;
         m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+        m_max_plastic_strain                      = other.m_max_plastic_strain;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
         m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
@@ -254,6 +258,7 @@ public:
             m_epsilon_cor                             = other.m_epsilon_cor;
             m_n_fss_iterations                        = other.m_n_fss_iterations;
             m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+            m_max_plastic_strain                      = other.m_max_plastic_strain;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
             m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
@@ -372,6 +377,9 @@ public:
     
     /// Get the number of enforced for fixed stress split scheme
     int n_enf_fss_iterations() { return m_n_enf_fss_iterations; }
+    
+    /// Get the maximum substeps of plasticity
+    REAL Get_max_plastic_strain() { return m_max_plastic_strain; }
     
     /// Get the number of threads
     int n_threads() { return m_n_threads; }
