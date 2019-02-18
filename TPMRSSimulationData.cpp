@@ -139,10 +139,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
 
     
     /// Begin:: Substeps controls
-    container = doc_handler.FirstChild("CaseData").FirstChild("SubSteps").FirstChild("NormSubsteps").ToElement();
-    char_container = container->Attribute("substeps_norm_value");
-    REAL substeps_norm_val = std::atof(char_container);
-    m_max_plastic_strain = substeps_norm_val;
+    container = doc_handler.FirstChild("CaseData").FirstChild("SubSteps").FirstChild("MaxPlasticNorm").ToElement();
+    char_container = container->Attribute("max_plastic_norm_value");
+    REAL max_plastic_norm_val = std::atof(char_container);
+    m_max_plastic_strain = max_plastic_norm_val;
     /// End:: Substeps controls
     
     
