@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -45,12 +45,13 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="4" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
             <Var t_name="e" />
             <Var t_name="ep" />
+            <Var t_name="s_t" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
@@ -93,8 +94,8 @@
         <InitialGeomechanic bc_id="2" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
-        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
-            <Data t="0" tn="-10.0" />
+        <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
+            <Data t="0" sxx="-50.0" sxy="0.0" sxz="0.0" syy="-50.0" syz="0.0" szz="-50.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            

@@ -497,6 +497,8 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
 
 //#define EC_Q
 //#define Animated_Convergence_Q
+//#define Noisy_Q
+
 
 void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
@@ -515,6 +517,13 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
     REAL time_value;
+    
+#ifdef Noisy_Q
+    m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
+    m_reservoir_analysis->X().Print("p = ",std::cout,EMathematicaInput);
+    m_reservoir_analysis->X_n().Print("pn = ",std::cout,EMathematicaInput);
+    m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
+#endif
     
 #ifdef QNAcceleration_Q
     /// Loading initial data
@@ -643,13 +652,25 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                     m_xu_m_1 = m_xu_m;
                 }
 #endif
+#ifdef Noisy_Q
+                m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
+                m_reservoir_analysis->X().Print("p = ",std::cout,EMathematicaInput);
+                m_reservoir_analysis->X_n().Print("pn = ",std::cout,EMathematicaInput);
+                m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
+#endif
                 break;
             }
         }
         this->PostProcessTimeStep(file_geo, file_res);
         UpdateState();
+#ifdef Noisy_Q
+        m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
+        m_reservoir_analysis->X().Print("p = ",std::cout,EMathematicaInput);
+        m_reservoir_analysis->X_n().Print("pn = ",std::cout,EMathematicaInput);
+        m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
+#endif
         /// Reset du for the next time step
-        m_geomechanic_analysis->Solution().Zero();
+//        m_geomechanic_analysis->Solution().Zero();
     }
     
 }
@@ -919,7 +940,7 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_simulation_data->SetTransferCurrentToLastQ(false);
     
     /// Compute stress state corresponding to reservoir state
-    m_geomechanic_analysis->ExecuteOneTimeStep(true,true);
+    m_geomechanic_analysis->ExecuteOneTimeStep(true);
     m_geomechanic_analysis->UpdateState();
     m_simulation_data->SetTransferCurrentToLastQ(true);
     m_geomechanic_analysis->UpdateState();

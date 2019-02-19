@@ -318,13 +318,13 @@ void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> 
     int gp_index = data.intGlobPtIndex;
     TPZTensor<REAL> last_epsilon;
     // Applying prestress
-    TPZTensor<REAL> epsilon_t_0 = this->MemItem(gp_index).GetPlasticState_0().m_eps_t;
+//    TPZTensor<REAL> epsilon_t_0 = this->MemItem(gp_index).GetPlasticState_0().m_eps_t;
     if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
         last_epsilon = this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_t;
     }else{
         last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
     }
-    last_epsilon -= epsilon_t_0;
+//    last_epsilon -= epsilon_t_0;
     TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u, grad_delta_u_t;
     TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
     TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);
@@ -420,10 +420,8 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
 //    sigma.CopyFrom(sigma_vec);
     
 #else
-    
     T plastic_integrator(m_plastic_integrator);
     plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
-    
 #endif
     
 }
@@ -487,13 +485,19 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
     TPZTensor<STATE> epsilon,sigma;
     
     TPZFNMatrix<36,STATE> De(6,6,0.0);
-    
+
+    /// Get initial effective stress state
+    int gp_index = data.intGlobPtIndex;
+    TPZTensor<REAL> & sigma_0 = this->MemItem(gp_index).GetSigma_0();
+
+    /// Get current effective stress state
     Epsilon(data,epsilon);
     Sigma(data, epsilon, sigma, &De);
     
     TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
     STATE val;
     
+    sigma -= sigma_0;// Applying the intial prestress
     if (m_dimension == 2) { /// Plane strain conditions.
         
         for(int iu = 0; iu < n_phi_u; iu++ )

@@ -266,6 +266,12 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     if (m_simulation_data->Get_must_accept_solution_Q()) {
         long gp_index = data.intGlobPtIndex;
         
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
+            this->MemItem(gp_index).Setq(this->MemItem(gp_index).q_n());
+            return;
+        }
+        
         // Pressure variable
         STATE p = data.sol[0][0];
         

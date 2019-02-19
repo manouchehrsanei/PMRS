@@ -74,7 +74,7 @@ public:
     void ExecuteNinthOrderNewtonInteration(REAL & norm_dx);
     
     /// Execute the evolution for a single pseudo time step
-    bool ExecuteOneTimeStep(bool enforced_execution_Q, bool initial_state_Q = false);
+    bool ExecuteOneTimeStep(bool enforced_execution_Q);
     
     /// Execute the undrained respose and update the initial sigma and pressure
     void ExecuteUndrainedResponseStep();

@@ -232,7 +232,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
 
 void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
-    /// The process will update just the current state
+    /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     LoadCurrentState();
     
