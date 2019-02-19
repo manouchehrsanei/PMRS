@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.001" />
-        <Correction cor_tolerance="0.001" />
+        <Residue res_tolerance="0.00001" />
+        <Correction cor_tolerance="0.00001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -95,7 +95,7 @@
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
-            <Data t="0" sxx="-50.0" sxy="0.0" sxz="0.0" syy="-50.0" syz="0.0" szz="-50.0" />
+            <Data t="0" sxx="-10.0" sxy="0.0" sxz="0.0" syy="-10.0" syz="0.0" szz="-10.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            
