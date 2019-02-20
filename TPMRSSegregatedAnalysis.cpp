@@ -516,7 +516,28 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
-    REAL time_value;
+    REAL time_value = 0.0;
+    
+    /// Interpolate BC data
+    ConfigureGeomechanicsBC(time_value);
+    ConfigureReservoirBC(time_value);
+    time_value = dt;
+    { /// Computing the undrained response
+        m_reservoir_analysis->ExecuteOneTimeStep();
+        m_reservoir_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(true);
+        m_reservoir_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(false);
+        
+        m_geomechanic_analysis->ExecuteOneTimeStep(true);
+        m_geomechanic_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(true);
+        m_geomechanic_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(false);
+        UpdateInitialSigmaAndPressure(false);
+        this->PostProcessTimeStep(file_geo, file_res);
+        
+    }
     
 #ifdef Noisy_Q
     m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
@@ -543,10 +564,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
-        time_value = dt * (it+1);
         /// Interpolate BC data
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
+        time_value = dt * (it+1);
         
         for (int k = 1; k <= n_max_fss_iterations; k++) {
 #ifdef USING_BOOST
@@ -959,7 +980,7 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::cout << std::endl << std::endl;
 }
 
-void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
+void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q) {
     
     TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
     
@@ -1054,10 +1075,20 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure() {
             memory_vector.get()->operator [](i).Setphi_n(phi_0);
             
             /// Cleaning u
-            memory_vector.get()->operator [](i).Setu_0(u_null);
-            memory_vector.get()->operator [](i).Setu(u_null);
-            memory_vector.get()->operator [](i).Setu_n(u_null);
-            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+            if (reset_u_Q) {
+                memory_vector.get()->operator [](i).Setu_0(u_null);
+                memory_vector.get()->operator [](i).Setu(u_null);
+                memory_vector.get()->operator [](i).Setu_n(u_null);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+            }else{
+                TPZManVector<REAL,3> u_0 = memory_vector.get()->operator [](i).Getu_n();
+                memory_vector.get()->operator [](i).Setu_0(u_0);
+                memory_vector.get()->operator [](i).Setu(u_0);
+                memory_vector.get()->operator [](i).Setu_n(u_0);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_0);
+            }
+            
+
             
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);

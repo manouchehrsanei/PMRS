@@ -752,7 +752,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                 DebugStop();
             }
-            REAL time_value = std::atoi(char_container);
+            REAL time_value = std::atof(char_container);
             
             int n_data = chunk_geo->second.second.size();
             bc_points_geo[itime_data].first = time_value;
@@ -836,7 +836,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                     std::cout << " Please review your boundary conditions for Geomechanic Module. " << std::endl;
                     DebugStop();
                 }
-            REAL time_value = std::atoi(char_container);
+            REAL time_value = std::atof(char_container);
                 
             int n_data = chunk_geo->second.second.size();
             bc_points_geo[itime_data].first = time_value;
@@ -929,7 +929,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
                 DebugStop();
             }
-            REAL time_value = std::atoi(char_container);
+            REAL time_value = std::atof(char_container);
             
             int n_data = chunk_res->second.second.size();
             bc_points_res[itime_data].first = time_value;
@@ -1012,7 +1012,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 std::cout << " Please review your boundary conditions for Reservoir Module. " << std::endl;
                 DebugStop();
             }
-            REAL time_value = std::atoi(char_container);
+            REAL time_value = std::atof(char_container);
             
             int n_data = chunk_res->second.second.size();
             bc_points_res[itime_data].first = time_value;

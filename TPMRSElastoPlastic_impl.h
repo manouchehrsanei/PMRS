@@ -877,6 +877,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data, REAL weight
         {
             TPZManVector<REAL,3> n = data.normal;
             TPZFNMatrix<9,REAL> sigma(3,3),normal(3,1),t(3,1);
+            t.Zero();
             sigma(0,0)              = bc.Val2()(0,0);    //    sigma_xx
             sigma(0,1) = sigma(1,0) = bc.Val2()(1,0);    //    sigma_xy
             sigma(0,2) = sigma(2,0) = bc.Val2()(2,0);    //    sigma_xz
@@ -1229,6 +1230,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
         {
             TPZManVector<REAL,3> n = data.normal;
             TPZFNMatrix<9,REAL> sigma(3,3),normal(3,1),t(3,1);
+            t.Zero();
             sigma(0,0)              = bc.Val2()(0,0);    //    sigma_xx
             sigma(0,1) = sigma(1,0) = bc.Val2()(1,0);    //    sigma_xy
             sigma(0,2) = sigma(2,0) = bc.Val2()(2,0);    //    sigma_xz

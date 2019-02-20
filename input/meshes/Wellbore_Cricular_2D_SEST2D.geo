@@ -11,11 +11,11 @@ Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
 wr = 0.127;
-fr = 3.0;
+fr = 100.0;
 
 nt = 8;
-nr = 8;
-radial_progression = 2.0;
+nr = 20;
+radial_progression = 1.5;
 
 // center point
 pc = newp; Point(pc) = {0,0,0};
