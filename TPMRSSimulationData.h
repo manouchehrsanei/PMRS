@@ -67,6 +67,9 @@ protected:
     /// The maximum substeps of plasticity
     REAL m_max_plastic_strain;
     
+    /// Name of nonlinear acceleration method
+    std::string m_n_nonlinear_acceleration;
+    
     /// Number of thread
     int m_n_threads;
     
@@ -76,7 +79,6 @@ protected:
     /// Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
-   
     /// Directive that states if the current memory solution is being transferred to the last memory solution
     bool m_transfer_current_to_last_solution_Q;
     
@@ -212,6 +214,7 @@ public:
         m_epsilon_cor                             = other.m_epsilon_cor;
         m_n_fss_iterations                        = other.m_n_fss_iterations;
         m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+        m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
         m_max_plastic_strain                      = other.m_max_plastic_strain;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
@@ -258,6 +261,7 @@ public:
             m_epsilon_cor                             = other.m_epsilon_cor;
             m_n_fss_iterations                        = other.m_n_fss_iterations;
             m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
+            m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
             m_max_plastic_strain                      = other.m_max_plastic_strain;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
@@ -377,6 +381,9 @@ public:
     
     /// Get the number of enforced for fixed stress split scheme
     int n_enf_fss_iterations() { return m_n_enf_fss_iterations; }
+    
+    /// Get Name for the nonlinear acceleration
+    std::string name_nonlinear_acceleration() { return m_n_nonlinear_acceleration; }
     
     /// Get the maximum substeps of plasticity
     REAL Get_max_plastic_strain() { return m_max_plastic_strain; }

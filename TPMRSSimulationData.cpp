@@ -19,6 +19,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_epsilon_cor                         = 1.0;
     m_n_fss_iterations                    =   0;
     m_n_enf_fss_iterations                =   0;
+    m_n_nonlinear_acceleration            =  "";
     m_max_plastic_strain                  = 0.0;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
@@ -135,6 +136,12 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     int n_enf_fss_iterations = std::atoi(char_container);
     
     SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
+    
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("NonlinearAcceleration").ToElement();
+    const char * nonlinearacceleration = container->Attribute("n_nonlinear_acceleration");
+    m_n_nonlinear_acceleration = nonlinearacceleration;
+    
     /// End:: Fixed Stress Split Scheme
 
     
@@ -1088,6 +1095,11 @@ void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n
     m_n_enf_fss_iterations    =   n_enf_fss_iterations;
 }
 
+
+
+
+
+
 /// Brief Print the all members
 void TPMRSSimulationData::Print()
 {
@@ -1103,6 +1115,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
     std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
+    std::cout << " m_n_nonlinear_acceleration = " << m_n_nonlinear_acceleration << std::endl;
     std::cout << " m_max_plastic_strain = " << m_max_plastic_strain << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_scale_factor = " << m_scale_factor << std::endl;

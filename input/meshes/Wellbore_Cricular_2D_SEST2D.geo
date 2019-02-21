@@ -14,7 +14,7 @@ wr = 0.127;
 fr = 100.0;
 
 nt = 8;
-nr = 20;
+nr = 8;
 radial_progression = 1.5;
 
 // center point
