@@ -95,7 +95,7 @@
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
-            <Data t="0" sxx="-10.0" sxy="0.0" sxz="0.0" syy="-10.0" syz="0.0" szz="-10.0" />
+            <Data t="0" sxx="-20.0" sxy="0.0" sxz="0.0" syy="-20.0" syz="0.0" szz="-20.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            
@@ -131,9 +131,10 @@
             <Data t="0" qn="0.0" />              
             <Data t="1" qn="0.0" />
         </Reservoir>
-        <Reservoir bc_id="3" type="Dp" n_data="2" >
-            <Data t="0" p="0.0" />
-            <Data t="1" p="0.0" />             
+        <Reservoir bc_id="3" type="Dp" n_data="3" >
+            <Data t="0" p="10.0" />
+            <Data t="0.001" p="5.0" />
+            <Data t="1" p="5.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />
