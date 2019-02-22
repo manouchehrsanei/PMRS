@@ -306,10 +306,113 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     // Applying the selected nonlinear acceleration
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
     if (!(nonlinear_acceleration == "None")) {
-        AccelerationRes(k,2);
+        AccelerationGeo(k,2);
     }
     
 }
+
+void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
+    
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    
+    k--;
+    int n_current;
+    {
+        if (k < n) {
+            n_current = k;
+        }
+        
+        if (k >= n) {
+            n_current = n;
+        }
+    }
+    
+    switch (n_current) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = m_geomechanic_analysis->X_n();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = m_geomechanic_analysis->X_n();
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }else if(nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_geomechanic_analysis->X_n(),  m_x_u[1], m_x_u[0]);
+            }
+            else if(nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_geomechanic_analysis->X_n(),  m_x_u[1], m_x_u[0]);
+            }
+            
+            m_x_u[0] = m_x_u[1];
+            m_x_u[1] = m_geomechanic_analysis->X_n();
+            
+        }
+            break;
+        case 2:
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = m_geomechanic_analysis->X_n();
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }
+            else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }
+            
+            m_x_u[0] = m_x_u[1];
+            m_x_u[1] = m_x_u[2];
+            m_x_u[2] = m_geomechanic_analysis->X_n();
+        }
+            break;
+        case 3:
+        {
+            m_x_u.Resize(4);
+            m_x_u[3] = m_geomechanic_analysis->X_n();
+            
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+            }
+            
+            m_x_u[0] = m_x_u[1];
+            m_x_u[1] = m_x_u[2];
+            m_x_u[2] = m_geomechanic_analysis->X_n();
+            
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+            }
+            else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+            }
+            
+            m_x_u[0] = m_x_u[1];
+            m_x_u[1] = m_x_u[2];
+            m_x_u[2] = m_x_u[3];
+            m_x_u[3] = m_geomechanic_analysis->X_n();
+            
+        }
+            break;
+        default:
+            break;
+    }
+    
+}
+
 void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
@@ -340,14 +443,15 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             
             if (nonlinear_acceleration == "Shank") {
                 ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-                m_x_p[0] = m_x_p[1];
-                m_x_p[1] = m_reservoir_analysis->X_n();
             }else if(nonlinear_acceleration == "Aitken"){
                 AitkenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
             }
             else if(nonlinear_acceleration == "Steffensen"){
                 SteffensenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
             }
+            
+            m_x_p[0] = m_x_p[1];
+            m_x_p[1] = m_reservoir_analysis->X_n();
 
         }
             break;
@@ -387,7 +491,6 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             m_x_p[0] = m_x_p[1];
             m_x_p[1] = m_x_p[2];
             m_x_p[2] = m_reservoir_analysis->X_n();
-            
             
             
             if (nonlinear_acceleration == "Shank") {
@@ -521,6 +624,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         time_value = dt * (it+1);
         
         for (int k = 1; k <= n_max_fss_iterations; k++) {
+
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -546,11 +650,15 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_residuals_summary(it,0) = time_value;
             m_residuals_summary(it,1) += m_reservoir_analysis->Get_error();
             m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
-            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m);///Norm(m_reservoir_analysis->X_n());
-            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m);///Norm(m_geomechanic_analysis->Solution());
+            
+            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m)/Norm(m_reservoir_analysis->X_n());
+            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m)/Norm(m_geomechanic_analysis->Solution());
+            
             m_p_m = m_reservoir_analysis->X_n();
             m_u_m = m_geomechanic_analysis->Solution();
-            m_residuals_summary(it,3) = fss_dp_norm + fss_du_norm;
+            
+            m_residuals_summary(it,3) = fss_dp_norm;
+            m_residuals_summary(it,4) = fss_du_norm;
             
             std::cout << "fss_dp_norm = " << fss_dp_norm << std::endl;
             std::cout << "fss_du_norm = " << fss_du_norm << std::endl;
@@ -1069,7 +1177,7 @@ void TPMRSSegregatedAnalysis::ConfigurateHistorySummaries(){
     int n_time_steps = m_simulation_data->ReportingTimes().size();
     m_iterations_summary.Resize(n_time_steps, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
     m_cpu_time_summary.Resize(n_time_steps, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
-    m_residuals_summary.Resize(n_time_steps, 4); // (time,res_resdials,geo_resdials,fss_corrections)
+    m_residuals_summary.Resize(n_time_steps, 5); // (time,res_resdials,geo_resdials,fss_corrections)
     
     m_iterations_summary.Zero();
     m_cpu_time_summary.Zero();
