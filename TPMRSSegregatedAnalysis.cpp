@@ -421,21 +421,6 @@ void TPMRSSegregatedAnalysis::ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZ
 }
 
 void TPMRSSegregatedAnalysis::AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
-
-//    int n_dof = An_p_1.Rows();
-//    REAL denom = 0.0;
-//    REAL numer = 0.0;
-//    for (int i = 0; i < n_dof; i++) {
-//        numer += (An_m_1(i,0)-An(i,0))*(An(i,0)-An_p_1(i,0));
-//        denom += (An_m_1(i,0)-An(i,0))*(An_m_1(i,0)-2.0*An(i,0)+An_p_1(i,0));
-//    }
-//    REAL s;
-//    if(IsZero(denom)){
-//        s = 0.0;
-//    }else{
-//        s = numer / denom;
-//    }
-//    An_p_1 = An_p_1 + s*(An_p_1-An);
     
     REAL e_k_m_1 = Norm(An_p_1-An);
     REAL e_k = Norm(An-An_m_1);
@@ -451,108 +436,9 @@ void TPMRSSegregatedAnalysis::SteffensenTransformation(TPZFMatrix<REAL> & An_p_1
     for (int i = 0; i < n_dof; i++) {
         An_p_1(i,0) = An_m_1(i,0) - (An(i,0)-An_m_1(i,0))*(An(i,0)-An_m_1(i,0))/(An_p_1(i,0)-2.0*An(i,0)+An_m_1(i,0));
     }
+    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
+    /// https://arxiv.org/pdf/1310.4288.pdf
 }
-
-void TPMRSSegregatedAnalysis::QNAccelerationRes(int k){
-//    if (k>1) {
-//
-//        m_xp_m = m_reservoir_analysis->Rhs();
-//        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
-//        m_reservoir_analysis->Solve();
-//        TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
-////        m_reservoir_analysis->X_n().Print("pb = ", std::cout,EMathematicaInput);
-////        dp.Print("dp = ", std::cout,EMathematicaInput);
-//        REAL norm = Norm(m_xp_m_2-m_reservoir_analysis->X_n());///Norm(m_xp_m_2);
-////        norm=max(norm, 0.5);
-//        m_reservoir_analysis->X_n() += norm*dp;
-////        m_reservoir_analysis->X_n().Print("pa = ", std::cout,EMathematicaInput);
-//        m_reservoir_analysis->LoadMemorySolution();
-//        m_xp_m_1 = m_reservoir_analysis->Rhs();
-//        m_xp_m_2 = m_reservoir_analysis->X_n();
-//
-//    }else{
-//        m_xp_m_1 = m_reservoir_analysis->Rhs();
-//        m_xp_m_2 = m_reservoir_analysis->X_n();
-//    }
-}
-
-
-void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k, int n){
-    
-//    if (k>2) {
-//        m_xp_m = m_reservoir_analysis->X_n();
-//        int n_dof = m_xp_m.Rows();
-//        REAL denom = 0.0;
-//        REAL numer = 0.0;
-//        for (int i = 0; i < n_dof; i++) {
-//            numer += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_1(i,0)-m_xp_m(i,0));
-//            denom += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_2(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m(i,0));
-//        }
-//        //        m_xp_m.Print("p = ", std::cout);
-//        REAL s;
-//        if(IsZero(denom)){
-//            s = 0.0;
-//        }else{
-//            s = numer / denom;
-//        }
-//        m_reservoir_analysis->X_n() = m_xp_m + s*(m_xp_m-m_xp_m_1);
-//        m_reservoir_analysis->LoadMemorySolution();
-//        m_xp_m_2 = m_xp_m_1;
-//        m_xp_m_1 = m_xp_m;
-//        //        m_reservoir_analysis->X_n().Print("p new = ", std::cout);
-//    }else if(k==1){
-//        m_xp_m_1 = m_reservoir_analysis->X_n();
-//    }else if(k==2){
-//        m_xp_m_2 = m_reservoir_analysis->X_n();
-//    }
-    
-}
-
-
-void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
- 
-//    /// https://arxiv.org/pdf/1310.4288.pdf
-//    if (k>2) {
-//        m_xp_m = m_reservoir_analysis->X_n();
-//        REAL e_k_m_1 = Norm(m_xp_m-m_xp_m_1);
-//        REAL e_k = Norm(m_xp_m_1-m_xp_m_2);
-//        REAL lambda = e_k_m_1/e_k;
-//        REAL factor = 1.0/(1.0-lambda);
-//        m_reservoir_analysis->X_n() = m_xp_m_2 + factor*(m_xp_m_1-m_xp_m_2);
-//        m_reservoir_analysis->LoadMemorySolution();
-//
-//        m_xp_m_2 = m_xp_m_1;
-//        m_xp_m_1 = m_xp_m;
-//    }else if(k==1){
-//        m_xp_m_1 = m_reservoir_analysis->X_n();
-//    }else if(k==2){
-//        m_xp_m_2 = m_reservoir_analysis->X_n();
-//    }
-    
-//    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
-//    if (k>2) {
-//        m_xp_m = m_reservoir_analysis->X_n();
-//
-//        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
-//        int n_dof = x_k.Rows();
-//        for (int i = 0; i < n_dof; i++) {
-//            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
-//        }
-//
-//        m_reservoir_analysis->X_n() = x_k;
-//        m_reservoir_analysis->LoadMemorySolution();
-//
-//        m_xp_m_2 = m_xp_m_1;
-//        m_xp_m_1 = m_xp_m;
-//    }else if(k==1){
-//        m_xp_m_1 = m_reservoir_analysis->X_n();
-//    }else if(k==2){
-//        m_xp_m_2 = m_reservoir_analysis->X_n();
-//    }
-    
-    
-}
-
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
     m_reservoir_analysis->PostProcessTimeStep(res_file);

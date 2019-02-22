@@ -126,13 +126,6 @@ public:
     
     REAL quadratic_extrapolation(REAL & f_1, REAL & f_2, REAL & f_3, REAL & t_1, REAL & t_2,  REAL & t_3, REAL & t);
     
-    /// Define a quase Newton acceleration for the outer loop k iteration for reservoir module
-    void QNAccelerationRes(int k);
-
-    
-    /// Define a  Aitken acceleration for the outer loop k iteration for reservoir module
-    void AitkenAccelerationRes(int k, int n);
-    
     /// Define an acceleration method for the outer loop k iteration for reservoir module
     void AccelerationRes(int k, int n);
     
@@ -143,12 +136,6 @@ public:
     
     void SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
-    
-    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for reservoir module
-    void GaussSeidelAccelerationRes(int k);
-    
-//    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for geomechanic module
-//    void GaussSeidelAccelerationGeo(int k);
     
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)
