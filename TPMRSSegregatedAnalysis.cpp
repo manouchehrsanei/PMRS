@@ -306,7 +306,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     // Applying the selected nonlinear acceleration
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
     if (!(nonlinear_acceleration == "None")) {
-        AccelerationGeo(k,2);
+        AccelerationRes(k,2);
     }
     
 }
