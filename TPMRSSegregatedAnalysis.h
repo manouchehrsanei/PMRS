@@ -48,17 +48,11 @@ private:
     /// Object that store the residuals of segregated and internal process
     TPZFMatrix<REAL> m_residuals_summary;
     
-    TPZFMatrix<REAL> m_xp_m;
+    /// Reserveoir states for nonlinear acceleration
+    TPZManVector<TPZFMatrix<REAL>,10> m_x_p;
     
-    TPZFMatrix<REAL> m_xp_m_1;
-    
-    TPZFMatrix<REAL> m_xp_m_2;
-    
-    TPZFMatrix<REAL> m_xu_m;
-    
-    TPZFMatrix<REAL> m_xu_m_1;
-    
-    TPZFMatrix<REAL> m_xu_m_2;
+    /// Geomechanics states for nonlinear acceleration
+    TPZManVector<TPZFMatrix<REAL>,10> m_x_u;
     
     /// Reservoir state at last fixed stress cycle
     TPZFMatrix<REAL> m_p_m;
@@ -134,21 +128,27 @@ public:
     
     /// Define a quase Newton acceleration for the outer loop k iteration for reservoir module
     void QNAccelerationRes(int k);
-    
-    /// Define a quase Newton acceleration for the outer loop k iteration for geomechanic module
-    void QNAccelerationGeo(int k);
+
     
     /// Define a  Aitken acceleration for the outer loop k iteration for reservoir module
-    void AitkenAccelerationRes(int k);
+    void AitkenAccelerationRes(int k, int n);
     
-    /// Define a  Aitken acceleration for the outer loop k iteration for geomechanic module
-    void AitkenAccelerationGeo(int k);
+    /// Define an acceleration method for the outer loop k iteration for reservoir module
+    void AccelerationRes(int k, int n);
+    
+    
+    void ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
+    
+    void AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
+    
+    void SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
+    
     
     /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for reservoir module
     void GaussSeidelAccelerationRes(int k);
     
-    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for geomechanic module
-    void GaussSeidelAccelerationGeo(int k);
+//    /// Define a  Gauss-Seidel acceleration for the outer loop k iteration for geomechanic module
+//    void GaussSeidelAccelerationGeo(int k);
     
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)

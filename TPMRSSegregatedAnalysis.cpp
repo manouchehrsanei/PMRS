@@ -14,6 +14,8 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(){
     m_iterations_summary.Resize(0, 0);
     m_cpu_time_summary.Resize(0, 0);
     m_residuals_summary.Resize(0, 0);
+    m_x_p.Resize(0);
+    m_x_u.Resize(0);
 }
 
 TPMRSSegregatedAnalysis::~TPMRSSegregatedAnalysis(){
@@ -27,6 +29,8 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis &
     m_iterations_summary    = other.m_iterations_summary;
     m_cpu_time_summary      = other.m_cpu_time_summary;
     m_residuals_summary     = other.m_residuals_summary;
+    m_x_p                   = other.m_x_p;
+    m_x_u                   = other.m_x_u;
 }
 
 void TPMRSSegregatedAnalysis::ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
@@ -208,10 +212,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
-//#define QNAcceleration_Q
-//#define AitkenAcceleration_Q
-//#define GaussSeidelAcceleration_Q
-
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
     
@@ -238,7 +238,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-//    if(1)
     {
         
         TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
@@ -290,9 +289,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         m_simulation_data->Set_must_use_sub_stepping_Q(false);
         m_simulation_data->Set_n_sub_step_level(0);
     }
-//    else{
-//        m_geomechanic_analysis->ExecuteOneTimeStep();
-//    }
     
     
 #ifdef USING_BOOST
@@ -307,139 +303,211 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
+    // Applying the selected nonlinear acceleration
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    if (!(nonlinear_acceleration == "None")) {
+        AccelerationRes(k,2);
+    }
     
-#ifdef AitkenAcceleration_Q
-//    AitkenAccelerationGeo(k);
-#endif
+}
+void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
+    
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    
+    k--;
+    int n_current;
+    {
+        if (k < n) {
+            n_current = k;
+        }
+        
+        if (k >= n) {
+            n_current = n;
+        }
+    }
+    
+    switch (n_current) {
+        case 0:
+            {
+                m_x_p.Resize(1);
+                m_x_p[0] = m_reservoir_analysis->X_n();
+            }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_reservoir_analysis->X_n();
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+                m_x_p[0] = m_x_p[1];
+                m_x_p[1] = m_reservoir_analysis->X_n();
+            }else if(nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
+            }
+            else if(nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
+            }
 
+        }
+            break;
+        case 2:
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }
+            else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }
+            
+            m_x_p[0] = m_x_p[1];
+            m_x_p[1] = m_x_p[2];
+            m_x_p[2] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 3:
+        {
+            m_x_p.Resize(4);
+            m_x_p[3] = m_reservoir_analysis->X_n();
+            
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
+            }
+            
+            m_x_p[0] = m_x_p[1];
+            m_x_p[1] = m_x_p[2];
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            
+            
+            
+            if (nonlinear_acceleration == "Shank") {
+                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
+            }else if (nonlinear_acceleration == "Aitken"){
+                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
+            }
+            else if (nonlinear_acceleration == "Steffensen"){
+                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
+            }
+            
+            m_x_p[0] = m_x_p[1];
+            m_x_p[1] = m_x_p[2];
+            m_x_p[2] = m_x_p[3];
+            m_x_p[3] = m_reservoir_analysis->X_n();
+            
+        }
+            break;
+        default:
+            break;
+    }
 
-#ifdef AitkenAcceleration_Q
-    AitkenAccelerationRes(k);
-#endif
-    
+}
 
+void TPMRSSegregatedAnalysis::ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     
-#ifdef QNAcceleration_Q
-    QNAccelerationRes(k);
-#endif
+    int n_dof = An_p_1.Rows();
+    for (int i = 0; i < n_dof; i++) {
+        An_p_1(i,0) = An_p_1(i,0) - (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0))/((An_p_1(i,0)-An(i,0))-(An(i,0)-An_m_1(i,0)));
+    }
+}
 
-#ifdef QNAcceleration_Q
-    QNAccelerationGeo(k);
-#endif
+void TPMRSSegregatedAnalysis::AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+
+//    int n_dof = An_p_1.Rows();
+//    REAL denom = 0.0;
+//    REAL numer = 0.0;
+//    for (int i = 0; i < n_dof; i++) {
+//        numer += (An_m_1(i,0)-An(i,0))*(An(i,0)-An_p_1(i,0));
+//        denom += (An_m_1(i,0)-An(i,0))*(An_m_1(i,0)-2.0*An(i,0)+An_p_1(i,0));
+//    }
+//    REAL s;
+//    if(IsZero(denom)){
+//        s = 0.0;
+//    }else{
+//        s = numer / denom;
+//    }
+//    An_p_1 = An_p_1 + s*(An_p_1-An);
     
+    REAL e_k_m_1 = Norm(An_p_1-An);
+    REAL e_k = Norm(An-An_m_1);
+    REAL lambda = e_k_m_1/e_k;
+    REAL factor = 1.0/(1.0-lambda);
+    An_p_1 = An_m_1 + factor*(An-An_m_1);
+
+}
+
+void TPMRSSegregatedAnalysis::SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     
-#ifdef GaussSeidelAcceleration_Q
-    GaussSeidelAccelerationRes(k);
-#endif
-    
+    int n_dof = An_p_1.Rows();
+    for (int i = 0; i < n_dof; i++) {
+        An_p_1(i,0) = An_m_1(i,0) - (An(i,0)-An_m_1(i,0))*(An(i,0)-An_m_1(i,0))/(An_p_1(i,0)-2.0*An(i,0)+An_m_1(i,0));
+    }
 }
 
 void TPMRSSegregatedAnalysis::QNAccelerationRes(int k){
-    if (k>1) {
-
-        m_xp_m = m_reservoir_analysis->Rhs();
-        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
-        m_reservoir_analysis->Solve();
-        TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
-//        m_reservoir_analysis->X_n().Print("pb = ", std::cout,EMathematicaInput);
-//        dp.Print("dp = ", std::cout,EMathematicaInput);
-        REAL norm = Norm(m_xp_m_2-m_reservoir_analysis->X_n());///Norm(m_xp_m_2);
-//        norm=max(norm, 0.5);
-        m_reservoir_analysis->X_n() += norm*dp;
-//        m_reservoir_analysis->X_n().Print("pa = ", std::cout,EMathematicaInput);
-        m_reservoir_analysis->LoadMemorySolution();
-        m_xp_m_1 = m_reservoir_analysis->Rhs();
-        m_xp_m_2 = m_reservoir_analysis->X_n();
-        
-    }else{
-        m_xp_m_1 = m_reservoir_analysis->Rhs();
-        m_xp_m_2 = m_reservoir_analysis->X_n();
-    }
+//    if (k>1) {
+//
+//        m_xp_m = m_reservoir_analysis->Rhs();
+//        m_reservoir_analysis->Rhs() = m_xp_m - m_xp_m_1;
+//        m_reservoir_analysis->Solve();
+//        TPZFMatrix<REAL> dp = m_reservoir_analysis->Solution();
+////        m_reservoir_analysis->X_n().Print("pb = ", std::cout,EMathematicaInput);
+////        dp.Print("dp = ", std::cout,EMathematicaInput);
+//        REAL norm = Norm(m_xp_m_2-m_reservoir_analysis->X_n());///Norm(m_xp_m_2);
+////        norm=max(norm, 0.5);
+//        m_reservoir_analysis->X_n() += norm*dp;
+////        m_reservoir_analysis->X_n().Print("pa = ", std::cout,EMathematicaInput);
+//        m_reservoir_analysis->LoadMemorySolution();
+//        m_xp_m_1 = m_reservoir_analysis->Rhs();
+//        m_xp_m_2 = m_reservoir_analysis->X_n();
+//
+//    }else{
+//        m_xp_m_1 = m_reservoir_analysis->Rhs();
+//        m_xp_m_2 = m_reservoir_analysis->X_n();
+//    }
 }
 
-void TPMRSSegregatedAnalysis::QNAccelerationGeo(int k){
-    if (k>1) {
-        TPZFMatrix<REAL> du = m_geomechanic_analysis->Solution();
-        REAL norm = Norm(m_xu_m_2-m_geomechanic_analysis->Solution());///Norm(m_geomechanic_analysis->Solution());
-//        norm=max(norm, 0.25);
-        m_xu_m = m_geomechanic_analysis->Rhs();
-        m_geomechanic_analysis->Rhs() = m_xu_m-m_xu_m_1;
-        m_geomechanic_analysis->Solve();
-        TPZFMatrix<REAL> delta_du = m_geomechanic_analysis->Solution();
-        m_geomechanic_analysis->Solution() = du + norm*delta_du;
-        m_geomechanic_analysis->LoadSolution(m_geomechanic_analysis->Solution());
-        m_geomechanic_analysis->LoadMemorySolution();
-        m_xu_m_1 = m_geomechanic_analysis->Rhs();
-        m_xu_m_2 = m_geomechanic_analysis->Solution();
-        
-    }else{
-        m_xu_m_1 = m_geomechanic_analysis->Rhs();
-        m_xu_m_2 = m_geomechanic_analysis->Solution();
-    }
-}
 
-void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k){
+void TPMRSSegregatedAnalysis::AitkenAccelerationRes(int k, int n){
     
-    if (k>2) {
-        m_xp_m = m_reservoir_analysis->X_n();
-        int n_dof = m_xp_m.Rows();
-        REAL denom = 0.0;
-        REAL numer = 0.0;
-        for (int i = 0; i < n_dof; i++) {
-            numer += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_1(i,0)-m_xp_m(i,0));
-            denom += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_2(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m(i,0));
-        }
-        //        m_xp_m.Print("p = ", std::cout);
-        REAL s;
-        if(IsZero(denom)){
-            s = 0.0;
-        }else{
-            s = numer / denom;
-        }
-        m_reservoir_analysis->X_n() = m_xp_m + s*(m_xp_m-m_xp_m_1);
-        m_reservoir_analysis->LoadMemorySolution();
-        m_xp_m_2 = m_xp_m_1;
-        m_xp_m_1 = m_xp_m;
-        //        m_reservoir_analysis->X_n().Print("p new = ", std::cout);
-    }else if(k==1){
-        m_xp_m_1 = m_reservoir_analysis->X_n();
-    }else if(k==2){
-        m_xp_m_2 = m_reservoir_analysis->X_n();
-    }
+//    if (k>2) {
+//        m_xp_m = m_reservoir_analysis->X_n();
+//        int n_dof = m_xp_m.Rows();
+//        REAL denom = 0.0;
+//        REAL numer = 0.0;
+//        for (int i = 0; i < n_dof; i++) {
+//            numer += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_1(i,0)-m_xp_m(i,0));
+//            denom += (m_xp_m_2(i,0)-m_xp_m_1(i,0))*(m_xp_m_2(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m(i,0));
+//        }
+//        //        m_xp_m.Print("p = ", std::cout);
+//        REAL s;
+//        if(IsZero(denom)){
+//            s = 0.0;
+//        }else{
+//            s = numer / denom;
+//        }
+//        m_reservoir_analysis->X_n() = m_xp_m + s*(m_xp_m-m_xp_m_1);
+//        m_reservoir_analysis->LoadMemorySolution();
+//        m_xp_m_2 = m_xp_m_1;
+//        m_xp_m_1 = m_xp_m;
+//        //        m_reservoir_analysis->X_n().Print("p new = ", std::cout);
+//    }else if(k==1){
+//        m_xp_m_1 = m_reservoir_analysis->X_n();
+//    }else if(k==2){
+//        m_xp_m_2 = m_reservoir_analysis->X_n();
+//    }
     
 }
 
-void TPMRSSegregatedAnalysis::AitkenAccelerationGeo(int k){
-    
-    if (k>2) {
-        TPZFMatrix<REAL> dx = m_geomechanic_analysis->Solution();
-        m_xu_m = m_geomechanic_analysis->Solution();
-        int n_dof = m_xu_m.Rows();
-        REAL denom = 0.0;
-        REAL numer = 0.0;
-        for (int i = 0; i < n_dof; i++) {
-            numer += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_1(i,0)-m_xu_m(i,0));
-            denom += (m_xu_m_2(i,0)-m_xu_m_1(i,0))*(m_xu_m_2(i,0)-2.0*m_xu_m_1(i,0)+m_xu_m(i,0));
-        }
-//        m_xu_m.Print("u = ", std::cout);
-        REAL s;
-        if(IsZero(denom)){
-            s = 0.0;
-        }else{
-            s = numer / denom;
-        }
-        dx = m_xu_m + s*(m_xu_m-m_xu_m_1);
-        m_geomechanic_analysis->LoadSolution(dx);
-        m_geomechanic_analysis->LoadMemorySolution();
-        m_xu_m_2 = m_xu_m_1;
-        m_xu_m_1 = m_xu_m;
-//        m_geomechanic_analysis->Solution().Print("u new = ", std::cout);
-    }else if(k==1){
-        m_xu_m_1 = m_geomechanic_analysis->Solution();
-    }else if(k==2){
-        m_xu_m_2 = m_geomechanic_analysis->Solution();
-    }
-}
 
 void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
  
@@ -461,33 +529,30 @@ void TPMRSSegregatedAnalysis::GaussSeidelAccelerationRes(int k){
 //        m_xp_m_2 = m_reservoir_analysis->X_n();
 //    }
     
-    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
-    if (k>2) {
-        m_xp_m = m_reservoir_analysis->X_n();
-
-        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
-        int n_dof = x_k.Rows();
-        for (int i = 0; i < n_dof; i++) {
-            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
-        }
-
-        m_reservoir_analysis->X_n() = x_k;
-        m_reservoir_analysis->LoadMemorySolution();
-
-        m_xp_m_2 = m_xp_m_1;
-        m_xp_m_1 = m_xp_m;
-    }else if(k==1){
-        m_xp_m_1 = m_reservoir_analysis->X_n();
-    }else if(k==2){
-        m_xp_m_2 = m_reservoir_analysis->X_n();
-    }
+//    /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
+//    if (k>2) {
+//        m_xp_m = m_reservoir_analysis->X_n();
+//
+//        TPZFMatrix<REAL> x_k = m_reservoir_analysis->X_n();
+//        int n_dof = x_k.Rows();
+//        for (int i = 0; i < n_dof; i++) {
+//            x_k(i,0) = m_xp_m_2(i,0) - (m_xp_m_1(i,0)-m_xp_m_2(i,0))*(m_xp_m_1(i,0)-m_xp_m_2(i,0))/(m_xp_m(i,0)-2.0*m_xp_m_1(i,0)+m_xp_m_2(i,0));
+//        }
+//
+//        m_reservoir_analysis->X_n() = x_k;
+//        m_reservoir_analysis->LoadMemorySolution();
+//
+//        m_xp_m_2 = m_xp_m_1;
+//        m_xp_m_1 = m_xp_m;
+//    }else if(k==1){
+//        m_xp_m_1 = m_reservoir_analysis->X_n();
+//    }else if(k==2){
+//        m_xp_m_2 = m_reservoir_analysis->X_n();
+//    }
     
     
 }
 
-void TPMRSSegregatedAnalysis::GaussSeidelAccelerationGeo(int k){
-    DebugStop();
-}
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
     m_reservoir_analysis->PostProcessTimeStep(res_file);
