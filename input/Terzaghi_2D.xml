@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.00001" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -74,9 +74,9 @@
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
             <InitialPoroMechParameters Eyoung_u="1000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
+            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="1.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Constant" n_parameters="0" />
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a="20.0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="1.0" friction="30.0"/>            
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
