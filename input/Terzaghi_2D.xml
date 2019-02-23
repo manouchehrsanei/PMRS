@@ -14,14 +14,14 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.000001" />
-        <Correction cor_tolerance="0.000001" />
+        <Residue res_tolerance="0.00001" />
+        <Correction cor_tolerance="0.00001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="Steffensen" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="Shank" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
