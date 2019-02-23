@@ -270,14 +270,17 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         
         int n_recursion = 2;
         AccelerationRes(k,n_recursion);
+        AccelerationGeo(k,n_recursion);
         
         int n_vec = m_x_p.size();
         if (k-1 >= n_recursion) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_p[i] = m_x_p[i+1];
+                m_x_u[i] = m_x_u[i+1];
             }
             if(n_vec!=0){
-                m_x_p[n_vec-1] = m_reservoir_analysis->Solution();
+                m_x_p[n_vec-1] = m_reservoir_analysis->X_n();
+                m_x_u[n_vec-1] = m_geomechanic_analysis->Solution();
             }
         }
         
@@ -356,45 +359,39 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
         case 0:
         {
             m_x_u.Resize(1);
-            m_x_u[0] = m_geomechanic_analysis->X_n();
+            m_x_u[0] = m_geomechanic_analysis->Solution();
         }
             break;
         case 1:
         {
             m_x_u.Resize(2);
-            m_x_u[1] = m_geomechanic_analysis->X_n();
+            m_x_u[1] = m_geomechanic_analysis->Solution();
             
             if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }else if(nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->X_n(),  m_x_u[1], m_x_u[0]);
+                AitkenTransformation(m_geomechanic_analysis->Solution(),  m_x_u[1], m_x_u[0]);
             }
             else if(nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->X_n(),  m_x_u[1], m_x_u[0]);
+                SteffensenTransformation(m_geomechanic_analysis->Solution(),  m_x_u[1], m_x_u[0]);
             }
-            
-            m_x_u[0] = m_x_u[1];
-            m_x_u[1] = m_geomechanic_analysis->X_n();
             
         }
             break;
         case 2:
         {
             m_x_u.Resize(3);
-            m_x_u[2] = m_geomechanic_analysis->X_n();
+            m_x_u[2] = m_geomechanic_analysis->Solution();
             
             if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }
             else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }
             
-            m_x_u[0] = m_x_u[1];
-            m_x_u[1] = m_x_u[2];
-            m_x_u[2] = m_geomechanic_analysis->X_n();
         }
             break;
         case 3:
@@ -404,31 +401,33 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
             
             
             if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
+                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
             }
+            
+            DebugStop();
             
 //            m_x_u[0] = m_x_u[1];
 //            m_x_u[1] = m_x_u[2];
-//            m_x_u[2] = m_geomechanic_analysis->X_n();
+//            m_x_u[2] = m_geomechanic_analysis->Solution();
             
             
             if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
             }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
             }
             else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
+                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
             }
             
 //            m_x_u[0] = m_x_u[1];
 //            m_x_u[1] = m_x_u[2];
 //            m_x_u[2] = m_x_u[3];
-//            m_x_u[3] = m_geomechanic_analysis->X_n();
+//            m_x_u[3] = m_geomechanic_analysis->Solution();
             
         }
             break;
