@@ -268,20 +268,21 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "Aitken") || (nonlinear_acceleration == "Steffensen");
     if (non_linear_acceleration_Q) {
         
-        int n_recursion = 2;
-        AccelerationRes(k,n_recursion);
-        AccelerationGeo(k,n_recursion);
+        int n_terms = 6; /// n=2->S, n=4->S2, and n=6->S3
+        /// Acceleration for the whole thing geo + res
+        AccelerationRes(k,n_terms);
+        AccelerationGeo(k,n_terms);
         
         int n_vec = m_x_p.size();
-        if (k-1 >= n_recursion) {
+        if (k-1 >= n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_p[i] = m_x_p[i+1];
                 m_x_u[i] = m_x_u[i+1];
             }
-            if(n_vec!=0){
-                m_x_p[n_vec-1] = m_reservoir_analysis->X_n();
-                m_x_u[n_vec-1] = m_geomechanic_analysis->Solution();
-            }
+//            if(n_vec!=0){
+//                m_x_p[n_vec-1] = m_reservoir_analysis->X_n();
+//                m_x_u[n_vec-1] = m_geomechanic_analysis->Solution();
+//            }
         }
         
     }
@@ -341,21 +342,19 @@ void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(){
 
 void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
     
-    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
-    
     k--;
-    int n_current;
+    int n_terms;
     {
         if (k < n) {
-            n_current = k;
+            n_terms = k;
         }
         
         if (k >= n) {
-            n_current = n;
+            n_terms = n;
         }
     }
     
-    switch (n_current) {
+    switch (n_terms) {
         case 0:
         {
             m_x_u.Resize(1);
@@ -366,68 +365,91 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
         {
             m_x_u.Resize(2);
             m_x_u[1] = m_geomechanic_analysis->Solution();
-            
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }else if(nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->Solution(),  m_x_u[1], m_x_u[0]);
-            }
-            else if(nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->Solution(),  m_x_u[1], m_x_u[0]);
-            }
+            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
             
         }
             break;
-        case 2:
+        case 2:  /// S(A_n)
         {
             m_x_u.Resize(3);
             m_x_u[2] = m_geomechanic_analysis->Solution();
-            
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }
-            else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }
+            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
             
         }
             break;
-        case 3:
+        case 3:  /// Shalf(A_n)
         {
             m_x_u.Resize(4);
-            m_x_u[3] = m_geomechanic_analysis->X_n();
+            m_x_u[3] = m_geomechanic_analysis->Solution();
             
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk3 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            m_geomechanic_analysis->Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
             
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[1], m_x_u[0]);
-            }
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_u.Resize(5);
+            m_x_u[4] = m_geomechanic_analysis->Solution();
             
-            DebugStop();
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            m_geomechanic_analysis->Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
             
-//            m_x_u[0] = m_x_u[1];
-//            m_x_u[1] = m_x_u[2];
-//            m_x_u[2] = m_geomechanic_analysis->Solution();
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            m_x_u.Resize(6);
+            m_x_u[5] = m_geomechanic_analysis->Solution();
             
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
             
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
-            }
-            else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_geomechanic_analysis->Solution(), m_x_u[2], m_x_u[1]);
-            }
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
             
-//            m_x_u[0] = m_x_u[1];
-//            m_x_u[1] = m_x_u[2];
-//            m_x_u[2] = m_x_u[3];
-//            m_x_u[3] = m_geomechanic_analysis->Solution();
+            Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[1]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            m_geomechanic_analysis->Solution() = ApplyTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_u.Resize(7);
+            m_x_u[6] = m_geomechanic_analysis->Solution();
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[1]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk2 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            Sk3 = ApplyTransformation(m_x_u[6], m_x_u[5], m_x_u[4]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            m_geomechanic_analysis->Solution() = ApplyTransformation(S2k3,S2k2,S2k1);
             
         }
             break;
@@ -439,17 +461,15 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
 
 void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
-    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
-    
     k--;
-    int n_current;
+    int n_terms;
     {
         if (k < n) {
-            n_current = k;
+            n_terms = k;
         }
         
         if (k >= n) {
-            n_current = n;
+            n_terms = n;
         }
     }
     
@@ -460,7 +480,7 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     m_reservoir_analysis->X_n().Print("p = ",std::cout,EMathematicaInput);
 #endif
     
-    switch (n_current) {
+    switch (n_terms) {
         case 0:
             {
                 m_x_p.Resize(1);
@@ -471,72 +491,91 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
         {
             m_x_p.Resize(2);
             m_x_p[1] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = ApplyTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
             
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }else if(nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
-            }
-            else if(nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
-            }
-            
-//            m_x_p[0] = m_x_p[1];
-//            m_x_p[1] = m_reservoir_analysis->X_n();
-
         }
             break;
-        case 2:
+        case 2:  /// S(A_n)
         {
             m_x_p.Resize(3);
             m_x_p[2] = m_reservoir_analysis->X_n();
-            
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }
-            else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }
+            m_reservoir_analysis->X_n() = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
 
-//            m_x_p[0] = m_x_p[1];
-//            m_x_p[1] = m_x_p[2];
-//            m_x_p[2] = m_reservoir_analysis->X_n();
         }
             break;
-        case 3:
+        case 3:  /// Sandhalf(A_n)
         {
             m_x_p.Resize(4);
             m_x_p[3] = m_reservoir_analysis->X_n();
             
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk3 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            m_reservoir_analysis->X_n() = ApplyTransformation(Sk3,Sk2,Sk1);
+
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_p.Resize(5);
+            m_x_p[4] = m_reservoir_analysis->X_n();
             
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
-            }
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            m_reservoir_analysis->X_n() = ApplyTransformation(Sk3,Sk2,Sk1);
             
-//            m_x_p[0] = m_x_p[1];
-//            m_x_p[1] = m_x_p[2];
-//            m_x_p[2] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            m_x_p.Resize(6);
+            m_x_p[5] = m_reservoir_analysis->X_n();
             
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
             
-            if (nonlinear_acceleration == "Shank") {
-                ShankTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
-            }else if (nonlinear_acceleration == "Aitken"){
-                AitkenTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
-            }
-            else if (nonlinear_acceleration == "Steffensen"){
-                SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
-            }
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
             
-//            m_x_p[0] = m_x_p[1];
-//            m_x_p[1] = m_x_p[2];
-//            m_x_p[2] = m_x_p[3];
-//            m_x_p[3] = m_reservoir_analysis->X_n();
+            Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[1]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            m_reservoir_analysis->X_n() = ApplyTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_p.Resize(7);
+            m_x_p[6] = m_reservoir_analysis->X_n();
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[1]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk2 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            Sk3 = ApplyTransformation(m_x_p[6], m_x_p[5], m_x_p[4]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            m_reservoir_analysis->X_n() = ApplyTransformation(S2k3,S2k2,S2k1);
             
         }
             break;
@@ -546,32 +585,51 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
 }
 
-void TPMRSSegregatedAnalysis::ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
-    
-    int n_dof = An_p_1.Rows();
-    for (int i = 0; i < n_dof; i++) {
-        An_p_1(i,0) = An_p_1(i,0) - (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0))/((An_p_1(i,0)-An(i,0))-(An(i,0)-An_m_1(i,0)));
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    TPZFMatrix<REAL> S(An_p_1);
+    if (nonlinear_acceleration == "Shank") {
+        S = ShankTransformation(An_p_1, An, An_m_1);
+    }else if (nonlinear_acceleration == "Aitken"){
+        S = AitkenTransformation(An_p_1, An, An_m_1);
     }
+    else if (nonlinear_acceleration == "Steffensen"){
+        S = SteffensenTransformation(An_p_1, An, An_m_1);
+    }
+    return S;
 }
 
-void TPMRSSegregatedAnalysis::AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    for (int i = 0; i < n_dof; i++) {
+        S(i,0) = An_p_1(i,0) - (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0))/((An_p_1(i,0)-An(i,0))-(An(i,0)-An_m_1(i,0)));
+    }
+    return S;
+}
+
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    
+    TPZFMatrix<REAL> S(An_p_1);
     REAL e_k_m_1 = Norm(An_p_1-An);
     REAL e_k = Norm(An-An_m_1);
     REAL lambda = e_k_m_1/e_k;
     REAL factor = 1.0/(1.0-lambda);
-    An_p_1 = An_m_1 + factor*(An-An_m_1);
-
+    S = An_m_1 + factor*(An-An_m_1);
+    return S;
 }
 
-void TPMRSSegregatedAnalysis::SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     
-    int n_dof = An_p_1.Rows();
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
     for (int i = 0; i < n_dof; i++) {
-        An_p_1(i,0) = An_m_1(i,0) - (An(i,0)-An_m_1(i,0))*(An(i,0)-An_m_1(i,0))/(An_p_1(i,0)-2.0*An(i,0)+An_m_1(i,0));
+        S(i,0) = An_m_1(i,0) - (An(i,0)-An_m_1(i,0))*(An(i,0)-An_m_1(i,0))/(An_p_1(i,0)-2.0*An(i,0)+An_m_1(i,0));
     }
     /// http://www.iaeng.org/IJAM/issues_v48/issue_4/IJAM_48_4_12.pdf
     /// https://arxiv.org/pdf/1310.4288.pdf
+    return S;
 }
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
