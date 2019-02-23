@@ -322,8 +322,8 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     TPZFMatrix<REAL> cpu_time   = segregated_analysis->TimeSummary();
     
     iterations.Print("iteraions = ",std::cout,EMathematicaInput);
-    residuals.Print("residuals = ",std::cout,EMathematicaInput);
-    cpu_time.Print("time = ",std::cout,EMathematicaInput);
+//    residuals.Print("residuals = ",std::cout,EMathematicaInput);
+//    cpu_time.Print("time = ",std::cout,EMathematicaInput);
 }
 
 

@@ -60,6 +60,10 @@ private:
     /// Geomechanic state at last fixed stress cycle
     TPZFMatrix<REAL> m_u_m;
     
+    REAL m_fss_p_norm;
+    
+    REAL m_fss_du_norm;
+    
 public:
     
     /// Default constructor
@@ -139,6 +143,8 @@ public:
     
     void SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
+    /// Perform a geomechanical solution with substepping
+    void ExecuteTheGeomechanicalApproximation();
     
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)

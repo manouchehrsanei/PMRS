@@ -212,8 +212,14 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 }
 
+//#define Acceleration_P_output_Q
+
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
+    
+#ifdef Acceleration_P_output_Q
+    m_reservoir_analysis->X_n().Print("pstar = ",std::cout,EMathematicaInput);
+#endif
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
@@ -223,6 +229,10 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t2 = boost::posix_time::microsec_clock::local_time();
+#endif
+    
+#ifdef Acceleration_P_output_Q
+    m_reservoir_analysis->X_n().Print("pew = ",std::cout,EMathematicaInput);
 #endif
     
 #ifdef USING_BOOST
@@ -238,58 +248,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    {
-        
-        TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
-        TPZFMatrix<REAL> last_du = m_geomechanic_analysis->Solution();
-        int n_level = 0;
-        bool enforced_execution_Q = false;
-        int n_sub_steps = power(2,m_simulation_data->Get_n_sub_step_level());
-        for (int i = 1; i <= n_sub_steps; i++) {
-            REAL delta = 1.0/REAL(n_sub_steps);
-            REAL alpha = delta*i;
-            m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
-            m_reservoir_analysis->LoadMemorySolution();
-            bool check_for_sub_stepping_Q = m_geomechanic_analysis->ExecuteOneTimeStep(enforced_execution_Q);
-            if (check_for_sub_stepping_Q && !enforced_execution_Q) {
-                n_level++;
-                m_simulation_data->Set_n_sub_step_level(n_level);
-                n_sub_steps = power(2,n_level);
-                if (n_level > 4) {
-                    n_sub_steps = 32;
-                    std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
-                    std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
-                    std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
-                    enforced_execution_Q = true;
-                }
-                /// It is required to restart the simulation
-                i = 1;
-                m_geomechanic_analysis->LoadSolution(last_du);
-                m_simulation_data->Set_must_use_sub_stepping_Q(false);
-                std::cout << "TPMRSSegregatedAnalysis:: Increase the level for substepping = " << n_level << std::endl;
-                std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
-                std::cout << "--------------------- Restarting step simulation -------------- " << std::endl;
-                std::cout << std::endl;
-                std::cout << std::endl;
-            }
-            else{
-                m_simulation_data->Set_must_use_sub_stepping_Q(true);
-                m_geomechanic_analysis->UpdateState();
-                m_simulation_data->Set_must_use_sub_stepping_Q(false);
-            }
-        }
-        
-        if(n_sub_steps > 1){
-            std::cout << "TPMRSSegregatedAnalysis:: Geomechanics solved with level of substepping = " << n_level << std::endl;
-            std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
-            std::cout << std::endl;
-            std::cout << std::endl;
-        }
-        
-        m_simulation_data->Set_must_use_sub_stepping_Q(false);
-        m_simulation_data->Set_n_sub_step_level(0);
-    }
-    
+    ExecuteTheGeomechanicalApproximation();
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t2 = boost::posix_time::microsec_clock::local_time();
@@ -303,12 +262,78 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     m_cpu_time_summary(i_time_step,2) += geo_solving_time;
 #endif
     
+
     // Applying the selected nonlinear acceleration
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
-    if (!(nonlinear_acceleration == "None")) {
-        AccelerationRes(k,2);
+    bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "Aitken") || (nonlinear_acceleration == "Steffensen");
+    if (non_linear_acceleration_Q) {
+        
+        int n_recursion = 2;
+        AccelerationRes(k,n_recursion);
+        
+        int n_vec = m_x_p.size();
+        if (k-1 >= n_recursion) {
+            for (int i = 0; i < n_vec - 1; i++) {
+                m_x_p[i] = m_x_p[i+1];
+            }
+            if(n_vec!=0){
+                m_x_p[n_vec-1] = m_reservoir_analysis->Solution();
+            }
+        }
+        
+    }
+}
+
+void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(){
+    
+    TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
+    TPZFMatrix<REAL> last_du = m_geomechanic_analysis->Solution();
+    int n_level = 0;
+    bool enforced_execution_Q = false;
+    int n_sub_steps = power(2,m_simulation_data->Get_n_sub_step_level());
+    for (int i = 1; i <= n_sub_steps; i++) {
+        REAL delta = 1.0/REAL(n_sub_steps);
+        REAL alpha = delta*i;
+        m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
+        m_reservoir_analysis->LoadMemorySolution();
+        bool check_for_sub_stepping_Q = m_geomechanic_analysis->ExecuteOneTimeStep(enforced_execution_Q);
+        if (check_for_sub_stepping_Q && !enforced_execution_Q) {
+            n_level++;
+            m_simulation_data->Set_n_sub_step_level(n_level);
+            n_sub_steps = power(2,n_level);
+            if (n_level > 4) {
+                n_sub_steps = 32;
+                std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
+                std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
+                std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
+                enforced_execution_Q = true;
+            }
+            /// It is required to restart the simulation
+            i = 1;
+            m_geomechanic_analysis->LoadSolution(last_du);
+            m_simulation_data->Set_must_use_sub_stepping_Q(false);
+            std::cout << "TPMRSSegregatedAnalysis:: Increase the level for substepping = " << n_level << std::endl;
+            std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
+            std::cout << "--------------------- Restarting step simulation -------------- " << std::endl;
+            std::cout << std::endl;
+            std::cout << std::endl;
+        }
+        else{
+            m_simulation_data->Set_must_use_sub_stepping_Q(true);
+            m_geomechanic_analysis->UpdateState();
+            m_simulation_data->Set_must_use_sub_stepping_Q(false);
+        }
     }
     
+    if(n_sub_steps > 1){
+        std::cout << "TPMRSSegregatedAnalysis:: Geomechanics solved with level of substepping = " << n_level << std::endl;
+        std::cout << "TPMRSSegregatedAnalysis:: Current number of substeps = " << n_sub_steps << std::endl;
+        std::cout << std::endl;
+        std::cout << std::endl;
+    }
+    
+    m_simulation_data->Set_must_use_sub_stepping_Q(false);
+    m_simulation_data->Set_n_sub_step_level(0);
 }
 
 void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
@@ -386,9 +411,9 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
                 SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[1], m_x_u[0]);
             }
             
-            m_x_u[0] = m_x_u[1];
-            m_x_u[1] = m_x_u[2];
-            m_x_u[2] = m_geomechanic_analysis->X_n();
+//            m_x_u[0] = m_x_u[1];
+//            m_x_u[1] = m_x_u[2];
+//            m_x_u[2] = m_geomechanic_analysis->X_n();
             
             
             if (nonlinear_acceleration == "Shank") {
@@ -400,10 +425,10 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
                 SteffensenTransformation(m_geomechanic_analysis->X_n(), m_x_u[2], m_x_u[1]);
             }
             
-            m_x_u[0] = m_x_u[1];
-            m_x_u[1] = m_x_u[2];
-            m_x_u[2] = m_x_u[3];
-            m_x_u[3] = m_geomechanic_analysis->X_n();
+//            m_x_u[0] = m_x_u[1];
+//            m_x_u[1] = m_x_u[2];
+//            m_x_u[2] = m_x_u[3];
+//            m_x_u[3] = m_geomechanic_analysis->X_n();
             
         }
             break;
@@ -429,6 +454,13 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
         }
     }
     
+#ifdef Acceleration_P_output_Q
+    for (auto i : m_x_p) {
+        i.Print("p_i = ",std::cout,EMathematicaInput);
+    }
+    m_reservoir_analysis->X_n().Print("p = ",std::cout,EMathematicaInput);
+#endif
+    
     switch (n_current) {
         case 0:
             {
@@ -450,8 +482,8 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
                 SteffensenTransformation(m_reservoir_analysis->X_n(),  m_x_p[1], m_x_p[0]);
             }
             
-            m_x_p[0] = m_x_p[1];
-            m_x_p[1] = m_reservoir_analysis->X_n();
+//            m_x_p[0] = m_x_p[1];
+//            m_x_p[1] = m_reservoir_analysis->X_n();
 
         }
             break;
@@ -468,10 +500,10 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             else if (nonlinear_acceleration == "Steffensen"){
                 SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
             }
-            
-            m_x_p[0] = m_x_p[1];
-            m_x_p[1] = m_x_p[2];
-            m_x_p[2] = m_reservoir_analysis->X_n();
+
+//            m_x_p[0] = m_x_p[1];
+//            m_x_p[1] = m_x_p[2];
+//            m_x_p[2] = m_reservoir_analysis->X_n();
         }
             break;
         case 3:
@@ -488,9 +520,9 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
                 SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[1], m_x_p[0]);
             }
             
-            m_x_p[0] = m_x_p[1];
-            m_x_p[1] = m_x_p[2];
-            m_x_p[2] = m_reservoir_analysis->X_n();
+//            m_x_p[0] = m_x_p[1];
+//            m_x_p[1] = m_x_p[2];
+//            m_x_p[2] = m_reservoir_analysis->X_n();
             
             
             if (nonlinear_acceleration == "Shank") {
@@ -502,17 +534,17 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
                 SteffensenTransformation(m_reservoir_analysis->X_n(), m_x_p[2], m_x_p[1]);
             }
             
-            m_x_p[0] = m_x_p[1];
-            m_x_p[1] = m_x_p[2];
-            m_x_p[2] = m_x_p[3];
-            m_x_p[3] = m_reservoir_analysis->X_n();
+//            m_x_p[0] = m_x_p[1];
+//            m_x_p[1] = m_x_p[2];
+//            m_x_p[2] = m_x_p[3];
+//            m_x_p[3] = m_reservoir_analysis->X_n();
             
         }
             break;
         default:
             break;
     }
-
+    
 }
 
 void TPMRSSegregatedAnalysis::ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
@@ -651,20 +683,21 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_residuals_summary(it,1) += m_reservoir_analysis->Get_error();
             m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
             
-            REAL fss_dp_norm = Norm(m_reservoir_analysis->X_n() - m_p_m)/Norm(m_reservoir_analysis->X_n());
-            REAL fss_du_norm = Norm(m_geomechanic_analysis->Solution() - m_u_m)/Norm(m_geomechanic_analysis->Solution());
+            /// Relative error http://mathworld.wolfram.com/RelativeError.html
+            m_fss_p_norm  = Norm(m_reservoir_analysis->X_n() - m_p_m)/Norm(m_p_m);
+            m_fss_du_norm =  Norm(m_geomechanic_analysis->Solution() - m_u_m)/Norm(m_u_m);
             
             m_p_m = m_reservoir_analysis->X_n();
             m_u_m = m_geomechanic_analysis->Solution();
             
-            m_residuals_summary(it,3) = fss_dp_norm;
-            m_residuals_summary(it,4) = fss_du_norm;
+            m_residuals_summary(it,3) = m_fss_p_norm;
+            m_residuals_summary(it,4) = m_fss_du_norm;
             
-            std::cout << "fss_dp_norm = " << fss_dp_norm << std::endl;
-            std::cout << "fss_du_norm = " << fss_du_norm << std::endl;
+            std::cout << "fss_dp_norm = " << m_fss_p_norm << std::endl;
+            std::cout << "fss_du_norm = " << m_fss_du_norm << std::endl;
             
             error_stop_criterion_Q = (m_reservoir_analysis->Get_error() < r_norm) && (m_geomechanic_analysis->Get_error() < r_norm);
-            dx_stop_criterion_Q = (fss_dp_norm < dx_norm) && (fss_du_norm < dx_norm);
+            dx_stop_criterion_Q = (m_fss_p_norm < dx_norm) && (m_fss_du_norm < dx_norm);
             
 #ifdef Animated_Convergence_Q
             this->PostProcessTimeStep(file_geo, file_res);
