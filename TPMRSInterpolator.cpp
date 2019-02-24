@@ -2,7 +2,7 @@
 //  TPMRSInterpolator.cpp
 //  PMRS
 //
-//  Created by Omar Durán on 2/13/19.
+//  Created by Omar and Manouchehr on 2/13/19.
 //
 
 #include "TPMRSInterpolator.h"

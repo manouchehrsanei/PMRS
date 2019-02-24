@@ -64,7 +64,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         case ELU:
         {
             
-#ifdef USING_MKL
+#ifdef USING_MKL2
             TPZSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -78,7 +78,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             break;
         case ELDLt:
         {
-#ifdef USING_MKL
+#ifdef USING_MKL2
             TPZSymetricSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);

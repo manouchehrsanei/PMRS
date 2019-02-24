@@ -137,12 +137,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     
     SetFixedStressSplitSchemes(n_fss_iterations,n_enf_fss_iterations);
     
-    
     container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("NonlinearAcceleration").ToElement();
     const char * nonlinearacceleration = container->Attribute("n_nonlinear_acceleration");
     m_n_nonlinear_acceleration = nonlinearacceleration;
-    
-    /// End:: Fixed Stress Split Scheme
+     /// End:: Fixed Stress Split Scheme
 
     
     /// Begin:: Substeps controls
@@ -1078,7 +1076,7 @@ void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicol
     
 }
 
-/// Brief Setup reporting times and time step size
+/// Brief Setup numerical controls
 void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res, REAL epsilon_cor)
 {
     
@@ -1094,10 +1092,6 @@ void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n
     m_n_fss_iterations        =   n_fss_iterations;
     m_n_enf_fss_iterations    =   n_enf_fss_iterations;
 }
-
-
-
-
 
 
 /// Brief Print the all members

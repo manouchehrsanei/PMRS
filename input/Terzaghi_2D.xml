@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="Shank" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="/none" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>

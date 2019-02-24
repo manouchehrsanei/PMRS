@@ -2,7 +2,7 @@
 //  TPMRSInterpolator.h
 //  PMRS
 //
-//  Created by Omar Durán on 2/13/19.
+//  Created by Omar and Manouchehr on 2/13/19.
 //
 
 #ifndef TPMRSInterpolator_h
@@ -22,14 +22,14 @@ private:
     
     /// Table of time values vs number of functions values being interpolated
     std::vector<std::pair<REAL, std::vector<REAL>>> m_points;
-    
+
     /// Number of time values
     int m_n_time_data;
     
     /// Number of functions being interpolated
     int m_n_f_data;
     
-    /// the requirements for the provided table of values
+    /// The requirements for the provided table of values
     bool CheckDataCoherence(std::vector<std::pair<REAL, std::vector<REAL>>> & points);
     
 public:
@@ -37,7 +37,7 @@ public:
     /// Default constructor
     TPMRSInterpolator();
     
-    /// Copy constructor
+    /// Constructor
     TPMRSInterpolator(std::vector<std::pair<REAL, std::vector<REAL>>> & points);
     
     /// Copy constructor
