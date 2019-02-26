@@ -336,7 +336,7 @@ public:
         m_must_accept_solution_Q = must_accept_solution_Q;
     }
     
-    /// Set the use of dual (true) or pirmal (false) formulation for monophacic flow
+    /// Set the use of dual (true) or primal (false) formulation for monophacic flow
     void Set_is_dual_formulation_Q(bool is_dual_formulation_Q){
         m_is_dual_formulation_Q = is_dual_formulation_Q;
     }

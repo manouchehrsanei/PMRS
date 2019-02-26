@@ -116,33 +116,30 @@ void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &ka
             break;
         case k_petunin : {
             REAL A      = m_parameters[0];
+            
             kappa       = kappa_0*pow(phi/phi_0,A);
             dkappa_dphi = (A*kappa_0*pow(phi/phi_0,-1.0 + A))/phi_0;
         }
             break;
         case k_davies : {
             REAL C      = m_parameters[0];
+            
             kappa       = exp(C*(-1.0 + phi/phi_0))*kappa_0;
             dkappa_dphi = (C*exp(C*(-1.0 + phi/phi_0))*kappa_0)/phi_0;
         }
             break;
         case k_costa : {
-//            REAL A      = m_parameters[0];
-//            REAL C      = m_parameters[1];
-            REAL A = 1.0;
-            REAL C = 1.0;
-            
+            REAL A      = m_parameters[0];
+            REAL C      = m_parameters[1];
+
             kappa       = kappa_0*A*((1-phi_0)/(1-phi))*pow(phi/phi_0,C);
             dkappa_dphi = (A*kappa_0*(1 - phi_0)*pow(phi/phi_0,C))/pow(1 - phi,2) +
             (A*C*kappa_0*(1 - phi_0)*pow(phi/phi_0,-1 + C))/((1 - phi)*phi_0);
         }
             break;
         case k_nelson : {
-//            REAL A      = m_parameters[0];
-//            REAL C      = m_parameters[1];
-            
-            REAL A = 2.0;
-            REAL C = - 0.01;
+            REAL A      = m_parameters[0];
+            REAL C      = m_parameters[1];
             
             kappa       = kappa_0*pow(10,(C + A*(phi - phi_0)));
             dkappa_dphi = A*kappa_0*log(10.0)*pow(10,(C + A*(phi - phi_0)));
@@ -152,6 +149,7 @@ void TPMRSKappaParameters::Permeability(REAL &kappa, REAL &dkappa_dphi, REAL &ka
         case k_bayles : {
             REAL A      = m_parameters[0];
             REAL C      = m_parameters[1];
+            
             kappa       = (A*kappa_0*pow(1 - phi_0,2)*pow(phi/phi_0,2 + C))/pow(1 - phi,2);
             dkappa_dphi = (2*A*kappa_0*pow(1 - phi_0,2)*pow(phi/phi_0,2 + C))/pow(1 - phi,3) +
             (A*(2 + C)*kappa_0*pow(1 - phi_0,2)*pow(phi/phi_0,1 + C))/(pow(1 - phi,2)*phi_0);

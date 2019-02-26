@@ -521,46 +521,74 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 case kappa_pars.k_costa:
                 {
                     char_container = sub_container->Attribute("a");
-                    char_container = sub_container->Attribute("c");
+                    
                     if (!char_container) {
-                        std::cout << "CostaModel::Please provide a $ c parameters" << std::endl;
+                        std::cout << "CostaModel::Please provide a parameter" << std::endl;
                         DebugStop();
                     }
+                    
                     REAL a = std::atof(char_container);
-                    REAL c = std::atof(char_container);
                     pars[0] = a;
+                    
+                    char_container = sub_container->Attribute("c");
+                    
+                    if (!char_container) {
+                        std::cout << "CostaModel::Please provide c parameter" << std::endl;
+                        DebugStop();
+                    }
+                    
+                    REAL c = std::atof(char_container);
                     pars[1] = c;
+
                 }
                     break;
+                    
                 case kappa_pars.k_nelson:
                 {
                     char_container = sub_container->Attribute("a");
-                    char_container = sub_container->Attribute("c");
                     if (!char_container) {
-                        std::cout << "NelsonModel::Please provide a $ c parameters" << std::endl;
+                        std::cout << "NelsonModel::Please provide a parameter" << std::endl;
                         DebugStop();
                     }
-                    REAL a = std::atof(char_container);
-                    REAL c = std::atof(char_container);
-                    pars[0] = a;
-                    pars[1] = c;
-                }
                     
+                    REAL a = std::atof(char_container);
+                    pars[0] = a;
+                    
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "NelsonModel::Please provide c parameter" << std::endl;
+                        DebugStop();
+                    }
+                    
+                    REAL c = std::atof(char_container);
+                    pars[1] = c;
+                    
+
+                }
                     break;
+                    
                 case kappa_pars.k_bayles:
                 {
                     char_container = sub_container->Attribute("a");
-                    char_container = sub_container->Attribute("c");
                     if (!char_container) {
-                        std::cout << "BaylesModel::Please provide a $ c parameters" << std::endl;
+                        std::cout << "BaylesModel::Please provide a parameter" << std::endl;
                         DebugStop();
                     }
-                    REAL a = std::atof(char_container);
-                    REAL c = std::atof(char_container);
-                    pars[0] = a;
-                    pars[1] = c;
-                }
                     
+                    REAL a = std::atof(char_container);
+                    pars[0] = a;
+                    
+                    char_container = sub_container->Attribute("c");
+                    if (!char_container) {
+                        std::cout << "BaylesModel::Please provide c parameter" << std::endl;
+                        DebugStop();
+                    }
+                    
+                    REAL c = std::atof(char_container);
+                    pars[1] = c;
+                    
+                }
+  
                     break;
                     
                 default:

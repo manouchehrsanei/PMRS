@@ -150,7 +150,6 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
 
 void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
-
     int dim   = cmesh_o->Dimension();
     int nel_o = cmesh_o->NElements();
     int nel_d = cmesh_d->NElements();
