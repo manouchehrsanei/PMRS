@@ -68,11 +68,11 @@ int TPMRSElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
     if (!strcmp("epyy", name.c_str())) return 18;
     if (!strcmp("epyz", name.c_str())) return 19;
     if (!strcmp("epzz", name.c_str())) return 20;
-    if (!strcmp("u", name.c_str()))     return  21;
-    if (!strcmp("s", name.c_str()))     return  22;
-    if (!strcmp("e", name.c_str()))     return  23;
-    if (!strcmp("ep", name.c_str()))    return  24;
-    if (!strcmp("s_t", name.c_str()))     return  25;
+    if (!strcmp("u"   , name.c_str())) return 21;
+    if (!strcmp("s"   , name.c_str())) return 22;
+    if (!strcmp("e"   , name.c_str())) return 23;
+    if (!strcmp("ep"  , name.c_str())) return 24;
+    if (!strcmp("s_t" , name.c_str())) return 25;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 

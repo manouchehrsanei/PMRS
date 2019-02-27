@@ -37,7 +37,7 @@ public:
     /// Default constructor
     TPMRSInterpolator();
     
-    /// Constructor
+    /// Constructor based on the table of values
     TPMRSInterpolator(std::vector<std::pair<REAL, std::vector<REAL>>> & points);
     
     /// Copy constructor

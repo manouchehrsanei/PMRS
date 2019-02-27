@@ -67,7 +67,7 @@ public:
     /// Assignement constructor
     const TPMRSElastoPlasticMemory & operator=(const TPMRSElastoPlasticMemory & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSElastoPlasticMemory();
     
     /// Class name

@@ -45,7 +45,7 @@ public:
     /// Assignement constructor
     const TPMRSPlasticityParameters & operator=(const TPMRSPlasticityParameters & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSPlasticityParameters();
     
     /// Class name

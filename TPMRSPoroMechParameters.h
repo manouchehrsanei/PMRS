@@ -33,7 +33,7 @@ public:
     /// Assignement constructor
     const TPMRSPoroMechParameters & operator=(const TPMRSPoroMechParameters & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSPoroMechParameters();
     
     /// Class name
@@ -42,10 +42,10 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    /// Set parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s, c_f}
+    /// Set parameters vector {Eyoung, nu, alpha, c_f, eta, rho_f, rho_s}
     void SetParameters(std::vector<REAL> & parameters);
     
-    /// Get parameters vector {Eyoung, nu, alpha, Se, eta, rho_f, rho_s, c_f}
+    /// Get parameters vector {Eyoung, nu, alpha, c_f, eta, rho_f, rho_s}
     std::vector<REAL> & GetParameters();
     
 };

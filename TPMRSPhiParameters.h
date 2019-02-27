@@ -48,7 +48,7 @@ public:
     /// Assignement constructor
     const TPMRSPhiParameters & operator=(const TPMRSPhiParameters & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSPhiParameters();
     
     /// Class name
@@ -57,7 +57,7 @@ public:
     /// Print class attributes
     virtual void Print(std::ostream &out = std::cout) const;
     
-    /// Initialization for names_to_p_model map
+    /// Initialization for names_to_phi_model map
     void Initialize();
     
     /// Configurate the model according to the string

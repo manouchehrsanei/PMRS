@@ -33,7 +33,7 @@ public:
     /// Assignement constructor
     const TPMRSUndrainedParameters & operator=(const TPMRSUndrainedParameters & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSUndrainedParameters();
     
     /// Class name

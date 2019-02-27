@@ -53,13 +53,13 @@ public:
     /// Default constructor
     TPMRSMonoPhasic();
     
-    /// Constructor based on a material id
+    /// Constructor based on a material id and dimension
     TPMRSMonoPhasic(int mat_id, int dimension);
     
-    /// Constructor based on a TPMRSMonoPhasic object
+    /// Copy constructor
     TPMRSMonoPhasic(const TPMRSMonoPhasic & other);
     
-    /// Constructor based on a TPMRSMonoPhasic object
+    /// Assignement constructor
     TPMRSMonoPhasic &operator=(const TPMRSMonoPhasic & other);
     
     /// Default destructor

@@ -67,7 +67,7 @@ public:
     /// Assignement constructor
     const TPMRSMonoPhasicMemory & operator=(const TPMRSMonoPhasicMemory & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSMonoPhasicMemory();
     
     /// Class name

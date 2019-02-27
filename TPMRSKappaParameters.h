@@ -45,7 +45,7 @@ public:
     /// Assignement constructor
     const TPMRSKappaParameters & operator=(const TPMRSKappaParameters & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSKappaParameters();
     
     /// Class name

@@ -9,7 +9,7 @@
 
 
 TPMRSMemory::TPMRSMemory() : TPMRSMonoPhasicMemory() , TPMRSElastoPlasticMemory() {
-    m_alpha = 0.0;
+    m_alpha  = 0.0;
     m_Kdr    = 0.0;
 }
 

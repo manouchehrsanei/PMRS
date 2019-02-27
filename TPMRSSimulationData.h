@@ -76,7 +76,7 @@ protected:
     /// value of scale factor
     REAL m_scale_factor;
     
-    /// Directive that states the use of dual (true) or pirmal (false) formulation for monophacic flow
+    /// Directive that states the use of dual (true) or primal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
     /// Directive that states if the current memory solution is being transferred to the last memory solution

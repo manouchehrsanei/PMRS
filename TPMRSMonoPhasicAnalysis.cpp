@@ -45,13 +45,12 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     SetSimulationData(simulation_data);
     TPZStepSolver<STATE> step;
     unsigned int number_threads = m_simulation_data->n_threads();
-    
+
     if(!Mesh()){
         std::cout << "Call SetCompMesh method." << std::endl;
         DebugStop();
     }
     m_mesh_vec = mesh_vec;
-
     
     switch (decomposition) {
         case ECholesky:

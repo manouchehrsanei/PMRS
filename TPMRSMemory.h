@@ -36,7 +36,7 @@ public:
     /// Assignement constructor
     const TPMRSMemory & operator=(const TPMRSMemory & other);
     
-    /// Desconstructor
+    /// Destructor
     virtual ~TPMRSMemory();
     
     /// Class Name
