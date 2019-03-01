@@ -340,6 +340,513 @@ void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(){
     m_simulation_data->Set_n_sub_step_level(0);
 }
 
+
+
+void TPMRSSegregatedAnalysis::AccelerationAitkenGeo(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = m_geomechanic_analysis->Solution();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = AitkenTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = AitkenTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+void TPMRSSegregatedAnalysis::AccelerationAitkenRes(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_p.Resize(1);
+            m_x_p[0] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = AitkenTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = AitkenTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+
+void TPMRSSegregatedAnalysis::AccelerationSteffensenGeo(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = m_geomechanic_analysis->Solution();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = SteffensenTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = SteffensenTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+void TPMRSSegregatedAnalysis::AccelerationSteffensenRes(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_p.Resize(1);
+            m_x_p[0] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = SteffensenTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = SteffensenTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+
+void TPMRSSegregatedAnalysis::AccelerationBrezinskiGeo(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = m_geomechanic_analysis->Solution();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = BrezinskiTransformation(m_x_u[1], m_x_u[1], m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = BrezinskiTransformation(m_x_u[2], m_x_u[2], m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 3:
+        {
+            
+            m_x_u.Resize(4);
+            m_x_u[3] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = BrezinskiTransformation(m_x_u[3], m_x_u[3], m_x_u[2], m_x_u[1], m_x_u[0]);
+
+        }
+            break;
+        case 4:
+        {
+            m_x_u.Resize(5);
+            m_x_u[4] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = BrezinskiTransformation(m_x_u[4], m_x_u[3], m_x_u[2], m_x_u[1], m_x_u[0]);
+        }
+            break;
+        default:
+            break;
+    } 
+}
+
+
+void TPMRSSegregatedAnalysis::AccelerationBrezinskiRes(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_p.Resize(1);
+            m_x_p[0] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = BrezinskiTransformation(m_x_u[1], m_x_u[1], m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = BrezinskiTransformation(m_x_u[2], m_x_u[2], m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 3:
+        {
+            m_x_p.Resize(4);
+            m_x_p[3] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = BrezinskiTransformation(m_x_u[3], m_x_u[3], m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 4:
+        {
+            m_x_p.Resize(5);
+            m_x_p[4] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = BrezinskiTransformation(m_x_u[4], m_x_u[3], m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+void TPMRSSegregatedAnalysis::AccelerationShankGeo(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = m_geomechanic_analysis->Solution();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = ShankTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = ShankTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 3:  /// Shalf(A_n)
+        {
+            
+            m_x_u.Resize(4);
+            m_x_u[3] = m_geomechanic_analysis->Solution();
+            m_geomechanic_analysis->Solution() = ShankTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_u.Resize(5);
+            m_x_u[4] = m_geomechanic_analysis->Solution();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ShankTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ShankTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ShankTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            m_geomechanic_analysis->Solution() = ShankTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            
+            m_x_u.Resize(6);
+            m_x_u[5] = m_geomechanic_analysis->Solution();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ShankTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ShankTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ShankTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            m_geomechanic_analysis->Solution() = ShankTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_u.Resize(7);
+            m_x_u[6] = m_geomechanic_analysis->Solution();
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ShankTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ShankTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ShankTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            S2k1 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ShankTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ShankTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ShankTransformation(m_x_u[5], m_x_u[4], m_x_u[1]);
+            S2k2 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ShankTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk2 = ShankTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            Sk3 = ShankTransformation(m_x_u[6], m_x_u[5], m_x_u[4]);
+            S2k3 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            m_geomechanic_analysis->Solution() = ShankTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+
+void TPMRSSegregatedAnalysis::AccelerationShankRes(int k, int n){
+    
+    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_p.Resize(1);
+            m_x_p[0] = m_reservoir_analysis->X_n();
+        }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = ShankTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = ShankTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 3:  /// Sandhalf(A_n)
+        {
+            
+            m_x_p.Resize(4);
+            m_x_p[3] = m_reservoir_analysis->X_n();
+            m_reservoir_analysis->X_n() = ShankTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_p.Resize(5);
+            m_x_p[4] = m_reservoir_analysis->X_n();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ShankTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ShankTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ShankTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            m_reservoir_analysis->X_n() = ShankTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            
+            m_x_p.Resize(6);
+            m_x_p[5] = m_reservoir_analysis->X_n();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ShankTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ShankTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ShankTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            m_reservoir_analysis->X_n() = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_p.Resize(7);
+            m_x_p[6] = m_reservoir_analysis->X_n();
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ShankTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ShankTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ShankTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            S2k1 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ShankTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ShankTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ShankTransformation(m_x_p[5], m_x_p[4], m_x_p[1]);
+            S2k2 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ShankTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk2 = ShankTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            Sk3 = ShankTransformation(m_x_p[6], m_x_p[5], m_x_p[4]);
+            S2k3 = ShankTransformation(Sk3,Sk2,Sk1);
+            
+            m_reservoir_analysis->X_n() = ShankTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+
 void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
     
     k--;
@@ -613,7 +1120,6 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
         default:
             break;
     }
-    
 }
 
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
