@@ -144,6 +144,9 @@ public:
     
     TPZFMatrix<REAL> SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
+    TPZFMatrix<REAL> BrezinskiTransformation(TPZFMatrix<REAL> & An_p_2, TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1, TPZFMatrix<REAL> & An_m_2);
+    
+    
     /// Perform a geomechanical solution with substepping
     void ExecuteTheGeomechanicalApproximation();
     

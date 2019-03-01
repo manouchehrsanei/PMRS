@@ -153,6 +153,7 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
     int dim   = cmesh_o->Dimension();
     int nel_o = cmesh_o->NElements();
     int nel_d = cmesh_d->NElements();
+
     
     if (nel_o != nel_d) {
         std::cout << "The geometrical partitions are not the same." << std::endl;
@@ -661,6 +662,23 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::SteffensenTransformation(TPZFMatrix<RE
     /// https://arxiv.org/pdf/1310.4288.pdf
     return S;
 }
+
+
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::BrezinskiTransformation(TPZFMatrix<REAL> & An_p_2, TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1, TPZFMatrix<REAL> & An_m_2){
+    
+    TPZFMatrix<REAL> S(An_p_2);
+    int n_dof = S.Rows();
+    for (int i = 0; i < n_dof; i++) {
+        
+        S(i,0) = (3*An(i,0)*An(i,0) - 4*An_m_1(i,0)*An_p_1(i,0) + An_m_2(i,0)*An_p_2(i,0))/(6*An(i,0) + An_m_2(i,0) - 4*(An_m_1(i,0) + An_p_1(i,0)) + An_p_2(i,0));
+        
+    }
+
+    /// http://www.scielo.br/pdf/cam/v26n2/a01v26n2.pdf
+    return S;
+}
+
+
 
 void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::string & res_file){
     m_reservoir_analysis->PostProcessTimeStep(res_file);
