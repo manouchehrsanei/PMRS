@@ -129,27 +129,20 @@ public:
     /// Resize and storage the positions to track iteraions and cpu time during the entire simulation
     void ConfigurateHistorySummaries();
     
-    REAL linear_extrapolation(REAL & f_1, REAL & f_2, REAL & t_1, REAL & t_2, REAL & t);
-    
-    REAL quadratic_extrapolation(REAL & f_1, REAL & f_2, REAL & f_3, REAL & t_1, REAL & t_2,  REAL & t_3, REAL & t);
-    
     /// Define an acceleration method for the outer loop k iteration for geomechanics module
     void AccelerationGeo(int k, int n);
     
     /// Define an acceleration method for the outer loop k iteration for reservoir module
     void AccelerationRes(int k, int n);
     
+    /// Apply a tranformation formula based on three states
     TPZFMatrix<REAL> ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
+    /// Apply a Atiken Delta-2 tranformation formula based on three states
     TPZFMatrix<REAL> FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
+    /// Apply a Anderson tranformation formula based on three states
     TPZFMatrix<REAL> SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
-    
-    TPZFMatrix<REAL> ShankTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
-    
-    TPZFMatrix<REAL> AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
-    
-    TPZFMatrix<REAL> SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);    
     
     /// Perform a geomechanical solution with substepping
     void ExecuteTheGeomechanicalApproximation();
