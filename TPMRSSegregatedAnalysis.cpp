@@ -259,7 +259,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
     if (non_linear_acceleration_Q) {
         
-        int n_terms = 2; /// n=2->S, n=4->S2, and n=6->S3
+        int n_terms = 6; /// n=2->S, n=4->S2, and n=6->S3
         /// Acceleration for the whole thing geo + res
         AccelerationRes(k,n_terms);
         AccelerationGeo(k,n_terms);
@@ -370,21 +370,12 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
             
         }
             break;
-        case 3:  /// Shalf(A_n)
+        case 3:  /// S(A_n)
         {
             
             m_x_u.Resize(4);
             m_x_u[3] = m_geomechanic_analysis->Solution();
             m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-            
-//            m_x_u.Resize(4);
-//            m_x_u[3] = m_geomechanic_analysis->Solution();
-//
-//            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
-//            Sk1 = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
-//            Sk2 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
-//            Sk3 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-//            m_geomechanic_analysis->Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
             
         }
             break;
@@ -413,27 +404,6 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
             Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
             m_geomechanic_analysis->Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
             
-//            m_x_u.Resize(6);
-//            m_x_u[5] = m_geomechanic_analysis->Solution();
-//            
-//            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
-//            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
-//            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-//            Sk3 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-//            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
-//            
-//            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
-//            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-//            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
-//            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
-//            
-//            Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
-//            Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
-//            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[1]);
-//            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
-//            
-//            m_geomechanic_analysis->Solution() = ApplyTransformation(S2k3,S2k2,S2k1);
-            
         }
             break;
         case 6:  /// S3(A_n)
@@ -449,7 +419,7 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
             
             Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
             Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
-            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
             S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
             
             Sk1 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
@@ -504,7 +474,7 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
 
         }
             break;
-        case 3:  /// Sandhalf(A_n)
+        case 3:  /// S(A_n)
         {
             
             m_x_p.Resize(4);
@@ -553,7 +523,7 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             
             Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
             Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
-            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
             S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
             
             Sk1 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
