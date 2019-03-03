@@ -21,6 +21,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_enf_fss_iterations                =   0;
     m_n_nonlinear_acceleration            =  "";
     m_n_state                             =   0;
+    m_max_theta_value                     = 0.0;
     m_max_plastic_strain                  = 0.0;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
@@ -148,6 +149,11 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("n_state");
     int number_state = std::atoi(char_container);
     m_n_state = number_state;
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("FixedStressSplit").FirstChild("MaxThetaRatio").ToElement();
+    char_container = container->Attribute("max_theta_value");
+    REAL maximum_theta_value = std::atof(char_container);
+    m_max_theta_value = maximum_theta_value;
     
     /// End:: Fixed Stress Split Scheme
 
@@ -1176,6 +1182,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
     std::cout << " m_n_nonlinear_acceleration = " << m_n_nonlinear_acceleration << std::endl;
     std::cout << " m_n_state = " << m_n_state << std::endl;
+    std::cout << " m_max_theta_value = " << m_max_theta_value << std::endl;
     std::cout << " m_max_plastic_strain = " << m_max_plastic_strain << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_scale_factor = " << m_scale_factor << std::endl;

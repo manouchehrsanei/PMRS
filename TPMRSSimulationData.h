@@ -73,6 +73,8 @@ protected:
     /// Number of states of acceleration method
     int m_n_state;
     
+    REAL m_max_theta_value;
+    
     /// Number of thread
     int m_n_threads;
     
@@ -224,6 +226,7 @@ public:
         m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
         m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
         m_n_state                                 = other.m_n_state;
+        m_max_theta_value                         = other.m_max_theta_value;
         m_max_plastic_strain                      = other.m_max_plastic_strain;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
@@ -274,6 +277,7 @@ public:
             m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
             m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
             m_n_state                                 = other.m_n_state;
+            m_max_theta_value                         = other.m_max_theta_value;
             m_max_plastic_strain                      = other.m_max_plastic_strain;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
@@ -406,6 +410,14 @@ public:
     
     /// Get number of state for acceleration methods
     int n_state_acceleration() {return m_n_state; }
+    
+    /// Set the maximum theta value for adaptive acceleration
+    void Set_max_theta_value (REAL maximum_theta_value) {
+        m_max_theta_value = maximum_theta_value;
+    }
+    
+    /// Get the maximum theta value for adaptive acceleration
+    REAL Get_max_theta_value() { return m_max_theta_value; }
     
     /// Get the maximum substeps of plasticity
     REAL Get_max_plastic_strain() { return m_max_plastic_strain; }
