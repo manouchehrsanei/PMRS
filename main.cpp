@@ -198,13 +198,6 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-//    RuningGeomechanics(sim_data);
-//    RuningMonophasic(sim_data);
-    
-//    RuningFullCoupling(sim_data);
-
-    sim_data->PrintGeometry();
-    
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -320,10 +313,14 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
     TPZFMatrix<REAL> iterations = segregated_analysis->IterationsSummary();
     TPZFMatrix<REAL> residuals  = segregated_analysis->ResidualsSummary();
     TPZFMatrix<REAL> cpu_time   = segregated_analysis->TimeSummary();
-    
-    iterations.Print("iteraions = ",std::cout,EMathematicaInput);
-//    residuals.Print("residuals = ",std::cout,EMathematicaInput);
-//    cpu_time.Print("time = ",std::cout,EMathematicaInput);
+
+    if (sim_data->Get_is_performance_summary_Q()) {
+        std::ofstream summary_file("PMRS_performance_summary.txt");
+        iterations.Print("iteraions = ",summary_file,EMathematicaInput);
+        residuals.Print("residuals = ",summary_file,EMathematicaInput);
+        cpu_time.Print("time = ",summary_file,EMathematicaInput);
+        summary_file.flush();
+    }
 }
 
 

@@ -321,7 +321,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         std::cout << "Warning:: ReportingTimes structure does not contain time values." << std::endl;
     }
     
-     /// End:: Outputs
+    /// End:: Outputs
     
     
     /// Begin:: Physics
@@ -1127,6 +1127,9 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     
     /// Begin:: Apply uniform refinement
     this->UniformRefinement();
+    if(m_is_draw_geometry_Q){
+        PrintGeometry();
+    }
     /// End:: Apply uniform refinement
 }
 
