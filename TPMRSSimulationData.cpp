@@ -37,6 +37,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_outputs_geo                       =   0;
     m_n_outputs_res                       =   0;
     m_is_draw_geometry_Q                  = true;
+    m_performance_summary_Q               = true;
     m_s_names_res.Resize(0);
     m_s_names_geo.Resize(0);
     m_v_names_res.Resize(0);
@@ -236,6 +237,13 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("draw_geometry_Q");
     bool is_draw_geometry_Q = std::atoi(char_container);
     m_is_draw_geometry_Q     = is_draw_geometry_Q;
+    
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
+    char_container = container->Attribute("performance_summary_Q");
+    bool is_performance_summary_Q = std::atoi(char_container);
+    m_performance_summary_Q     = is_performance_summary_Q;
+    
     
 
     int is_r = 0;
@@ -1181,6 +1189,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_n_outputs_geo = " << m_n_outputs_geo << std::endl;
     std::cout << " m_n_outputs_res = " << m_n_outputs_res << std::endl;
     std::cout << " m_is_draw_geometry_Q = " << m_is_draw_geometry_Q << std::endl;
+    std::cout << " m_performance_summary_Q = " << m_performance_summary_Q << std::endl;
     std::cout << " m_g = " << m_g << std::endl;
     std::cout << " m_n_regions = " << m_n_regions << std::endl;
     std::cout << " m_mat_ids = " << std::endl;

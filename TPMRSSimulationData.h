@@ -118,6 +118,9 @@ protected:
     /// Directive that states to print geometry or not
     bool m_is_draw_geometry_Q;
     
+    /// Directive that states to show summary of performance
+    bool m_performance_summary_Q;
+    
     /// Vector that storage scalar names for reservoir postprocessing
     TPZManVector<std::string,50> m_s_names_res;
     
@@ -237,6 +240,7 @@ public:
         m_n_outputs_geo                           = other.m_n_outputs_geo;
         m_n_outputs_res                           = other.m_n_outputs_res;
         m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
+        m_performance_summary_Q                   = other.m_performance_summary_Q;
         m_s_names_res                             = other.m_s_names_res;
         m_s_names_geo                             = other.m_s_names_geo;
         m_v_names_res                             = other.m_v_names_res;
@@ -286,6 +290,7 @@ public:
             m_n_outputs_geo                           = other.m_n_outputs_geo;
             m_n_outputs_res                           = other.m_n_outputs_res;
             m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
+            m_performance_summary_Q                   = other.m_performance_summary_Q;
             m_s_names_res                             = other.m_s_names_res;
             m_s_names_geo                             = other.m_s_names_geo;
             m_v_names_res                             = other.m_v_names_res;
@@ -423,13 +428,22 @@ public:
     /// Get Number of reservoir output
     int num_outputs_res() { return m_n_outputs_res; }
     
-    /// Set the use of geometry boolian to print the geometry or not
+    /// Set the ask to print the geometry or not
     void Set_is_draw_geometry_Q(bool is_draw_geometry_Q){
         m_is_draw_geometry_Q = is_draw_geometry_Q;
     }
     
-    /// Get the use of geometry boolian to print the geometry or not
+    /// Get the ask to print the geometry or not
     bool Get_is_draw_geometry_Q() { return m_is_draw_geometry_Q; }
+    
+    
+    /// Set the ask to show the performance
+    void Set_is_performance_summary_Q(bool is_performance_summary_Q){
+        m_performance_summary_Q = is_performance_summary_Q;
+    }
+    
+    /// Get the ask to show the performance
+    bool Get_is_performance_summary_Q() { return m_performance_summary_Q; }
     
     
     /// Get Vector that storage scalar names for reservoir postprocessing
