@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -47,7 +47,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_SFI" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_SFI" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -63,6 +63,7 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
+            <time t="0.001" />
             <time t="0.005" />
             <time t="0.01" />
         </ReportingTimes>        
