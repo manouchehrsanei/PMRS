@@ -14,14 +14,15 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.0001" />
-        <Correction cor_tolerance="0.0001" />
+        <Residue res_tolerance="0.0000000001" />
+        <Correction cor_tolerance="0.0000000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="2" />
-        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
@@ -60,7 +61,11 @@
             <Var s_name="kappa" />
             <Var s_name="div_q" />
             <Var v_name="q" />
-        </OutputControlsRes>        
+        </OutputControlsRes>
+        <ReportingTimes n_data="2">
+            <time t="1" />
+            <time t="10" />
+        </ReportingTimes>        
     </OutputControls>
     <Physics>
         <GravityConstant gravity="0.0" />

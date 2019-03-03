@@ -683,7 +683,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     ConfigureGeomechanicsBC(time_value);
     ConfigureReservoirBC(time_value);
     time_value = dt;
-    { /// Computing the undrained response
+    { /// Computing the undrained response t_0+
         m_reservoir_analysis->ExecuteOneTimeStep();
         m_reservoir_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(true);
@@ -857,8 +857,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         m_reservoir_analysis->X_n().Print("pn = ",std::cout,EMathematicaInput);
         m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
 #endif
-        /// Reset du for the next time step
-//        m_geomechanic_analysis->Solution().Zero();
+
     }
     
 }
