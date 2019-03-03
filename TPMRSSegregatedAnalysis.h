@@ -136,31 +136,6 @@ public:
     /// Define an acceleration method for the outer loop k iteration for reservoir module
     void AccelerationRes(int k, int n);
     
-    
-    
-    void AccelerationAitkenGeo(int k, int n);
-    
-    void AccelerationAitkenRes(int k, int n);
-    
-    
-    void AccelerationSteffensenGeo(int k, int n);
-    
-    void AccelerationSteffensenRes(int k, int n);
-    
-    
-    void AccelerationBrezinskiGeo(int k, int n);
-    
-    void AccelerationBrezinskiRes(int k, int n);
-    
-    
-    
-    void AccelerationShankGeo(int k, int n);
-    
-    void AccelerationShankRes(int k, int n);
-    
-    
-    
-    
     TPZFMatrix<REAL> ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
     TPZFMatrix<REAL> FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
@@ -171,10 +146,7 @@ public:
     
     TPZFMatrix<REAL> AitkenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
-    TPZFMatrix<REAL> SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
-    
-    TPZFMatrix<REAL> BrezinskiTransformation(TPZFMatrix<REAL> & An_p_2, TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1, TPZFMatrix<REAL> & An_m_2);
-    
+    TPZFMatrix<REAL> SteffensenTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);    
     
     /// Perform a geomechanical solution with substepping
     void ExecuteTheGeomechanicalApproximation();
