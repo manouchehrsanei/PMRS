@@ -864,7 +864,7 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
         {
             m_x_u.Resize(2);
             m_x_u[1] = m_geomechanic_analysis->Solution();
-//            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
             
         }
             break;
@@ -1016,16 +1016,6 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             m_x_p.Resize(4);
             m_x_p[3] = m_reservoir_analysis->X_n();
             m_reservoir_analysis->X_n() = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-            
-            
-//            m_x_p.Resize(4);
-//            m_x_p[3] = m_reservoir_analysis->X_n();
-//
-//            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
-//            Sk1 = ApplyTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
-//            Sk2 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
-//            Sk3 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-//            m_reservoir_analysis->X_n() = ApplyTransformation(Sk3,Sk2,Sk1);
 
         }
             break;
@@ -1053,27 +1043,6 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
             Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
             Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
             m_reservoir_analysis->X_n() = ApplyTransformation(Sk3,Sk2,Sk1);
-            
-//            m_x_p.Resize(6);
-//            m_x_p[5] = m_reservoir_analysis->X_n();
-//
-//            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
-//            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
-//            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-//            Sk3 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-//            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
-//
-//            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
-//            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-//            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
-//            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
-//
-//            Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
-//            Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
-//            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[1]);
-//            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
-//
-//            m_reservoir_analysis->X_n() = ApplyTransformation(S2k3,S2k2,S2k1);
             
         }
             break;
@@ -1141,9 +1110,11 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::FDMTransformation(TPZFMatrix<REAL> & A
     
     REAL num = 0.0;
     REAL den = 0.0;
+    REAL w;
     for (int i = 0; i < n_dof ; i++) {
-        num += (An_p_1(i,0)-An(i,0))*(An(i,0) - An_m_1(i,0));
-        den += (An(i,0) - An_m_1(i,0))*(An_p_1(i,0) - 2*An(i,0) + An_m_1(i,0));
+        w    = An_m_1(i,0)-An(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*(An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0));
     }
     REAL s;
     if (IsZero(den)) {
@@ -1152,33 +1123,32 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::FDMTransformation(TPZFMatrix<REAL> & A
         s = num / den;
     }
     S = An_p_1-An;
-    S *= -s;
+    S *= s;
     S += An_p_1;
     return S;
 }
 
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
-    TPZFMatrix<REAL> S(An_p_1);
-    TPZFMatrix<REAL> rn,r_p_1;
-    rn = An - An_m_1;
-    r_p_1 = An_p_1 - An;
     
+    TPZFMatrix<REAL> S(An_p_1);
     int n_dof = S.Rows();
     
     REAL num = 0.0;
     REAL den = 0.0;
+    REAL w;
     for (int i = 0; i < n_dof ; i++) {
-        num += r_p_1(i,0)*(r_p_1(i,0) - rn(i,0));
-        den += (r_p_1(i,0) - rn(i,0))*(r_p_1(i,0) - rn(i,0));
+        w    = An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*w;
     }
-    REAL mu;
+    REAL s;
     if (IsZero(den)) {
-        mu = 0.0;
+        s = 0.0;
     }else{
-        mu = num / sqrt(den);
+        s = num / den;
     }
     S = An_p_1-An;
-    S *= -mu;
+    S *= s;
     S += An_p_1;
     return S;
 }
