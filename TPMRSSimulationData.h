@@ -70,6 +70,9 @@ protected:
     /// Name of nonlinear acceleration method
     std::string m_n_nonlinear_acceleration;
     
+    /// Number of states of acceleration method
+    int m_n_state;
+    
     /// Number of thread
     int m_n_threads;
     
@@ -214,6 +217,7 @@ public:
         m_n_fss_iterations                        = other.m_n_fss_iterations;
         m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
         m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
+        m_n_state                                 = other.m_n_state;
         m_max_plastic_strain                      = other.m_max_plastic_strain;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
@@ -261,6 +265,7 @@ public:
             m_n_fss_iterations                        = other.m_n_fss_iterations;
             m_n_enf_fss_iterations                    = other.m_n_enf_fss_iterations;
             m_n_nonlinear_acceleration                = other.m_n_nonlinear_acceleration;
+            m_n_state                                 = other.m_n_state;
             m_max_plastic_strain                      = other.m_max_plastic_strain;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
@@ -388,6 +393,9 @@ public:
     
     /// Get Name for the nonlinear acceleration
     std::string name_nonlinear_acceleration() { return m_n_nonlinear_acceleration; }
+    
+    /// Get number of state for acceleration methods
+    int n_state_acceleration() {return m_n_state; }
     
     /// Get the maximum substeps of plasticity
     REAL Get_max_plastic_strain() { return m_max_plastic_strain; }
