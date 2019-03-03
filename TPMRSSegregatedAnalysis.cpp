@@ -573,6 +573,7 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
     
 #ifdef Adaptive_Acceleration_Q
     REAL theta_ratio = 1.0;
+    REAL max_theta   = m_simulation_data->Get_max_theta_value();
     bool apply_transformation_Q = true;
     {
         int n_dof = S.Rows();
@@ -585,7 +586,7 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
         if (!IsZero(den)) {
             theta_ratio = num / den;
         }
-        apply_transformation_Q = fabs(theta_ratio-1.0) < 0.1;
+        apply_transformation_Q = fabs(theta_ratio-1.0) < max_theta;
     }
     
     if (apply_transformation_Q) {
