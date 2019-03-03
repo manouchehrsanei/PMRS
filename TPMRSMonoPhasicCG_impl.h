@@ -178,7 +178,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
     STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
     STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
-    STATE drho_ndp_n = m_c;
+    STATE drho_ndp_n = m_c/m_scale_factor;
     STATE lambda     = rho_n/m_eta;
     
     /// Defining local variables

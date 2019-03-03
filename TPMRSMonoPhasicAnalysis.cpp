@@ -233,7 +233,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-    LoadCurrentState();
+    LoadMemorySolution();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
