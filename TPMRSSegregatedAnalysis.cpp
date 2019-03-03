@@ -259,7 +259,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
     if (non_linear_acceleration_Q) {
         
-        int n_terms = 2; /// n=2->S, n=4->S2, and n=6->S3
+        int n_terms = 6; /// n=2->S, n=4->S2, and n=6->S3
         /// Acceleration for the whole thing geo + res
         AccelerationRes(k,n_terms);
         AccelerationGeo(k,n_terms);
