@@ -1119,16 +1119,9 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
 /// Brief Setup reporting times and time step size
 void TPMRSSimulationData::SetTimeControls(int n_times, REAL dt, bool crank_nicolson_Q)
 {
-    
     m_n_steps    = n_times;
     m_dt         = dt;
     m_is_crank_nicolson_Q = crank_nicolson_Q;
-    m_reporting_times.Resize(n_times, 0.0);
-    for (int it = 0; it < n_times; it++)
-    {
-        m_reporting_times[it] = it*dt;
-    }
-    
 }
 
 /// Brief Setup numerical controls
