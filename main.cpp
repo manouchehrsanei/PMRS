@@ -164,7 +164,7 @@ TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 int main(int argc, char *argv[])
 {
     
-    
+
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
     {

@@ -178,7 +178,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     
     STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
     STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
-    STATE drho_ndp_n = m_c;
+    STATE drho_ndp_n = m_c/m_scale_factor;
     STATE lambda     = rho_n/m_eta;
     
     /// Defining local variables
@@ -248,12 +248,12 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         
     }
     
-    if (m_simulation_data->GetTransferCurrentToLastQ()) { // Update process for f function.
+    if (m_simulation_data->GetTransferCurrentToLastQ()) {
         for (int i = 0; i < Dimension(); i++)
         {
             last_Kl_grad_p[i] = Kl_grad_p_(i,0);
         }
-        this->MemItem(gp_index).Setf_vec(last_Kl_grad_p);
+        this->MemItem(gp_index).Setf_vec(last_Kl_grad_p); // Update process for f function.
         this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
         this->MemItem(gp_index).Setq(this->MemItem(gp_index).q_n());
     }

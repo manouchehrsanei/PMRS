@@ -216,11 +216,6 @@ void TPMRSSegregatedAnalysis::AdjustIntegrationOrder(TPZCompMesh * cmesh_o, TPZC
 
 void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
-    
-#ifdef Acceleration_P_output_Q
-    m_reservoir_analysis->X_n().Print("pstar = ",std::cout,EMathematicaInput);
-#endif
-    
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -229,10 +224,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
 #ifdef USING_BOOST
     boost::posix_time::ptime res_t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef Acceleration_P_output_Q
-    m_reservoir_analysis->X_n().Print("pew = ",std::cout,EMathematicaInput);
 #endif
     
 #ifdef USING_BOOST
@@ -265,14 +256,14 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 
     // Applying the selected nonlinear acceleration
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
-    bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "Aitken") || (nonlinear_acceleration == "Steffensen");
+    bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
     if (non_linear_acceleration_Q) {
         
-        int n_terms = 6; /// n=2->S, n=4->S2, and n=6->S3
+        int n_terms = 2; /// n=2->S, n=4->S2, and n=6->S3
         /// Acceleration for the whole thing geo + res
         AccelerationRes(k,n_terms);
         AccelerationGeo(k,n_terms);
-        
+
         int n_vec = m_x_p.size();
         if (k-1 >= n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
@@ -286,6 +277,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         }
         
     }
+    
 }
 
 void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(){
@@ -872,7 +864,7 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
         {
             m_x_u.Resize(2);
             m_x_u[1] = m_geomechanic_analysis->Solution();
-            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+//            m_geomechanic_analysis->Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
             
         }
             break;
@@ -995,13 +987,6 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
         }
     }
     
-#ifdef Acceleration_P_output_Q
-    for (auto i : m_x_p) {
-        i.Print("p_i = ",std::cout,EMathematicaInput);
-    }
-    m_reservoir_analysis->X_n().Print("p = ",std::cout,EMathematicaInput);
-#endif
-    
     switch (n_terms) {
         case 0:
             {
@@ -1120,6 +1105,14 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
         default:
             break;
     }
+    
+#ifdef Acceleration_P_output_Q
+    for (auto i : m_x_p) {
+        i.Print("pi = ",std::cout,EMathematicaInput);
+    }
+    m_reservoir_analysis->X_n().Print("pstar = ",std::cout,EMathematicaInput);
+#endif
+    
 }
 
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
@@ -1133,6 +1126,60 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
     else if (nonlinear_acceleration == "Steffensen"){
         S = SteffensenTransformation(An_p_1, An, An_m_1);
     }
+    else if (nonlinear_acceleration == "FDM"){
+        S = FDMTransformation(An_p_1, An, An_m_1);
+    }
+    else if (nonlinear_acceleration == "SDM"){
+        S = SDMTransformation(An_p_1, An, An_m_1);
+    }
+    return S;
+}
+
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    for (int i = 0; i < n_dof ; i++) {
+        num += (An_p_1(i,0)-An(i,0))*(An(i,0) - An_m_1(i,0));
+        den += (An(i,0) - An_m_1(i,0))*(An_p_1(i,0) - 2*An(i,0) + An_m_1(i,0));
+    }
+    REAL s;
+    if (IsZero(den)) {
+        s = 0.0;
+    }else{
+        s = num / den;
+    }
+    S = An_p_1-An;
+    S *= -s;
+    S += An_p_1;
+    return S;
+}
+
+TPZFMatrix<REAL> TPMRSSegregatedAnalysis::SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    TPZFMatrix<REAL> S(An_p_1);
+    TPZFMatrix<REAL> rn,r_p_1;
+    rn = An - An_m_1;
+    r_p_1 = An_p_1 - An;
+    
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    for (int i = 0; i < n_dof ; i++) {
+        num += r_p_1(i,0)*(r_p_1(i,0) - rn(i,0));
+        den += (r_p_1(i,0) - rn(i,0))*(r_p_1(i,0) - rn(i,0));
+    }
+    REAL mu;
+    if (IsZero(den)) {
+        mu = 0.0;
+    }else{
+        mu = num / sqrt(den);
+    }
+    S = An_p_1-An;
+    S *= -mu;
+    S += An_p_1;
     return S;
 }
 
@@ -1659,9 +1706,9 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     /// Initial reservoir state
     m_reservoir_analysis->ExecuteOneTimeStep();
     m_reservoir_analysis->UpdateState();
-    m_simulation_data->SetTransferCurrentToLastQ(true);
-    m_reservoir_analysis->UpdateState();
-    m_simulation_data->SetTransferCurrentToLastQ(false);
+//    m_simulation_data->SetTransferCurrentToLastQ(true);
+//    m_reservoir_analysis->UpdateState();
+//    m_simulation_data->SetTransferCurrentToLastQ(false);
     
     /// Compute stress state corresponding to reservoir state
     m_geomechanic_analysis->ExecuteOneTimeStep(true);

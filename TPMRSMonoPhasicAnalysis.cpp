@@ -63,7 +63,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
         case ELU:
         {
             
-#ifdef USING_MKL2
+#ifdef USING_MKL
             TPZSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -77,7 +77,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             break;
         case ELDLt:
         {
-#ifdef USING_MKL2
+#ifdef USING_MKL
             TPZSymetricSpStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
@@ -139,6 +139,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 //    Rhs().Print("r = ",std::cout, EMathematicaInput);
     Solve();
 //    Solution().Print("dp = ",std::cout,EMathematicaInput);
+//    m_X_n.Print("p = ",std::cout,EMathematicaInput);
 }
 
 #define CheapNONM_Q
@@ -233,7 +234,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-    LoadCurrentState();
+    LoadMemorySolution();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
@@ -267,6 +268,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         
         LoadMemorySolution();
         norm_res = Norm(Rhs());
+//        m_X_n.Print("pcorr = ",std::cout,EMathematicaInput);
+//        Rhs().Print("rconv = ",std::cout, EMathematicaInput);
         
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
