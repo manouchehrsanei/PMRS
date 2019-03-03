@@ -23,7 +23,7 @@
         <EnfFssIterations n_enforce_fss_iterations="0" />
         <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
         <NState n_state="6" /> <!-- NState = {2,4,6}  -->
-        <MaxThetaratio max_theta_value="0.1" /> <!-- max_theta_value = {0.0-1.0}  -->
+        <MaxThetaRatio max_theta_value="0.1" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
