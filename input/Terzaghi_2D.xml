@@ -20,9 +20,9 @@
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
-        <EnfFssIterations n_enforce_fss_iterations="2" />
-        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
-        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
+        <EnfFssIterations n_enforce_fss_iterations="0" />
+        <NonlinearAcceleration n_nonlinear_acceleration="FDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="6" /> <!-- NState = {2,4,6}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
