@@ -115,6 +115,9 @@ protected:
     /// Number of reservoir outputs
     int m_n_outputs_res;
     
+    /// Directive that states to print geometry or not
+    bool m_is_draw_geometry_Q;
+    
     /// Vector that storage scalar names for reservoir postprocessing
     TPZManVector<std::string,50> m_s_names_res;
     
@@ -233,6 +236,7 @@ public:
         m_vtk_resolution                          = other.m_vtk_resolution;
         m_n_outputs_geo                           = other.m_n_outputs_geo;
         m_n_outputs_res                           = other.m_n_outputs_res;
+        m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
         m_s_names_res                             = other.m_s_names_res;
         m_s_names_geo                             = other.m_s_names_geo;
         m_v_names_res                             = other.m_v_names_res;
@@ -281,6 +285,7 @@ public:
             m_vtk_resolution                          = other.m_vtk_resolution;
             m_n_outputs_geo                           = other.m_n_outputs_geo;
             m_n_outputs_res                           = other.m_n_outputs_res;
+            m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
             m_s_names_res                             = other.m_s_names_res;
             m_s_names_geo                             = other.m_s_names_geo;
             m_v_names_res                             = other.m_v_names_res;
@@ -417,6 +422,15 @@ public:
     
     /// Get Number of reservoir output
     int num_outputs_res() { return m_n_outputs_res; }
+    
+    /// Set the use of geometry boolian to print the geometry or not
+    void Set_is_draw_geometry_Q(bool is_draw_geometry_Q){
+        m_is_draw_geometry_Q = is_draw_geometry_Q;
+    }
+    
+    /// Get the use of geometry boolian to print the geometry or not
+    bool Get_is_draw_geometry_Q() { return m_is_draw_geometry_Q; }
+    
     
     /// Get Vector that storage scalar names for reservoir postprocessing
     TPZManVector<std::string,50> s_names_res() { return m_s_names_res; }
