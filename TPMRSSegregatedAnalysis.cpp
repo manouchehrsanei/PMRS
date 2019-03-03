@@ -673,7 +673,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
     int n_max_fss_iterations = m_simulation_data->n_fss_iterations();
     int n_enforced_fss_iterations = m_simulation_data->n_enf_fss_iterations();
-    int n_time_steps = m_simulation_data->ReportingTimes().size();
+    int n_time_steps = m_simulation_data->n_steps();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
@@ -849,8 +849,13 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
                 break;
             }
         }
-        this->PostProcessTimeStep(file_geo, file_res);
+        
+        bool postprocess_time_Q = ShouldPostprocessQ(time_value);
+        if (postprocess_time_Q) {
+            this->PostProcessTimeStep(file_geo, file_res);
+        }
         UpdateState();
+        
 #ifdef Noisy_Q
         m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
         m_reservoir_analysis->X().Print("p = ",std::cout,EMathematicaInput);
@@ -866,6 +871,19 @@ void TPMRSSegregatedAnalysis::UpdateState(){
     m_reservoir_analysis->UpdateState();
     m_geomechanic_analysis->UpdateState();
     
+}
+
+bool TPMRSSegregatedAnalysis::ShouldPostprocessQ(REAL time){
+    TPZStack<REAL,500> & reporting_times = m_simulation_data->ReportingTimes();
+    bool postprocess_time_Q = false;
+    int n_times = reporting_times.size();
+    for (int it = 0; it < n_times; it++) {
+        bool check = IsZero(reporting_times[it] - time);
+        if (check) {
+            postprocess_time_Q = true;
+        }
+    }
+    return postprocess_time_Q;
 }
 
 void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialConditionsQ){
@@ -1281,7 +1299,7 @@ void TPMRSSegregatedAnalysis::SetSimulationData(TPMRSSimulationData * simulation
 }
 
 void TPMRSSegregatedAnalysis::ConfigurateHistorySummaries(){
-    int n_time_steps = m_simulation_data->ReportingTimes().size();
+    int n_time_steps = m_simulation_data->n_steps();
     m_iterations_summary.Resize(n_time_steps, 4); // (time,res_iteraions,geo_iterations,fss_iteraions)
     m_cpu_time_summary.Resize(n_time_steps, 4); // (time,res_cpu_time,geo_cpu_time,fss_cpu_time)
     m_residuals_summary.Resize(n_time_steps, 5); // (time,res_resdials,geo_resdials,fss_corrections)

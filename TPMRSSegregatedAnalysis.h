@@ -99,6 +99,9 @@ public:
     /// Execute the transient evolution using Fixed Stress Split Iteration
     void ExecuteTimeEvolution();
     
+    /// Function to decide the postprocess time directive
+    bool ShouldPostprocessQ(REAL time);
+    
     /// Update solution state x = x_n
     void UpdateState();
     

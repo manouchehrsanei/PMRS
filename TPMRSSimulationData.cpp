@@ -280,6 +280,26 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         DebugStop();
     }
     
+    int it = 0;
+    container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "ReportingTimes" ).FirstChild( "time" ).ToElement();
+    for( ; container; container=container->NextSiblingElement())
+    {
+        char_container = container->Attribute("t");
+        if (char_container) {
+            REAL time = atof(char_container);
+            m_reporting_times.push_back(time);
+            it++;
+        }
+        else{
+            std::cout << "Please provide a t value." << std::endl;
+            DebugStop();
+        }
+    }
+    
+    if (it==0) {
+        std::cout << "Warning:: ReportingTimes structure does not contain time values." << std::endl;
+    }
+    
      /// End:: Outputs
     
     

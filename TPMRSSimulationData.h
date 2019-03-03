@@ -195,7 +195,6 @@ protected:
     /// String that stands for the used acceleration method (None,Aitken,..,ect)
     std::string m_nonlinear_acceleration;
     
-    
 public:
     
     
@@ -348,7 +347,12 @@ public:
     void SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations);
     
     /// Get time values being reported
-    TPZStack< REAL , 500 > ReportingTimes(){
+    void SetReportingTimes(TPZStack< REAL , 500 > & reporting_times){
+        m_reporting_times = reporting_times;
+    }
+    
+    /// Get time values being reported
+    TPZStack< REAL , 500 > & ReportingTimes(){
         return m_reporting_times;
     }
     

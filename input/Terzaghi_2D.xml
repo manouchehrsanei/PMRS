@@ -47,7 +47,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_SFI" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_SFI" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -62,9 +62,9 @@
             <Var s_name="div_q" />
             <Var v_name="q" />
         </OutputControlsRes>
-        <ReportingTimes n_data="2">
-            <time t="1" />
-            <time t="10" />
+        <ReportingTimes>
+            <time t="0.005" />
+            <time t="0.01" />
         </ReportingTimes>        
     </OutputControls>
     <Physics>
