@@ -145,7 +145,7 @@ public:
     TPZFMatrix<REAL> SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
     /// Perform a geomechanical solution with substepping
-    void ExecuteTheGeomechanicalApproximation();
+    void ExecuteTheGeomechanicalApproximation(int i_time_step);
     
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)

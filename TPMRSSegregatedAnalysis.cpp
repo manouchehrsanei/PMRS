@@ -239,7 +239,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     boost::posix_time::ptime geo_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
     
-    ExecuteTheGeomechanicalApproximation();
+    ExecuteTheGeomechanicalApproximation(i_time_step);
     
 #ifdef USING_BOOST
     boost::posix_time::ptime geo_t2 = boost::posix_time::microsec_clock::local_time();
@@ -280,32 +280,43 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
 }
 
-void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(){
+void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(int i_time_step){
     
     TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
     TPZFMatrix<REAL> last_du = m_geomechanic_analysis->Solution();
+    
+    REAL psudo_time;
+    REAL dt = m_simulation_data->dt();
     int n_level = 0;
     bool enforced_execution_Q = false;
     int n_sub_steps = power(2,m_simulation_data->Get_n_sub_step_level());
     for (int i = 1; i <= n_sub_steps; i++) {
         REAL delta = 1.0/REAL(n_sub_steps);
         REAL alpha = delta*i;
-        m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
-        m_reservoir_analysis->LoadMemorySolution();
+        psudo_time = (i_time_step+1)*dt - (1.0-alpha)*dt;
+        {   /// Interpolate loads
+            
+            /// The biot pressure term
+            m_reservoir_analysis->X_n() = m_reservoir_analysis->X() + alpha*res_dx;
+            m_reservoir_analysis->LoadMemorySolution();
+            
+            /// The Geomechanic boundary conditions
+            ConfigureGeomechanicsBC(psudo_time);
+        }
         bool check_for_sub_stepping_Q = m_geomechanic_analysis->ExecuteOneTimeStep(enforced_execution_Q);
         if (check_for_sub_stepping_Q && !enforced_execution_Q) {
             n_level++;
             m_simulation_data->Set_n_sub_step_level(n_level);
             n_sub_steps = power(2,n_level);
-            if (n_level > 4) {
-                n_sub_steps = 32;
+            if (n_level > 5) {
+                n_sub_steps = 64;
                 std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
                 std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;
                 enforced_execution_Q = true;
             }
             /// It is required to restart the simulation
-            i = 1;
+            i = 0;
             m_geomechanic_analysis->LoadSolution(last_du);
             m_simulation_data->Set_must_use_sub_stepping_Q(false);
             std::cout << "TPMRSSegregatedAnalysis:: Increase the level for substepping = " << n_level << std::endl;
@@ -640,6 +651,11 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     ConfigureGeomechanicsBC(time_value);
     ConfigureReservoirBC(time_value);
     time_value = dt;
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Begining for undarined response process." <<std::endl;
+    std::cout << std::endl << std::endl;
     { /// Computing the undrained response t_0+
         m_reservoir_analysis->ExecuteOneTimeStep();
         m_reservoir_analysis->UpdateState();
@@ -656,6 +672,11 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         this->PostProcessTimeStep(file_geo, file_res);
         
     }
+    std::cout << "TPMRSSegregatedAnalysis:: Ending for undarined response process." <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl << std::endl;
     
 #ifdef Noisy_Q
     m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
@@ -663,6 +684,13 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     m_reservoir_analysis->X_n().Print("pn = ",std::cout,EMathematicaInput);
     m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
 #endif
+    
+    
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Begining for recurrent simulation process." <<std::endl;
+    std::cout << std::endl << std::endl;
     
     m_p_m = m_reservoir_analysis->X_n();
     m_u_m = m_geomechanic_analysis->Solution();
@@ -752,6 +780,13 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 #endif
 
     }
+    
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Ending for recurrent simulation process." <<std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl << std::endl;
     
 }
 
@@ -1008,6 +1043,8 @@ void TPMRSSegregatedAnalysis::ConfigureReservoirBC(REAL t, bool IsInitialConditi
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::cout << std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << "TPMRSSegregatedAnalysis:: Opening for initialization process." <<std::endl;
     std::string name = m_simulation_data->name_vtk_file();
     std::string file_geo = name + "_geo.vtk";
@@ -1049,6 +1086,9 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_geomechanic_analysis->Solution().Zero();
     m_geomechanic_analysis->X_n().Zero();
     std::cout << "TPMRSSegregatedAnalysis:: Ending for initialization process." <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << std::endl;
     std::cout << std::endl << std::endl;
 }
 

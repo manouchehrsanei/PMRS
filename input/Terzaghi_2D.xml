@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.001" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -26,7 +26,7 @@
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
-        <MaxPlasticNorm max_plastic_norm_value="0.1" />
+        <MaxPlasticNorm max_plastic_norm_value="0.001" />
     </SubSteps> 
     <!-- Parallel controls  -->
     <ParallelControls>
@@ -39,7 +39,7 @@
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
-        <HRefine h_level="0" />
+        <HRefine h_level="1" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
     </FEM>
@@ -47,7 +47,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_SFI" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
