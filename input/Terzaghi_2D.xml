@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="2" />
-        <NonlinearAcceleration n_nonlinear_acceleration="FDM" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {Shank,Aitken,Steffensen}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
