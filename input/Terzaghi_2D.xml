@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.0001" />
+        <StepNumber n_time_steps="100" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -64,7 +64,14 @@
         </OutputControlsRes>
         <ReportingTimes>
             <time t="0.001" />
+            <time t="0.002" />
+            <time t="0.003" />
+            <time t="0.004" />
             <time t="0.005" />
+            <time t="0.006" />
+            <time t="0.007" />
+            <time t="0.008" />
+            <time t="0.009" />
             <time t="0.01" />
         </ReportingTimes>        
     </OutputControls>
@@ -101,8 +108,8 @@
         <InitialGeomechanic bc_id="2" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
-        <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
-            <Data t="0" sxx="-20.0" sxy="0.0" sxz="0.0" syy="-20.0" syz="0.0" szz="-20.0" />
+        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
+            <Data t="0" tn="-20.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            
