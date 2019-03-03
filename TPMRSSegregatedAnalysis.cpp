@@ -559,6 +559,8 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
 }
 
+#define Adaptive_Acceleration_Q
+
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
     TPZFMatrix<REAL> S(An_p_1);
@@ -568,7 +570,34 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
     else if (nonlinear_acceleration == "SDM"){
         S = SDMTransformation(An_p_1, An, An_m_1);
     }
+    
+#ifdef Adaptive_Acceleration_Q
+    REAL theta_ratio = 1.0;
+    bool apply_transformation_Q = true;
+    {
+        int n_dof = S.Rows();
+        REAL num = 0.0;
+        REAL den = 0.0;
+        for (int i = 0; i < n_dof ; i++) {
+            num += (S(i,0)-An_p_1(i,0))*(An(i,0)-An_m_1(i,0));
+            den += (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0));
+        }
+        if (!IsZero(den)) {
+            theta_ratio = num / den;
+        }
+        apply_transformation_Q = fabs(theta_ratio-1.0) < 0.1;
+    }
+    
+    if (apply_transformation_Q) {
+        return S;
+    }else{
+        return An_p_1;
+    }
+#else
     return S;
+#endif
+    
+    
 }
 
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
