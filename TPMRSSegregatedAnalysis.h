@@ -117,6 +117,9 @@ public:
     /// Execute initial problem
     void ExecuteStaticSolution();
     
+    /// Execute initial undrained response problem
+    void ExecuteUndrainedStaticSolution();
+    
     /// Get the object that store the history of segregated and internal iteraions
     TPZFMatrix<REAL> & IterationsSummary();
     

@@ -677,37 +677,6 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     REAL dt = m_simulation_data->dt();
     REAL time_value = 0.0;
     
-    /// Interpolate BC data
-    ConfigureGeomechanicsBC(time_value);
-    ConfigureReservoirBC(time_value);
-    time_value = dt;
-    std::cout << std::endl;
-    std::cout << "-------------------------------------------------------------" <<std::endl;
-    std::cout << "-------------------------------------------------------------" <<std::endl;
-    std::cout << "TPMRSSegregatedAnalysis:: Begining for undarined response process." <<std::endl;
-    std::cout << std::endl << std::endl;
-    { /// Computing the undrained response t_0+
-        m_reservoir_analysis->ExecuteOneTimeStep();
-        m_reservoir_analysis->UpdateState();
-        m_simulation_data->SetTransferCurrentToLastQ(true);
-        m_reservoir_analysis->UpdateState();
-        m_simulation_data->SetTransferCurrentToLastQ(false);
-        
-        m_geomechanic_analysis->ExecuteOneTimeStep(true);
-        m_geomechanic_analysis->UpdateState();
-        m_simulation_data->SetTransferCurrentToLastQ(true);
-        m_geomechanic_analysis->UpdateState();
-        m_simulation_data->SetTransferCurrentToLastQ(false);
-        UpdateInitialSigmaAndPressure(false);
-        this->PostProcessTimeStep(file_geo, file_res);
-        
-    }
-    std::cout << "TPMRSSegregatedAnalysis:: Ending for undarined response process." <<std::endl;
-    std::cout << "-------------------------------------------------------------" <<std::endl;
-    std::cout << "-------------------------------------------------------------" <<std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl << std::endl;
-    
 #ifdef Noisy_Q
     m_reservoir_analysis->Solution().Print("psol = ",std::cout,EMathematicaInput);
     m_reservoir_analysis->X().Print("p = ",std::cout,EMathematicaInput);
@@ -1116,6 +1085,43 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_geomechanic_analysis->Solution().Zero();
     m_geomechanic_analysis->X_n().Zero();
     std::cout << "TPMRSSegregatedAnalysis:: Ending for initialization process." <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl << std::endl;
+}
+
+void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
+{
+    std::string name = m_simulation_data->name_vtk_file();
+    std::string file_geo = name + "_geo.vtk";
+    std::string file_res = name + "_res.vtk";
+    
+    /// Interpolate BC data
+    REAL time_value = 0.0;
+    ConfigureGeomechanicsBC(time_value);
+    ConfigureReservoirBC(time_value);
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "-------------------------------------------------------------" <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Begining for undarined response process." <<std::endl;
+    std::cout << std::endl << std::endl;
+    { /// Computing the undrained response t_0+
+        m_reservoir_analysis->ExecuteOneTimeStep();
+        m_reservoir_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(true);
+        m_reservoir_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(false);
+        
+        m_geomechanic_analysis->ExecuteOneTimeStep(true);
+        m_geomechanic_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(true);
+        m_geomechanic_analysis->UpdateState();
+        m_simulation_data->SetTransferCurrentToLastQ(false);
+        UpdateInitialSigmaAndPressure(false);
+        PostProcessTimeStep(file_geo, file_res);
+    }
+    std::cout << "TPMRSSegregatedAnalysis:: Ending for undarined response process." <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << std::endl;

@@ -100,13 +100,12 @@ static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 
 
 /// PoroElastic Full Coupling
-// L2 mesh for Deformation
+// H1 mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data);
-// L2 mesh for Pore Pressure
+// H1 mesh for Pore Pressure
 TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data);
 // Multiphysics Coupling
 TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data);
-
 
 /// Monophasic Reservoir Simulator
 // Hdiv mesh
@@ -121,7 +120,6 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
 TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data);
 // Configurate and insert volumetric materials
 
-
 // Geomechanic Simulator
 // H1 mesh for displacements
 TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data);
@@ -134,17 +132,17 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data);
 
 /// Restructuring implementation of Reservoir Geomechanics Simulator
 
+// Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
+TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data);
+
+
+/// Deprecated.
+
 // Method that makes use of TPMRSMonophasic for parabolic solutions
 void RuningMonophasic(TPMRSSimulationData * sim_data);
 
 // Method that makes use of TPMRSElastoPlastic
 void RuningGeomechanics(TPMRSSimulationData * sim_data);
-
-// Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
-void RuningSegregatedSolver(TPMRSSimulationData * sim_data);
-
-
-
 
 /// Shear-enhanced compaction and strain localization:
 // Inelastic deformation and constitutive modeling of four porous sandstones
@@ -194,15 +192,51 @@ int main(int argc, char *argv[])
     }
     
     // Simulation data to be configurated
-    
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
+    
+    bool is_fully_coupled_Q = false;
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
 
-    RuningSegregatedSolver(sim_data);
+    if (is_fully_coupled_Q) {
+        TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
+        REAL t_0 = 0;
+        SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
+        SFI_analysis->ConfigureReservoirBC(t_0,true);
+        SFI_analysis->ExecuteStaticSolution();
+        SFI_analysis->ExecuteUndrainedStaticSolution();
+        
+        
+        
+        
+    }
+    else
+    {
+
+        TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
+        REAL t_0 = 0;
+        SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
+        SFI_analysis->ConfigureReservoirBC(t_0,true);
+        SFI_analysis->ExecuteStaticSolution();
+        SFI_analysis->ExecuteUndrainedStaticSolution();
+        SFI_analysis->ExecuteTimeEvolution();
+        
+        /// Writing summaries
+        TPZFMatrix<REAL> iterations = SFI_analysis->IterationsSummary();
+        TPZFMatrix<REAL> residuals  = SFI_analysis->ResidualsSummary();
+        TPZFMatrix<REAL> cpu_time   = SFI_analysis->TimeSummary();
+        
+        if (sim_data->Get_is_performance_summary_Q()) {
+            std::ofstream summary_file("PMRS_performance_summary.txt");
+            iterations.Print("iteraions = ",summary_file,EMathematicaInput);
+            residuals.Print("residuals = ",summary_file,EMathematicaInput);
+            cpu_time.Print("time = ",summary_file,EMathematicaInput);
+            summary_file.flush();
+        }
+    }
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t2 = boost::posix_time::microsec_clock::local_time();
@@ -286,7 +320,7 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data)
 }
 
 
-void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
+TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
     
     // The Geomechanics Simulator cmesh
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
@@ -300,27 +334,9 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
         cmesh_res = CMesh_Primal(sim_data);
     }
  
-    TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
-    segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
-
-    REAL t_0 = 0;
-    segregated_analysis->ConfigureGeomechanicsBC(t_0,true);
-    segregated_analysis->ConfigureReservoirBC(t_0,true);
-    segregated_analysis->ExecuteStaticSolution();
-    segregated_analysis->ExecuteTimeEvolution();
-    
-    /// Writing summaries
-    TPZFMatrix<REAL> iterations = segregated_analysis->IterationsSummary();
-    TPZFMatrix<REAL> residuals  = segregated_analysis->ResidualsSummary();
-    TPZFMatrix<REAL> cpu_time   = segregated_analysis->TimeSummary();
-
-    if (sim_data->Get_is_performance_summary_Q()) {
-        std::ofstream summary_file("PMRS_performance_summary.txt");
-        iterations.Print("iteraions = ",summary_file,EMathematicaInput);
-        residuals.Print("residuals = ",summary_file,EMathematicaInput);
-        cpu_time.Print("time = ",summary_file,EMathematicaInput);
-        summary_file.flush();
-    }
+    TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
+    sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    return sfi_analysis;
 }
 
 
