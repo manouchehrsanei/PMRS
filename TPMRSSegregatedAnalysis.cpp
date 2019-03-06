@@ -698,10 +698,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
         /// Interpolate BC data
+        time_value = dt * (it+1);
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
-        time_value = dt * (it+1);
-        
+  
         for (int k = 1; k <= n_max_fss_iterations; k++) {
 
 #ifdef USING_BOOST
