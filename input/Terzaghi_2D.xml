@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0002" />
-        <StepNumber n_time_steps="50" />
+        <StepSize dt="0.001" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
