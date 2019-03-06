@@ -191,6 +191,17 @@ protected:
     /// Map that storage the provided bc identifiers with the type of boundary condition of Reservoir Simulator
     std::map<int, std::string> m_bc_id_to_type_res;
     
+    
+    /// Map that storage all the boundary conditions of Fully coupled Simulator supported
+    std::map< std::string,std::pair<int,std::vector<std::string> > >  m_condition_type_to_index_value_names_fc;
+    
+    /// Map that storage the boundary condition of Fully coupled Simulator identifier with the numerical values provided
+    std::map<int, TPMRSInterpolator > m_bc_id_to_values_fc;
+    
+    /// Map that storage the provided bc identifiers with the type of boundary condition of Fully coupled Simulator
+    std::map<int, std::string> m_bc_id_to_type_fc;
+    
+    
     /// Directive that states if the current solution must be accepted inside the memory
     bool m_must_accept_solution_Q;
     
@@ -545,6 +556,15 @@ public:
     /// Get the map that storage the provided bc identifiers with the type of boundary condition of Geomechanic Simulator
     std::map<int, std::string> & BCIdToConditionTypeGeomechanics() { return m_bc_id_to_type_geo; }
     
+    /// Get the map that storage all the boundary conditions of Fully coupled Simulator supported
+    std::map< std::string,std::pair<int,std::vector<std::string> > > & ConditionTypeToBCIndexFullyCoupled() { return m_condition_type_to_index_value_names_fc; }
+    
+    /// Get the map that storage the type of boundary condition of Fully coupled Simulator with the numerical values provided
+    std::map<int, TPMRSInterpolator > & BCIdToBCValuesFullyCoupled() { return m_bc_id_to_values_fc; }
+    
+    /// Get the map that storage the provided bc identifiers with the type of boundary condition of Fully coupled Simulator
+    std::map<int, std::string> & BCIdToConditionTypeFullyCoupled() { return m_bc_id_to_type_fc; }
+    
     /// Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
@@ -580,6 +600,9 @@ private:
     
     /// Fillup the map that storage all the boundary conditions of Geomechanic Simulator supported
     void LoadBoundaryConditionsGeomechanics();
+    
+    /// Fillup the map that storage all the boundary conditions of Fully coupled Simulator supported
+    void LoadBoundaryConditionsFC();
 
     /// Apply uniform refinements
     void UniformRefinement();

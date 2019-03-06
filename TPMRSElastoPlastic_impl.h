@@ -19,7 +19,7 @@ TPMRSElastoPlastic<T,TMEM>::~TPMRSElastoPlastic(){
 }
 
 template <class T, class TMEM>
-TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic(int mate_id) : TPZMatWithMem<TMEM>(mate_id) {
+TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic(int mat_id) : TPZMatWithMem<TMEM>(mat_id) {
     m_simulation_data = NULL;
     m_dimension       = 0;
 }

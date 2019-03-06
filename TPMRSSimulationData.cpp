@@ -1137,6 +1137,93 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
         PrintGeometry();
     }
     /// End:: Apply uniform refinement
+    
+    /// Begin:: Loading boundary contidions for the Fully Coupled simulator
+    this->LoadBoundaryConditionsFC();
+    
+    /// Creating the interpolators
+    {
+        int n_bc_geo = m_bc_id_to_values_geo.size();
+        int n_bc_res = m_bc_id_to_values_res.size();
+        if(n_bc_geo!=n_bc_res){
+            DebugStop();
+        }
+        
+        std::pair<int, std::string > bc_id_to_type_chunk_fc;
+        std::pair<int , TPMRSInterpolator > bc_id_to_values_chunk_fc;
+        std::vector<int> bc_ids;
+        for (auto i:m_bc_id_to_values_geo) {
+            bc_ids.push_back(i.first);
+        }
+        for (int i = 0; i < bc_ids.size(); i++) {
+            int i_bc_id = bc_ids[i];
+            
+            /// checking for bc type
+            std::string condition_name = m_bc_id_to_type_geo[i_bc_id]+m_bc_id_to_type_res[i_bc_id];
+            bc_id_to_type_chunk_fc.first = i_bc_id;
+            bc_id_to_type_chunk_fc.second = condition_name;
+            m_bc_id_to_type_fc.insert(bc_id_to_type_chunk_fc);
+        
+            bool bc_condition_not_available_Q = m_condition_type_to_index_value_names_fc.find(condition_name) == m_condition_type_to_index_value_names_fc.end();
+            if (bc_condition_not_available_Q)
+            {
+                std::cout << " Geometry dimension =  " << dimension << std::endl;
+                std::cout << " The boundary " << condition_name << " are not available " << std::endl;
+                std::cout << " Please review your boundary conditions for Fully coupled Module. " << std::endl;
+                DebugStop();
+            }
+            
+            /// Constructing the interpolator
+            TPMRSInterpolator int_geo = m_bc_id_to_values_geo[i_bc_id];
+            TPMRSInterpolator int_res = m_bc_id_to_values_res[i_bc_id];
+            std::vector<std::pair<REAL, std::vector<REAL>>> & pts_geo = int_geo.Points();
+            std::vector<std::pair<REAL, std::vector<REAL>>> & pts_res = int_res.Points();
+            int n_pts_geo = pts_geo.size();
+            int n_pts_res = pts_res.size();
+            
+            REAL end_t_geo = pts_geo[n_pts_geo-1].first;
+            REAL end_t_res = pts_res[n_pts_res-1].first;
+            
+            if (!IsZero(end_t_geo-end_t_res)) {
+                DebugStop();
+            }
+            std::vector<std::pair<REAL, std::vector<REAL>>> pts_fc;
+            if (end_t_geo <= end_t_res) {
+                for (auto ip: pts_res) {
+                    std::pair<REAL, std::vector<REAL>> pt_chunk;
+                    pt_chunk.first = ip.first;
+                    for (auto fval: ip.second) {
+                        pt_chunk.second.push_back(fval);
+                    }
+                    std::vector<REAL> f_values = int_geo.f(pt_chunk.first);
+                    for (auto fval: f_values) {
+                        pt_chunk.second.push_back(fval);
+                    }
+                    pts_fc.push_back(pt_chunk);
+                }
+            }else{
+                for (auto ip: pts_geo) {
+                    std::pair<REAL, std::vector<REAL>> pt_chunk;
+                    pt_chunk.first = ip.first;
+                    for (auto fval: ip.second) {
+                        pt_chunk.second.push_back(fval);
+                    }
+                    std::vector<REAL> f_values = int_res.f(pt_chunk.first);
+                    for (auto fval: f_values) {
+                        pt_chunk.second.push_back(fval);
+                    }
+                    pts_fc.push_back(pt_chunk);
+                }
+            }
+            TPMRSInterpolator int_fc(pts_fc);
+            bc_id_to_values_chunk_fc.first = i_bc_id;
+            bc_id_to_values_chunk_fc.second = int_fc;
+            m_bc_id_to_values_fc.insert(bc_id_to_values_chunk_fc);
+        }
+
+    }
+    
+    /// End:: Loading boundary contidions for the Fully Coupled simulator
 }
 
 /// Brief Setup reporting times and time step size
@@ -1461,6 +1548,38 @@ void TPMRSSimulationData::LoadBoundaryConditionsGeomechanics()
         m_condition_type_to_index_value_names_geo.insert(chunkGeo);
         chunkGeo.second.second.resize(0);
         
+    }
+    
+    return;
+}
+
+void TPMRSSimulationData::LoadBoundaryConditionsFC()
+{
+    std::pair<std::string,std::pair<int,std::vector<std::string> > > chunkFC;
+
+    int n_bc_geo = m_condition_type_to_index_value_names_geo.size();
+    int n_bc_res = m_condition_type_to_index_value_names_res.size();
+    int n_bc_fc = n_bc_res*n_bc_geo;
+
+    int c = 1;
+    for (auto i_bc_g: m_condition_type_to_index_value_names_geo) {
+        for (auto i_bc_r: m_condition_type_to_index_value_names_res) {
+            chunkFC.first = i_bc_g.first + i_bc_r.first;
+            chunkFC.second.first = c;
+            c++;
+            for (auto names_bc_g: i_bc_g.second.second) {
+                chunkFC.second.second.push_back(names_bc_g);
+            }
+            for (auto names_bc_r: i_bc_r.second.second) {
+                chunkFC.second.second.push_back(names_bc_r);
+            }
+            m_condition_type_to_index_value_names_fc.insert(chunkFC);
+            chunkFC.second.second.resize(0);
+        }
+    }
+    
+    if (n_bc_fc!=m_condition_type_to_index_value_names_fc.size()) {
+        DebugStop();
     }
     
     return;

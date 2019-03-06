@@ -33,6 +33,14 @@ TPMRSSegregatedAnalysis::TPMRSSegregatedAnalysis(const TPMRSSegregatedAnalysis &
     m_x_u                   = other.m_x_u;
 }
 
+TPMRSGeomechanicAnalysis * TPMRSSegregatedAnalysis::GetGeomechanicsSolver(){
+    return m_geomechanic_analysis;
+}
+
+TPMRSMonoPhasicAnalysis * TPMRSSegregatedAnalysis::GetReservoirSolver(){
+    return m_reservoir_analysis;
+}
+
 void TPMRSSegregatedAnalysis::ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d){
     
     if (!m_simulation_data) {
@@ -654,6 +662,7 @@ void TPMRSSegregatedAnalysis::PostProcessTimeStep(std::string & geo_file, std::s
     m_reservoir_analysis->PostProcessTimeStep(res_file);
     m_geomechanic_analysis->PostProcessTimeStep(geo_file);
 }
+
 
 //#define Animated_Convergence_Q
 //#define Noisy_Q
