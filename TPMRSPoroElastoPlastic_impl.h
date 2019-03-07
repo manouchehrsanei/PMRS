@@ -582,7 +582,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
             
             this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma_n(sigma);
-            this->MemItem(gp_index).SetKdr(Kdr_ep);
+//            this->MemItem(gp_index).SetKdr(Kdr_ep);
             TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
             if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
@@ -1000,18 +1000,19 @@ void TPMRSPoroElastoPlastic<T,TMEM>::porosity(long gp_index, REAL &phi_n, REAL &
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
     
-    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
-    REAL sigma_t_v   = (memory.GetSigma().I1()/3)  - alpha * p;
-    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3)  - alpha * p_n;
+    REAL S = (1.0-alpha)*(alpha-phi_0)/Kdr;
     
-    REAL geo_delta_phi   = 1.0*(alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
-    REAL geo_delta_phi_n = 1.0*(alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0);
+    REAL sigma_v_0 = (memory.GetSigma_0().I1()/3);
+    REAL sigma_v   = (memory.GetSigma().I1()/3);
+    REAL sigma_v_n = (memory.GetSigma_n().I1()/3);
     
-    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
-    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
+    REAL phi_p_0   = alpha * memory.GetPlasticState_0().m_eps_p.I1();
+    REAL phi_p     = alpha * memory.GetPlasticState().m_eps_p.I1();
+    REAL phi_p_n   = alpha * memory.GetPlasticState_n().m_eps_p.I1();
     
-    /// Applying correction due to the fully coupled scheme
-    dphi_ndp -= (alpha*alpha/Kdr);
+    phi = phi_0 + (alpha/Kdr)* (sigma_v-sigma_v_0) + (phi_p - phi_p_0) + S * (p - p_0);
+    phi_n = phi_0 + (alpha/Kdr)* (sigma_v_n-sigma_v_0) + (phi_p_n - phi_p_0) + S * (p_n - p_0);
+    dphi_ndp = S;
     
     this->MemItem(gp_index).Setphi_n(phi_n);
 }
