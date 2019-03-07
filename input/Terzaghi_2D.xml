@@ -9,7 +9,7 @@
     <TimeControls>
         <StepSize dt="0.01" />
         <StepNumber n_time_steps="10" />
-        <CrankNicolsonQ useQ="0" />
+        <CrankNicolsonQ useQ="1" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -39,8 +39,8 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="1" />
-        <HRefine h_level="0" />
+        <MixedFormulationQ useQ="0" />
+        <HRefine h_level="1" />
         <Elasticity p_order="3" />
         <Diffusion p_order="2" />
     </FEM>
@@ -48,7 +48,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_FSS" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_FSS" n_divisions="2" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
