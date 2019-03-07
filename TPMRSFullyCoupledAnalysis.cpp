@@ -283,19 +283,22 @@ void TPMRSFullyCoupledAnalysis::ExecuteOneTimeStep(int i_time_step)
     m_simulation_data->Set_n_sub_step_level(0);
 }
 
+#define NMO9_Q
+
 bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execution_Q){
     
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
-    LoadState(dx);
+    LoadMemorySolution(dx);
+    
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     int n_it = m_simulation_data->n_iterations();
-    
+//    dx.Print("x = ");
     for (int i = 1; i <= n_it; i++) {
         
 #ifdef NMO9_Q
@@ -304,8 +307,8 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
             this->ExecuteNewtonInteration();
             dx += Solution();
             norm_dx  = Norm(Solution());
-            LoadSolution(dx);
-            m_X_n = dx;
+            LoadMemorySolution(dx);
+//            m_X_n = dx;
             
         }
         else{
@@ -315,13 +318,15 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
         
         this->ExecuteNewtonInteration();
         dx += Solution();
+//        Solution().Print("dx = ");
+//        dx.Print("xnew = ");
         norm_dx  = Norm(Solution());
         LoadMemorySolution(dx);
-        m_X_n = dx;
+//        m_X_n = dx;
         
 #endif
         
-//        LoadMemorySolution(dx);
+//        this->Rhs().Print("r(xnew) = ");
         norm_res = Norm(this->Rhs());
         if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {
             break;
@@ -334,7 +339,7 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
-        if (residual_stop_criterion_Q /*&&  correction_stop_criterion_Q*/) {
+        if (residual_stop_criterion_Q ||  correction_stop_criterion_Q) {
 #ifdef PZDEBUG
             std::cout << "TPMRSFullyCoupledAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSFullyCoupledAnalysis:: Correction norm = " << norm_dx << std::endl;
@@ -456,8 +461,6 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
     std::string name = m_simulation_data->name_vtk_file();
     std::string file = name + "_fc.vtk";
     
-    int n_max_fss_iterations = m_simulation_data->n_fss_iterations();
-    int n_enforced_fss_iterations = m_simulation_data->n_enf_fss_iterations();
     int n_time_steps = m_simulation_data->n_steps();
     REAL r_norm = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
@@ -478,8 +481,6 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
         time_value = dt * (it+1);
         ConfigureFCBC(time_value);
         
-        for (int k = 1; k <= n_max_fss_iterations; k++) {
-            
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
@@ -494,28 +495,12 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
             std::cout << std::endl;
             
 #endif
-    
-            error_stop_criterion_Q = (m_error < r_norm);
-            dx_stop_criterion_Q = (m_dx_norm < dx_norm);
-            
-            if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) && dx_stop_criterion_Q) {
-                std::cout << "TPMRSFullyCoupledAnalysis:: Iterative process converged." << std::endl;
-                std::cout << "TPMRSFullyCoupledAnalysis:: Residue norm      = " << m_error << std::endl;
-                std::cout << "TPMRSFullyCoupledAnalysis:: Correction norm   = " << m_dx_norm << std::endl;
-                std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
-                std::cout << std::endl;
-                std::cout << std::endl;
-                break;
-            }
-        }
         
         bool postprocess_time_Q = ShouldPostprocessQ(time_value);
         if (postprocess_time_Q) {
             PostProcessTimeStep(file);
         }
         UpdateState();
-        
-        
     }
     
     std::cout << std::endl;
@@ -557,6 +542,7 @@ void TPMRSFullyCoupledAnalysis::LoadMemorySolution(TPZFMatrix<REAL> & x){
 }
 
 void TPMRSFullyCoupledAnalysis::LoadState(TPZFMatrix<REAL> & x){
+    Solution() = x;
     LoadSolution(x);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(m_meshvec, Mesh());
 }

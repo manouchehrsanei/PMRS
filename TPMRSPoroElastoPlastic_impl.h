@@ -348,11 +348,10 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
     
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
-    
+    REAL alpha = this->MemItem(gp_index).Alpha();
     /// Biot term coupling
     {
-        
-        REAL alpha = this->MemItem(gp_index).Alpha();
+    
         if (m_dimension == 2) {
             for(int iu = 0; iu < n_phi_u; iu++ )
             {
@@ -405,7 +404,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
     this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
     dkappa_ndp = dkappa_ndphi * dphi_ndp;
     
-    TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3);
+    TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3),dKdsigma(3,3);
     
     K.Zero();
     K(0,0) = memory.kappa_n();
@@ -417,25 +416,39 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
     dKdp(1,1) = dkappa_ndp;
     dKdp(2,2) = dkappa_ndp;
     
+    
+    
     STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
     STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
     STATE drho_ndp_n = m_c/m_scale_factor;
     STATE lambda     = rho_n/m_eta;
     
+    /// update for Kdr
+    REAL dphi_nds_eff_vol = alpha;
+    REAL dkappa_nds_eff_vol = dkappa_ndphi * dphi_nds_eff_vol;
+    
+    dKdsigma.Zero();
+    dKdsigma(0,0) = dkappa_nds_eff_vol;
+    dKdsigma(1,1) = dkappa_nds_eff_vol;
+    dKdsigma(2,2) = dkappa_nds_eff_vol;
+    
     /// Defining local variables
-    TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
+    TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1),dKdsigmal_grad_p_(3,1);
     for (int i = 0; i < Dimension(); i++)
     {
         STATE dot     = 0.0;
         STATE dKdpdot = 0.0;
+        STATE dKdsigmadot = 0.0;
         for (int j = 0; j < Dimension(); j++)
         {
             dot        += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
             dKdpdot    += dKdp(i,j)*grad_p(j,0);
+            dKdsigmadot    += dKdsigma(i,j)*grad_p(j,0);
         }
         
         Kl_grad_p_(i,0)      = lambda * dot;
         dKdpl_grad_p_(i,0)   = lambda * dKdpdot;
+        dKdsigmal_grad_p_(i,0)   = lambda * dKdsigmadot;
     }
     
     /// Integration point contribution
@@ -452,16 +465,44 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
         STATE Kl_grad_p_dot_grad_phi        = 0.0;
         STATE last_Kl_grad_p_dot_grad_phi   = 0.0;
         STATE dKdpl_grad_p_dot_grad_phi     = 0.0;
+        STATE dKds_vol_l_grad_p_dot_grad_phi     = 0.0;
         for (int i = 0; i < Dimension(); i++)
         {
             Kl_grad_p_dot_grad_phi      += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
             last_Kl_grad_p_dot_grad_phi += last_Kl_grad_p[i]*grad_phi_p(i,ip);
             dKdpl_grad_p_dot_grad_phi   += dKdpl_grad_p_(i,0)*grad_phi_p(i,ip);
+            dKds_vol_l_grad_p_dot_grad_phi   += dKdsigmal_grad_p_(i,0)*grad_phi_p(i,ip);
             
         }
         
         REAL Kl_grad_p_dot_grad_phi_avg = m_theta_scheme*Kl_grad_p_dot_grad_phi + (1.0-m_theta_scheme)*last_Kl_grad_p_dot_grad_phi;
-        ef(ip+m_dimension*n_phi_u) +=  weight * ( Kl_grad_p_dot_grad_phi_avg + (0.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
+        ef(ip+m_dimension*n_phi_u) +=  weight * ( Kl_grad_p_dot_grad_phi_avg + (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
+        
+        if (m_dimension == 2) {
+            for(int ju = 0; ju < n_phi_u; ju++ )
+            {
+                dvdx = grad_phi_u(0,ju);
+                dvdy = grad_phi_u(1,ju);
+                
+                ek(ip+m_dimension*n_phi_u,m_dimension*ju+0 + first_u)   +=    weight * (m_theta_scheme*dKds_vol_l_grad_p_dot_grad_phi*dvdx+ (1.0/dt) * (dphi_nds_eff_vol*rho_n*dvdx) * phi_p(ip,0));    // x direction
+                ek(ip+m_dimension*n_phi_u,m_dimension*ju+1 + first_u)   +=    weight * (m_theta_scheme*dKds_vol_l_grad_p_dot_grad_phi*dvdy+ (1.0/dt) * (dphi_nds_eff_vol*rho_n*dvdy) * phi_p(ip,0));    // y direction
+                
+            }
+        }
+        else{
+            REAL dvdz;
+            for(int ju = 0; ju < n_phi_u; ju++ )
+            {
+                dvdx = grad_phi_u(0,ju);
+                dvdy = grad_phi_u(1,ju);
+                dvdz = grad_phi_u(2,ju);
+                
+                ek(ip+m_dimension*n_phi_u,m_dimension*ju+0 + first_u)   +=    weight * (m_theta_scheme*dKds_vol_l_grad_p_dot_grad_phi*dvdx+ (1.0/dt) * (dphi_nds_eff_vol*rho_n*dvdx) * phi_p(ip,0));    // x direction
+                ek(ip+m_dimension*n_phi_u,m_dimension*ju+1 + first_u)   +=    weight * (m_theta_scheme*dKds_vol_l_grad_p_dot_grad_phi*dvdy+ (1.0/dt) * (dphi_nds_eff_vol*rho_n*dvdy) * phi_p(ip,0));    // y direction
+                ek(ip+m_dimension*n_phi_u,m_dimension*ju+2 + first_u)   +=    weight * (m_theta_scheme*dKds_vol_l_grad_p_dot_grad_phi*dvdz+ (1.0/dt) * (dphi_nds_eff_vol*rho_n*dvdz) * phi_p(ip,0));    // z direction
+                
+            }
+        }
         
         for (int jp = 0; jp < n_phi_p; jp++)
         {
@@ -484,7 +525,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
                 
             }
             
-            ek(ip+m_dimension*n_phi_u,jp+m_dimension*n_phi_u) +=  weight * ( m_theta_scheme*Kl_grad_phi_j_dot_grad_phi_j + m_theta_scheme*dKdpl_grad_p_dot_grad_phi + (0.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
+            ek(ip+m_dimension*n_phi_u,jp+m_dimension*n_phi_u) +=  weight * ( m_theta_scheme*Kl_grad_phi_j_dot_grad_phi_j + m_theta_scheme*dKdpl_grad_p_dot_grad_phi + (1.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
         }
         
     }
@@ -529,14 +570,19 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
         
         TPZTensor<STATE> epsilon,sigma;
         Epsilon(datavec[m_u_b],epsilon);
+        TPZFNMatrix<36,STATE> Dep(6,6,0.0);
         T plastic_integrator(m_plastic_integrator);
-        plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
+        plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
+        /// getting the elastoplastic Kdr_ep
+        REAL lambda = Dep(0,5);
+        REAL two_times_mu = Dep(1,1);
+        REAL Kdr_ep = lambda + two_times_mu/3.0;
         
         if (m_simulation_data->IsCurrentStateQ()) {
             
             this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma_n(sigma);
-            
+            this->MemItem(gp_index).SetKdr(Kdr_ep);
             TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
             if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
@@ -959,10 +1005,14 @@ void TPMRSPoroElastoPlastic<T,TMEM>::porosity(long gp_index, REAL &phi_n, REAL &
     REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3)  - alpha * p_n;
     
     REAL geo_delta_phi   = 1.0*(alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
-    REAL geo_delta_phi_n = 1.0*(alpha*alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0);
+    REAL geo_delta_phi_n = 1.0*(alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0);
     
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
+    
+    /// Applying correction due to the fully coupled scheme
+    dphi_ndp -= (alpha*alpha/Kdr);
+    
     this->MemItem(gp_index).Setphi_n(phi_n);
 }
 

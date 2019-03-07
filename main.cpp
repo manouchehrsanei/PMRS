@@ -226,6 +226,8 @@ int main(int argc, char *argv[])
         // Load initial conditions in FC for dof
         FC_analysis->Meshvec()[0]->Solution() = SFI_analysis->GetGeomechanicsSolver()->Solution();
         FC_analysis->Meshvec()[1]->Solution() = SFI_analysis->GetReservoirSolver()->Solution();
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(FC_analysis->Meshvec(), FC_analysis->Mesh());
+        FC_analysis->Solution()=FC_analysis->Mesh()->Solution();
         
         { ///  Printing FC bc conditions
             
