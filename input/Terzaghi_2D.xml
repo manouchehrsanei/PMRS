@@ -7,15 +7,15 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="0.0001" />
+        <StepNumber n_time_steps="1000" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
         <Residue res_tolerance="0.0000001" />
-        <Correction cor_tolerance="0.0000001" />
+        <Correction cor_tolerance="0.00001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -48,7 +48,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_FC" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_FSS" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -109,7 +109,7 @@
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
-            <Data t="0" tn="-10.0" />
+            <Data t="0" tn="-1.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            
@@ -117,13 +117,13 @@
     </BCInitialGeomechanics>
     <BCInitialReservoir>
         <InitialReservoir bc_id="2" type="Dp" n_data="1" >
-            <Data t="0" p="10.0" />              
+            <Data t="0" p="1.0" />              
         </InitialReservoir>
         <InitialReservoir bc_id="3" type="Dp" n_data="1" >
-            <Data t="0" p="10.0" />             
+            <Data t="0" p="1.0" />             
         </InitialReservoir>
         <InitialReservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="10.0" />             
+            <Data t="0" p="1.0" />             
         </InitialReservoir>                        
     </BCInitialReservoir>      
     <BCGeomechanics>
@@ -146,8 +146,8 @@
             <Data t="1" qn="0.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
-            <Data t="0" p="10.0" />
-            <Data t="0.01" p="0.0" />
+            <Data t="0" p="1.0" />
+            <Data t="0.0001" p="0.0" />
             <Data t="1" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
