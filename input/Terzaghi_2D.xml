@@ -48,7 +48,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_new_CN" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_FC" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -109,7 +109,7 @@
             <Data t="0" un="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
-            <Data t="0" tn="-20.0" />
+            <Data t="0" tn="-10.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dun" n_data="1" >
             <Data t="0" un="0.0" />            
@@ -147,8 +147,8 @@
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="10.0" />
-            <Data t="0.001" p="5.0" />
-            <Data t="1" p="5.0" />             
+            <Data t="0.001" p="0.0" />
+            <Data t="1" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />
