@@ -19,7 +19,7 @@ TPMRSElastoPlastic<T,TMEM>::~TPMRSElastoPlastic(){
 }
 
 template <class T, class TMEM>
-TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic(int mate_id) : TPZMatWithMem<TMEM>(mate_id) {
+TPMRSElastoPlastic<T,TMEM>::TPMRSElastoPlastic(int mat_id) : TPZMatWithMem<TMEM>(mat_id) {
     m_simulation_data = NULL;
     m_dimension       = 0;
 }
@@ -317,14 +317,11 @@ void TPMRSElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> 
     
     int gp_index = data.intGlobPtIndex;
     TPZTensor<REAL> last_epsilon;
-    // Applying prestress
-//    TPZTensor<REAL> epsilon_t_0 = this->MemItem(gp_index).GetPlasticState_0().m_eps_t;
     if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
         last_epsilon = this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_t;
     }else{
         last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
     }
-//    last_epsilon -= epsilon_t_0;
     TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u, grad_delta_u_t;
     TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
     TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);

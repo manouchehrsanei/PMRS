@@ -45,7 +45,6 @@
 /// Geomechanics
 #include "TPMRSElastoPlastic_impl.h"
 #include "TPMRSGeomechanicAnalysis.h"
-#include "TPMRSCoupPoElaMemory.h"
 #include "TPMRSElastoPlasticMemory.h"
 
 /// Segregated solver
@@ -67,7 +66,7 @@
 /// Analysis
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
-#include "TPMRSCoupPoElaAnalysis.h"
+#include "TPMRSFullyCoupledAnalysis.h"
 
 
 /// Matrix
@@ -87,8 +86,8 @@
 #include "TPMRSKappaParameters.h"
 #include "TPMRSPlasticityParameters.h"
 
-/// ElastoPlastic Materials
-#include "TPMRSCouplPoroElast.h"
+/// Poroelastoplastic material by means of monolithic approach
+#include "TPMRSPoroElastoPlastic_impl.h"
 
 #ifdef LOG4CXX
 static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
@@ -100,13 +99,12 @@ static LoggerPtr log_data(Logger::getLogger("pz.PMRS"));
 
 
 /// PoroElastic Full Coupling
-// L2 mesh for Deformation
+// H1 mesh for Deformation
 TPZCompMesh * CMesh_Deformation(TPMRSSimulationData * sim_data);
-// L2 mesh for Pore Pressure
+// H1 mesh for Pore Pressure
 TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data);
 // Multiphysics Coupling
-TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data);
-
+TPZCompMesh * CMesh_FullyCoupled(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data);
 
 /// Monophasic Reservoir Simulator
 // Hdiv mesh
@@ -121,30 +119,30 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsRes(bool IsMixedQ, int inde
 TPZCompMesh * CMesh_Primal(TPMRSSimulationData * sim_data);
 // Configurate and insert volumetric materials
 
-
 // Geomechanic Simulator
 // H1 mesh for displacements
 TPZCompMesh * CMesh_Geomechanics(TPMRSSimulationData * sim_data);
 // Configurate and insert volumetric materials
 TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh);
 
-// Method that makes the poroelastic full coupling
-void RuningFullCoupling(TPMRSSimulationData * sim_data);
-
+// Method that creates a fully coupled solver
+TPMRSFullyCoupledAnalysis * CreateFCSolver(TPMRSSimulationData * sim_data);
+// Configurate and insert volumetric materials
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsFC(int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh);
 
 /// Restructuring implementation of Reservoir Geomechanics Simulator
+
+// Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
+TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data);
+
+
+/// Deprecated.
 
 // Method that makes use of TPMRSMonophasic for parabolic solutions
 void RuningMonophasic(TPMRSSimulationData * sim_data);
 
 // Method that makes use of TPMRSElastoPlastic
 void RuningGeomechanics(TPMRSSimulationData * sim_data);
-
-// Method that makes use of TPMRSMonophasic and TPMRSElastoPlastic with a common memory
-void RuningSegregatedSolver(TPMRSSimulationData * sim_data);
-
-
-
 
 /// Shear-enhanced compaction and strain localization:
 // Inelastic deformation and constitutive modeling of four porous sandstones
@@ -181,8 +179,8 @@ int main(int argc, char *argv[])
         if (argc != 2)
         {
             cout << "Size: " << argc << " Number of Arguments " << endl;
-            cout << "Usage: " << argv[0] << " Myinputfile.xml " << endl;
-            cout <<    "Program stop: not xml file found \n"    << endl;
+            cout << "Usage: " << argv[0] << " my_input_file.xml " << endl;
+            cout <<    "Program must stop: not xml file found \n"    << endl;
             DebugStop();
         }
         
@@ -194,15 +192,81 @@ int main(int argc, char *argv[])
     }
     
     // Simulation data to be configurated
-    
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
+    
+    bool is_fully_coupled_Q = true;
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
 
-    RuningSegregatedSolver(sim_data);
+    if (is_fully_coupled_Q) {
+        TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
+        TPMRSFullyCoupledAnalysis * FC_analysis = CreateFCSolver(sim_data);
+        // Liking the memory to FC solver
+        SFI_analysis->ApplyMemoryLink(SFI_analysis->GetGeomechanicsSolver()->Mesh(), FC_analysis->Mesh());
+        
+        REAL t_0 = 0;
+        SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
+        SFI_analysis->ConfigureReservoirBC(t_0,true);
+        
+        /// vtk file
+        std::string name = sim_data->name_vtk_file();
+        std::string file = name + "_fc.vtk";
+        { /// Initial states and postprocess them.
+            /// Compute initial response
+            SFI_analysis->ExecuteStaticSolution();
+            FC_analysis->PostProcessTimeStep(file);
+            
+            /// Compute undarined response
+            SFI_analysis->ExecuteUndrainedStaticSolution();
+            FC_analysis->PostProcessTimeStep(file);
+        }
+        // Load initial conditions in FC for dof
+        FC_analysis->Meshvec()[0]->Solution() = SFI_analysis->GetGeomechanicsSolver()->Solution();
+        FC_analysis->Meshvec()[1]->Solution() = SFI_analysis->GetReservoirSolver()->Solution();
+        TPZBuildMultiphysicsMesh::TransferFromMeshes(FC_analysis->Meshvec(), FC_analysis->Mesh());
+        FC_analysis->Solution()=FC_analysis->Mesh()->Solution();
+        
+        { ///  Printing FC bc conditions
+            
+            std::cout << "Begining:: Printing FC bc conditions " << std::endl;
+            for(auto i :sim_data->BCIdToConditionTypeFullyCoupled()){
+                std::cout << "BC id = " << i.first << std::endl;
+                std::cout << "BC type = " << i.second << std::endl;
+                std::cout << "BC index = " << sim_data->ConditionTypeToBCIndexFullyCoupled()[i.second].first << std::endl;
+            }
+            std::cout << "Ending:: Printing FC bc conditions " << std::endl;
+        }
+        
+        FC_analysis->ExecuteTimeEvolution();
+        
+    }
+    else
+    {
+
+        TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
+        REAL t_0 = 0;
+        SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
+        SFI_analysis->ConfigureReservoirBC(t_0,true);
+        SFI_analysis->ExecuteStaticSolution();
+        SFI_analysis->ExecuteUndrainedStaticSolution();
+        SFI_analysis->ExecuteTimeEvolution();
+        
+        /// Writing summaries
+        TPZFMatrix<REAL> iterations = SFI_analysis->IterationsSummary();
+        TPZFMatrix<REAL> residuals  = SFI_analysis->ResidualsSummary();
+        TPZFMatrix<REAL> cpu_time   = SFI_analysis->TimeSummary();
+        
+        if (sim_data->Get_is_performance_summary_Q()) {
+            std::ofstream summary_file("PMRS_performance_summary.txt");
+            iterations.Print("iteraions = ",summary_file,EMathematicaInput);
+            residuals.Print("residuals = ",summary_file,EMathematicaInput);
+            cpu_time.Print("time = ",summary_file,EMathematicaInput);
+            summary_file.flush();
+        }
+    }
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t2 = boost::posix_time::microsec_clock::local_time();
@@ -221,17 +285,12 @@ int main(int argc, char *argv[])
 
 
 
-void RuningFullCoupling(TPMRSSimulationData * sim_data)
+TPMRSFullyCoupledAnalysis * CreateFCSolver(TPMRSSimulationData * sim_data)
 {
-  
-#ifdef PZDEBUG
-    //    sim_data->PrintGeometry();
-#endif
     
     // Create multiphysisc mesh
     TPZManVector<TPZCompMesh * , 2 > mesh_vector(2);
-    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_FullCoupling(mesh_vector,sim_data);
-    
+    TPZCompMesh * cmesh_poro_perm_coupling = CMesh_FullyCoupled(mesh_vector,sim_data);
     
     // The initial condition is set up to zero for Deformation and Pore Pressure
     // Create and run the Transient analysis
@@ -239,54 +298,31 @@ void RuningFullCoupling(TPMRSSimulationData * sim_data)
     bool mustOptimizeBandwidth = true;
     int number_threads = sim_data->n_threads();
     
-    TPMRSCoupPoElaAnalysis * time_analysis = new TPMRSCoupPoElaAnalysis;
-    time_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
-    time_analysis->SetSimulationData(sim_data);
-    time_analysis->SetMeshvec(mesh_vector);
-    time_analysis->AdjustVectors();
+    TPMRSFullyCoupledAnalysis * fc_analysis = new TPMRSFullyCoupledAnalysis;
+    fc_analysis->SetCompMesh(cmesh_poro_perm_coupling,mustOptimizeBandwidth);
+    fc_analysis->SetSimulationData(sim_data);
+    fc_analysis->SetMeshvec(mesh_vector);
+    fc_analysis->AdjustVectors();
     
-#ifdef USING_Pardiso
-    //    TPZSymetricSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // Symm Pardiso MKL flag
+#ifdef USING_MKL
     TPZSpStructMatrix struct_mat(cmesh_poro_perm_coupling); // NonSymm Pardiso MKL flag
 #else
     
     TPZSkylineNSymStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    //    TPZSkylineStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    //    TPZFStructMatrix struct_mat(cmesh_poro_perm_coupling);
-    
-    //    TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(cmesh_poro_perm_coupling);
-    //    struct_mat.SetDecomposeType(ELDLt);
-    
 #endif
-    
     
     TPZStepSolver<STATE> step;
     struct_mat.SetNumThreads(number_threads);
     step.SetDirect(ELU);
-    time_analysis->SetSolver(step);
-    time_analysis->SetStructuralMatrix(struct_mat);
+    fc_analysis->SetSolver(step);
+    fc_analysis->SetStructuralMatrix(struct_mat);
+    fc_analysis->ConfiguratePostProcessor();
     
-    TPZVec<REAL> x(3);
-    x[0] = 0.0;
-    x[1] = 0.0;
-    x[2] = 0.0;
-    std::string file_ss_name("AxialStrainVsDiffStress.nb");
-    std::string file_sp_name("VolumStrainVsPorosity.nb");
-    std::string file_sk_name("VolumStrainVsPermeability.nb");
-    std::string file_spex_name("VolumStrainVsPorePressure.nb");
-    
-    // Run Transient analysis
-    time_analysis->Run_Evolution(x);
-    //    time_analysis->PlotStrainStress(file_ss_name);
-    //    time_analysis->PlotStrainPorosity(file_sp_name);
-    //    time_analysis->PlotStrainPermeability(file_sk_name);
-    //    time_analysis->PlotStrainPressure(file_spex_name);
-    std::cout << " Execution finished" << std::endl;
-
+    return fc_analysis;
 }
 
 
-void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
+TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
     
     // The Geomechanics Simulator cmesh
     TPZCompMesh * cmesh_geomechanic = CMesh_Geomechanics(sim_data);
@@ -300,27 +336,9 @@ void RuningSegregatedSolver(TPMRSSimulationData * sim_data){
         cmesh_res = CMesh_Primal(sim_data);
     }
  
-    TPMRSSegregatedAnalysis * segregated_analysis = new TPMRSSegregatedAnalysis;
-    segregated_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
-
-    REAL t_0 = 0;
-    segregated_analysis->ConfigureGeomechanicsBC(t_0,true);
-    segregated_analysis->ConfigureReservoirBC(t_0,true);
-    segregated_analysis->ExecuteStaticSolution();
-    segregated_analysis->ExecuteTimeEvolution();
-    
-    /// Writing summaries
-    TPZFMatrix<REAL> iterations = segregated_analysis->IterationsSummary();
-    TPZFMatrix<REAL> residuals  = segregated_analysis->ResidualsSummary();
-    TPZFMatrix<REAL> cpu_time   = segregated_analysis->TimeSummary();
-
-    if (sim_data->Get_is_performance_summary_Q()) {
-        std::ofstream summary_file("PMRS_performance_summary.txt");
-        iterations.Print("iteraions = ",summary_file,EMathematicaInput);
-        residuals.Print("residuals = ",summary_file,EMathematicaInput);
-        cpu_time.Print("time = ",summary_file,EMathematicaInput);
-        summary_file.flush();
-    }
+    TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
+    sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    return sfi_analysis;
 }
 
 
@@ -410,9 +428,6 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
     REAL E  = e_pars[0];
     REAL nu = e_pars[1];
     
-//     Updating bulk modulus for porosity model
-//    std::get<2>(sim_data->MaterialProps()[index]).SetBulkModulus(E, nu);
-    
     TPZElasticResponse ER;
     ER.SetEngineeringData(E, nu);
 
@@ -466,7 +481,6 @@ TPZMaterial * ConfigurateAndInsertVolumetricMaterialsGeo(int index, int matid, T
                 REAL D    = p_pars[3];
                 REAL R    = p_pars[4];
                 REAL W    = p_pars[5];
-//                REAL X0   = p_pars[6];
                 REAL phi = 0, psi = 1.0, N = 0;
                 
                 REAL Pc = -137;
@@ -861,7 +875,7 @@ TPZCompMesh * CMesh_PorePressure(TPMRSSimulationData * sim_data)
 }
 
 
-TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data){
+TPZCompMesh * CMesh_FullyCoupled(TPZManVector<TPZCompMesh * , 2 > & mesh_vector, TPMRSSimulationData * sim_data){
     
     mesh_vector[0] = CMesh_Deformation(sim_data);
     mesh_vector[1] = CMesh_PorePressure(sim_data);
@@ -880,44 +894,7 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     {
         int matid = material_ids[iregion].first;
 
-        TPMRSCouplPoroElast * material = new TPMRSCouplPoroElast(matid,dim);
-        
-        int coup_index = 0;
-        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunkCoup =    sim_data->MaterialProps()[coup_index];
-        
-        // Initial parameter
-        TPMRSUndrainedParameters i_poro_parameters(std::get<0>(chunkCoup));
-        std::vector<REAL> i_pars = i_poro_parameters.GetParameters();
-        REAL phi_0   = i_pars[2];
-        REAL kappa_0 = i_pars[3];
-        
-        material->Setporosity0(phi_0);
-        material->Setk0(kappa_0);
-        
-        // Elastic predictor
-        TPMRSPoroMechParameters e_c_poro_parameters(std::get<1>(chunkCoup));
-        std::vector<REAL> e_c_pars = e_c_poro_parameters.GetParameters();
-        REAL Ey         = e_c_pars[0];
-        REAL nu         = e_c_pars[1];
-        REAL alpha      = e_c_pars[2];
-        REAL se         = e_c_pars[3];
-        REAL eta        = e_c_pars[4];
-        REAL rhof       = e_c_pars[5];
-        REAL rhos       = e_c_pars[6];
-        REAL cf         = e_c_pars[7];
-
-        material->SetSimulationData(sim_data);
-        material->SetDimension(dim);
-        material->Setlambda(Ey, nu);
-        material->Setmu(Ey, nu);
-        material->Setalpha(alpha);
-        material->SetSe(se);
-        material->Seteta(eta);
-        material->Setrhof(rhof);
-        material->Setrhos(rhos);
-        material->Setcomf(cf);
-
-        cmesh->InsertMaterialObject(material);
+        TPZMaterial  * material = ConfigurateAndInsertVolumetricMaterialsFC(iregion, matid, sim_data, cmesh);
         
         // Inserting boundary conditions
         int n_bc = material_ids[iregion].second.first.size();
@@ -925,21 +902,19 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
         {
             int bc_id = material_ids[iregion].second.first [ibc];
             
-            it_bc_id_to_type = sim_data->BCIdToConditionTypeReservoir().find(bc_id);
-            
-            it_bc_id_to_values = sim_data->BCIdToBCValuesReservoir().find(bc_id);
-            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexReservoir().find(it_bc_id_to_type->second);
+            it_bc_id_to_type = sim_data->BCIdToConditionTypeGeomechanics().find(bc_id);
+            it_bc_id_to_values = sim_data->BCIdToBCValuesGeomechanics().find(bc_id);
+            it_condition_type_to_index_value_names = sim_data->ConditionTypeToBCIndexGeomechanics().find(it_bc_id_to_type->second);
             
             int bc_index = it_condition_type_to_index_value_names->second.first;
             int n_bc_values = it_bc_id_to_values->second.n_functions();
-            TPZFMatrix<STATE> val1(0,0,0.), val2(4,1,0.);
+            TPZFMatrix<STATE> val1(0,0,0.), val2(n_bc_values,1,0.);
             for (int i = 0; i < n_bc_values; i++) {
-                REAL value = 0.0;// Values are currently interpolated using time functions
+                REAL value = 0.0; // Values are currently interpolated using time functions
                 val2(i,0) = value;
             }
             
-            TPZMaterial * bc = material->CreateBC(material, bc_id, bc_index, val1, val2);
-            
+            TPZBndCondWithMem<TPMRSMemory> * bc = new  TPZBndCondWithMem<TPMRSMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
     }
@@ -971,13 +946,111 @@ TPZCompMesh * CMesh_FullCoupling(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
     }
     
 #ifdef PZDEBUG
-    std::ofstream out("PorePermCoupling.txt");
+    std::ofstream out("Cmesh_FullyCoupled.txt");
     cmesh->Print(out);
 #endif
     cmesh->InitializeBlock();
 
     return cmesh;
     
+}
+
+TPZMaterial * ConfigurateAndInsertVolumetricMaterialsFC(int index, int matid, TPMRSSimulationData * sim_data, TPZCompMesh * cmesh){
+    
+    REAL s  = sim_data->scale_factor_val();
+    int dim = sim_data->Dimension();
+    
+    std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    sim_data->MaterialProps()[index];
+    
+    // Elastic predictor
+    TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+    std::vector<REAL> pars = poro_parameters.GetParameters();
+    REAL E  = pars[0];
+    REAL nu = pars[1];
+    
+    TPZElasticResponse ER;
+    ER.SetEngineeringData(E, nu);
+    
+    bool  is_crank_nicolson_Q = sim_data->Get_is_crank_nicolson_Q();
+    // Reservoir parameters
+    REAL c_f   = pars[3];
+    REAL eta   = pars[4];
+    REAL rho_0 = pars[5];
+    
+    // Plastic corrector
+    TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
+    std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
+    
+    if (p_pars.size() == 0) {
+        // Elastic material
+        TPZElasticCriterion Elastic;
+        Elastic.SetElasticResponse(ER);
+        
+        TPMRSPoroElastoPlastic<TPZElasticCriterion, TPMRSMemory> * material = new TPMRSPoroElastoPlastic<TPZElasticCriterion, TPMRSMemory>(matid);
+        material->SetDimension(dim);
+        material->SetPlasticIntegrator(Elastic);
+        material->SetSimulationData(sim_data);
+        
+        material->SetFluidProperties(rho_0, eta, c_f);
+        material->SetScaleFactor(s);
+        material->SetPorosityParameters(std::get<2>(chunk));
+        material->SetPermeabilityParameters(std::get<3>(chunk));
+        if (is_crank_nicolson_Q) {
+            material->SetCrank_Nicolson();
+        }
+        
+        cmesh->InsertMaterialObject(material);
+        return material;
+        
+    }else{
+        // Elastoplastic material
+        switch (plasticity_parameters.GetModel()) {
+            case plasticity_parameters.ep_mc: {
+                // Mohr Coulomb data
+                REAL cohesion    = p_pars[0];
+                REAL phi         = (p_pars[1]*M_PI/180);
+                REAL psi         = phi;
+                
+                TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+                LEMC.SetElasticResponse(ER);
+                LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                
+                TPMRSPoroElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory> * material = new TPMRSPoroElastoPlastic <TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPMRSMemory>(matid);
+                material->SetDimension(dim);
+                material->SetPlasticIntegrator(LEMC);
+                
+                material->SetSimulationData(sim_data);
+                
+                material->SetFluidProperties(rho_0, eta, c_f);
+                material->SetScaleFactor(s);
+                material->SetPorosityParameters(std::get<2>(chunk));
+                material->SetPermeabilityParameters(std::get<3>(chunk));
+                if (is_crank_nicolson_Q) {
+                    material->SetCrank_Nicolson();
+                }
+                
+                cmesh->InsertMaterialObject(material);
+                return material;
+            }
+                break;
+            case plasticity_parameters.ep_ds: {
+                // Dimaggio Sandler data
+                
+                TPZMaterial * material = NULL;
+                std::cout << "TODO:: MS Material not implemented. " << std::endl;
+                DebugStop();
+                return material;
+            }
+                break;
+            default:{
+                TPZMaterial * material = NULL;
+                std::cout << "Material not implemented. " << std::endl;
+                DebugStop();
+                return material;
+            }
+                break;
+        }
+    }
 }
 
 

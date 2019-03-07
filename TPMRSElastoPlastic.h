@@ -40,7 +40,7 @@ public:
     virtual ~TPMRSElastoPlastic();
     
     /// Constructor based on material id
-    TPMRSElastoPlastic(int mate_id);
+    TPMRSElastoPlastic(int mat_id);
     
     /// Copy constructor
     TPMRSElastoPlastic(const TPMRSElastoPlastic & other);

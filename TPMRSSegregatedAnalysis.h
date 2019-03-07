@@ -77,6 +77,12 @@ public:
     
     /// Set the pointer of Simulation data object
     void SetSimulationData(TPMRSSimulationData * simulation_data);
+    
+    /// Return a pointer to the geomechanics solver
+    TPMRSGeomechanicAnalysis * GetGeomechanicsSolver();
+    
+    /// Return a pointer to the reservoir solver
+    TPMRSMonoPhasicAnalysis * GetReservoirSolver();
 
     /// Attach materials with the same share pointer (For now just volumeric linking)
     void ApplyMemoryLink(TPZCompMesh * cmesh_o, TPZCompMesh * cmesh_d);
@@ -116,6 +122,9 @@ public:
     
     /// Execute initial problem
     void ExecuteStaticSolution();
+    
+    /// Execute initial undrained response problem
+    void ExecuteUndrainedStaticSolution();
     
     /// Get the object that store the history of segregated and internal iteraions
     TPZFMatrix<REAL> & IterationsSummary();
