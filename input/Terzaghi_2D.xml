@@ -7,9 +7,9 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0002" />
-        <StepNumber n_time_steps="500" />
-        <CrankNicolsonQ useQ="1" />
+        <StepSize dt="0.01" />
+        <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
@@ -39,7 +39,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="3" />
         <Diffusion p_order="2" />
@@ -147,7 +147,7 @@
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="1.0" />
-            <Data t="0.0002" p="0.0" />
+            <Data t="0.01" p="0.0" />
             <Data t="1" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >

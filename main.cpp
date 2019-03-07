@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-    bool is_fully_coupled_Q = true;
+    bool is_fully_coupled_Q = false;
     
 #ifdef USING_BOOST
     boost::posix_time::ptime int_case_t1 = boost::posix_time::microsec_clock::local_time();
