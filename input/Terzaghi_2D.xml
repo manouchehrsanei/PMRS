@@ -7,15 +7,15 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.01" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
         <Residue res_tolerance="0.0000001" />
-        <Correction cor_tolerance="0.0000001" />
+        <Correction cor_tolerance="0.01" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -147,7 +147,7 @@
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="10.0" />
-            <Data t="0.001" p="0.0" />
+            <Data t="0.01" p="0.0" />
             <Data t="1" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
