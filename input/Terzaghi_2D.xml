@@ -39,7 +39,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <FullyCoupled useQs="0" />
+        <FullyCoupled useQs="1" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="1" />
         <Elasticity p_order="3" />

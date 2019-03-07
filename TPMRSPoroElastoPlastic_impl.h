@@ -728,6 +728,8 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
     
     REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
     
+    
+    
     switch (bc.Type())
     {
     
@@ -742,15 +744,15 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             for(in = 0 ; in < phru; in++)
             {
                 ///    Contribution for load Vector
-                ef(2*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
-                ef(2*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(m_dimension*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(m_dimension*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
                 
                 
                 for (jn = 0 ; jn < phru; jn++)
                 {
                     ///    Contribution for Stiffness Matrix
-                    ek(2*in+0,2*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
-                    ek(2*in+1,2*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(m_dimension*in+0,m_dimension*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(m_dimension*in+1,m_dimension*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
                     
                 }
             }
@@ -784,8 +786,8 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             for(in = 0 ; in <phru; in++)
             {
                 ///   Normal Tension Components on neumman boundary
-                ef(2*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
-                ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+                ef(m_dimension*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(m_dimension*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
             
             REAL Value = bc.Val2()(1,0);
@@ -816,7 +818,163 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
-    DebugStop();
+    
+    TPZBndCondWithMem<TMEM> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TMEM> &>(bc);
+    int gp_index = datavec[m_u_b].intGlobPtIndex;
+    TMEM & memory = bc_with_memory.MemItem(gp_index);
+    
+    if (m_simulation_data->Get_must_accept_solution_Q())
+    {
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n());
+            }else{
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+                bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n());
+                
+            }
+            return;
+        }
+        
+        
+        if (m_simulation_data->IsCurrentStateQ())
+        {
+            TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
+            TPZManVector<STATE,3> u_n(m_dimension,0.0);
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }else{
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }
+            bc_with_memory.MemItem(gp_index).Setu_n(u_n);
+            
+        }else
+        {
+            TPZManVector<STATE,3> u    = datavec[m_u_b].sol[0];
+            bc_with_memory.MemItem(gp_index).Setu(u);
+        }
+    }
+    
+    TPZFMatrix<REAL>  &phiu = datavec[m_u_b].phi;
+    TPZFMatrix<REAL>  &phip = datavec[m_p_b].phi;
+    TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
+    REAL p  = datavec[m_p_b].sol[0][0];
+    
+    TPZManVector<STATE,3> u_n(m_dimension,0.0);
+    if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }else{
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }
+    
+    int phru = phiu.Rows();
+    int phrp = phip.Rows();
+    int in,jn;
+    
+    REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
+    
+    
+    
+    switch (bc.Type())
+    {
+            
+        case 4 : /// DunNq
+            /// Dirichlet of normal displacement and normal flux
+            
+        {
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Un displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(m_dimension*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(m_dimension*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
+                ef(m_dimension*in+2,0)      += BigNumber*((u_n[2] - v[0])*n[2])*phiu(in,0)*weight;    // Z displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(m_dimension*in+0,m_dimension*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(m_dimension*in+1,m_dimension*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    ek(m_dimension*in+2,m_dimension*jn+2)    += BigNumber*n[2]*phiu(in,0)*phiu(jn,0)*weight;    // Z displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            break;
+        }
+            
+        case 21 : /// NtnDp
+            /// Dirichlet of normal displacement and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(m_dimension*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(m_dimension*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+                ef(m_dimension*in+2,0)    += -1.0 * weight * tn * n[2] * phiu(in,0);        //    Tnz
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            REAL p_D = Value;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += weight * m_scale_factor * BigNumber * (p - p_D) * phip(ip,0);
+                
+                for (int jp = 0; jp < phrp; jp++)
+                {
+                    
+                    ek(ip+m_dimension*phru,jp+m_dimension*phru) += weight * m_scale_factor *  BigNumber * phip(jp,0) * phip(ip,0);
+                }
+            }
+            
+            
+            break;
+        }
+            
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
 }
 
 template <class T, class TMEM>
