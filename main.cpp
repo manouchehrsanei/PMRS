@@ -227,7 +227,16 @@ int main(int argc, char *argv[])
         FC_analysis->Meshvec()[0]->Solution() = SFI_analysis->GetGeomechanicsSolver()->Solution();
         FC_analysis->Meshvec()[1]->Solution() = SFI_analysis->GetReservoirSolver()->Solution();
         
-        
+        { ///  Printing FC bc conditions
+            
+            std::cout << "Begining:: Printing FC bc conditions " << std::endl;
+            for(auto i :sim_data->BCIdToConditionTypeFullyCoupled()){
+                std::cout << "BC id = " << i.first << std::endl;
+                std::cout << "BC type = " << i.second << std::endl;
+                std::cout << "BC index = " << sim_data->ConditionTypeToBCIndexFullyCoupled()[i.second].first << std::endl;
+            }
+            std::cout << "Ending:: Printing FC bc conditions " << std::endl;
+        }
         
         FC_analysis->ExecuteTimeEvolution();
         
@@ -903,7 +912,7 @@ TPZCompMesh * CMesh_FullyCoupled(TPZManVector<TPZCompMesh * , 2 > & mesh_vector,
                 val2(i,0) = value;
             }
             
-            TPZBndCondWithMem<TPMRSElastoPlasticMemory> * bc = new  TPZBndCondWithMem<TPMRSElastoPlasticMemory>(material, bc_id, bc_index, val1, val2);
+            TPZBndCondWithMem<TPMRSMemory> * bc = new  TPZBndCondWithMem<TPMRSMemory>(material, bc_id, bc_index, val1, val2);
             cmesh->InsertMaterialObject(bc);
         }
     }

@@ -288,7 +288,7 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
-    LoadSolution(); /// Load the current analysis solution on the cmesh
+    LoadState(dx);
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
@@ -316,12 +316,12 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
         this->ExecuteNewtonInteration();
         dx += Solution();
         norm_dx  = Norm(Solution());
-        LoadSolution(dx);
+        LoadMemorySolution(dx);
         m_X_n = dx;
         
 #endif
         
-        LoadMemorySolution(dx);
+//        LoadMemorySolution(dx);
         norm_res = Norm(this->Rhs());
         if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {
             break;

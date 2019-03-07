@@ -118,17 +118,611 @@ void TPMRSPoroElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int ty
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    DebugStop();
+    
+    // Getting weight functions
+    TPZFMatrix<REAL>  & phi_u     =  datavec[m_u_b].phi;
+    int n_phi_u = phi_u.Rows();
+    int first_u  = 0;
+    
+    TPZFNMatrix<40,REAL> grad_phi_u(3,n_phi_u);
+    TPZAxesTools<REAL>::Axes2XYZ(datavec[m_u_b].dphix, grad_phi_u, datavec[m_u_b].axes);
+    
+    REAL dvdx,dvdy,dvdz;
+    TPZTensor<STATE> epsilon,sigma;
+    
+    TPZFNMatrix<36,STATE> De(6,6,0.0);
+    
+    /// Get initial effective stress state
+    int gp_index = datavec[m_u_b].intGlobPtIndex;
+    TPZTensor<REAL> & sigma_0 = this->MemItem(gp_index).GetSigma_0();
+    
+    /// Get current effective stress state
+    Epsilon(datavec[m_u_b],epsilon);
+    Sigma(datavec[m_u_b], epsilon, sigma, &De);
+    
+    TPZFNMatrix<9,STATE> Deriv(m_dimension, m_dimension);
+    STATE val;
+    
+    sigma -= sigma_0;// Applying the intial prestress
+    if (m_dimension == 2) { /// Plane strain conditions.
+        
+        for(int iu = 0; iu < n_phi_u; iu++ )
+        {
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            
+            ef(m_dimension*iu+0 + first_u)   +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy);    // y direction
+            
+            for(int ju = 0; ju < n_phi_u; ju++)
+            {
+                
+                for (int ud = 0; ud < m_dimension; ud++) {
+                    for (int vd = 0; vd < m_dimension; vd++) {
+                        Deriv(vd, ud) = grad_phi_u(vd, iu) * grad_phi_u(ud, ju);
+                    }
+                }
+                
+                val  = 2. * De(_XX_, _XX_) * Deriv(0, 0);//dvdx*dudx
+                val +=      De(_XX_, _XY_) * Deriv(0, 1);//dvdx*dudy
+                val += 2. * De(_XY_, _XX_) * Deriv(1, 0);//dvdy*dudx
+                val +=      De(_XY_, _XY_) * Deriv(1, 1);//dvdy*dudy
+                val *= 0.5;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+0 + first_u) += weight * val;
+                
+                val  =      De(_XX_, _XY_) * Deriv(0, 0);
+                val += 2. * De(_XX_, _YY_) * Deriv(0, 1);
+                val +=      De(_XY_, _XY_) * Deriv(1, 0);
+                val += 2. * De(_XY_, _YY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+1 + first_u) += weight * val;
+                
+                val  = 2. * De(_XY_, _XX_) * Deriv(0, 0);
+                val +=      De(_XY_, _XY_) * Deriv(0, 1);
+                val += 2. * De(_YY_, _XX_) * Deriv(1, 0);
+                val +=      De(_YY_, _XY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+0 + first_u) += weight * val;
+                
+                val  =      De(_XY_, _XY_) * Deriv(0, 0);
+                val += 2. * De(_XY_, _YY_) * Deriv(0, 1);
+                val +=      De(_YY_, _XY_) * Deriv(1, 0);
+                val += 2. * De(_YY_, _YY_) * Deriv(1, 1);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+1 + first_u) += weight * val;
+                
+            }
+        }
+    }else{
+        
+        
+        for(int iu = 0; iu < n_phi_u; iu++ )
+        {
+            dvdx = grad_phi_u(0,iu);
+            dvdy = grad_phi_u(1,iu);
+            dvdz = grad_phi_u(2,iu);
+            
+            ef(m_dimension*iu+0 + first_u)   +=    weight * (sigma.XX()*dvdx + sigma.XY()*dvdy + sigma.XZ()*dvdz);    // x direction
+            ef(m_dimension*iu+1 + first_u)   +=    weight * (sigma.XY()*dvdx + sigma.YY()*dvdy + sigma.YZ()*dvdz);    // y direction
+            ef(m_dimension*iu+2 + first_u)   +=    weight * (sigma.XZ()*dvdx + sigma.YZ()*dvdy + sigma.ZZ()*dvdz);    // z direction
+            
+            for(int ju = 0; ju < n_phi_u; ju++)
+            {
+                
+                for (int ud = 0; ud < m_dimension; ud++) {
+                    for (int vd = 0; vd < m_dimension; vd++) {
+                        Deriv(vd, ud) = grad_phi_u(vd, iu) * grad_phi_u(ud, ju);
+                    }
+                }
+                
+                val  = 2. * De(_XX_,_XX_) * Deriv(0,0);//dvdx*dudx
+                val +=      De(_XX_,_XY_) * Deriv(0,1);//dvdx*dudy
+                val +=      De(_XX_,_XZ_) * Deriv(0,2);//dvdx*dudz
+                val += 2. * De(_XY_,_XX_) * Deriv(1,0);//dvdy*dudx
+                val +=      De(_XY_,_XY_) * Deriv(1,1);//dvdy*dudy
+                val +=      De(_XY_,_XZ_) * Deriv(1,2);//dvdy*dudz
+                val += 2. * De(_XZ_,_XX_) * Deriv(2,0);//dvdz*dudx
+                val +=      De(_XZ_,_XY_) * Deriv(2,1);//dvdz*dudy
+                val +=      De(_XZ_,_XZ_) * Deriv(2,2);//dvdz*dudz
+                val *= 0.5;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+0 + first_u) += weight * val;
+                
+                val  =      De(_XX_,_XY_) * Deriv(0,0);
+                val += 2. * De(_XX_,_YY_) * Deriv(0,1);
+                val +=      De(_XX_,_YZ_) * Deriv(0,2);
+                val +=      De(_XY_,_XY_) * Deriv(1,0);
+                val += 2. * De(_XY_,_YY_) * Deriv(1,1);
+                val +=      De(_XY_,_YZ_) * Deriv(1,2);
+                val +=      De(_XZ_,_XY_) * Deriv(2,0);
+                val += 2. * De(_XZ_,_YY_) * Deriv(2,1);
+                val +=      De(_XZ_,_YZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+1 + first_u) += weight * val;
+                
+                val  =      De(_XX_,_XZ_) * Deriv(0,0);
+                val +=      De(_XX_,_YZ_) * Deriv(0,1);
+                val += 2. * De(_XX_,_ZZ_) * Deriv(0,2);
+                val +=      De(_XY_,_XZ_) * Deriv(1,0);
+                val +=      De(_XY_,_YZ_) * Deriv(1,1);
+                val += 2. * De(_XY_,_ZZ_) * Deriv(1,2);
+                val +=      De(_XZ_,_XZ_) * Deriv(2,0);
+                val +=      De(_XZ_,_YZ_) * Deriv(2,1);
+                val += 2. * De(_XZ_,_ZZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+0 + first_u, m_dimension*ju+2 + first_u) += weight * val;
+                
+                val  = 2. * De(_XY_,_XX_) * Deriv(0,0);
+                val +=      De(_XY_,_XY_) * Deriv(0,1);
+                val +=      De(_XY_,_XZ_) * Deriv(0,2);
+                val += 2. * De(_YY_,_XX_) * Deriv(1,0);
+                val +=      De(_YY_,_XY_) * Deriv(1,1);
+                val +=      De(_YY_,_XZ_) * Deriv(1,2);
+                val += 2. * De(_YZ_,_XX_) * Deriv(2,0);
+                val +=      De(_YZ_,_XY_) * Deriv(2,1);
+                val +=      De(_YZ_,_XZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+0 + first_u) += weight * val;
+                
+                val  =      De(_XY_,_XY_) * Deriv(0,0);
+                val += 2. * De(_XY_,_YY_) * Deriv(0,1);
+                val +=      De(_XY_,_YZ_) * Deriv(0,2);
+                val +=      De(_YY_,_XY_) * Deriv(1,0);
+                val += 2. * De(_YY_,_YY_) * Deriv(1,1);
+                val +=      De(_YY_,_YZ_) * Deriv(1,2);
+                val +=      De(_YZ_,_XY_) * Deriv(2,0);
+                val += 2. * De(_YZ_,_YY_) * Deriv(2,1);
+                val +=      De(_YZ_,_YZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+1 + first_u) += weight * val;
+                
+                val  =      De(_XY_,_XZ_) * Deriv(0,0);
+                val +=      De(_XY_,_YZ_) * Deriv(0,1);
+                val += 2. * De(_XY_,_ZZ_) * Deriv(0,2);
+                val +=      De(_YY_,_XZ_) * Deriv(1,0);
+                val +=      De(_YY_,_YZ_) * Deriv(1,1);
+                val += 2. * De(_YY_,_ZZ_) * Deriv(1,2);
+                val +=      De(_YZ_,_XZ_) * Deriv(2,0);
+                val +=      De(_YZ_,_YZ_) * Deriv(2,1);
+                val += 2. * De(_YZ_,_ZZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+1 + first_u, m_dimension*ju+2 + first_u) += weight * val;
+                
+                val  = 2. * De(_XZ_,_XX_) * Deriv(0,0);
+                val +=      De(_XZ_,_XY_) * Deriv(0,1);
+                val +=      De(_XZ_,_XZ_) * Deriv(0,2);
+                val += 2. * De(_YZ_,_XX_) * Deriv(1,0);
+                val +=      De(_YZ_,_XY_) * Deriv(1,1);
+                val +=      De(_YZ_,_XZ_) * Deriv(1,2);
+                val += 2. * De(_ZZ_,_XX_) * Deriv(2,0);
+                val +=      De(_ZZ_,_XY_) * Deriv(2,1);
+                val +=      De(_ZZ_,_XZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+2 + first_u, m_dimension*ju+0 + first_u) += weight * val;
+                
+                val  =      De(_XZ_,_XY_) * Deriv(0,0);
+                val += 2. * De(_XZ_,_YY_) * Deriv(0,1);
+                val +=      De(_XZ_,_YZ_) * Deriv(0,2);
+                val +=      De(_YZ_,_XY_) * Deriv(1,0);
+                val += 2. * De(_YZ_,_YY_) * Deriv(1,1);
+                val +=      De(_YZ_,_YZ_) * Deriv(1,2);
+                val +=      De(_ZZ_,_XY_) * Deriv(2,0);
+                val += 2. * De(_ZZ_,_YY_) * Deriv(2,1);
+                val +=      De(_ZZ_,_YZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+2 + first_u, m_dimension*ju+1 + first_u) += weight * val;
+                
+                val  =      De(_XZ_,_XZ_) * Deriv(0,0);
+                val +=      De(_XZ_,_YZ_) * Deriv(0,1);
+                val += 2. * De(_XZ_,_ZZ_) * Deriv(0,2);
+                val +=      De(_YZ_,_XZ_) * Deriv(1,0);
+                val +=      De(_YZ_,_YZ_) * Deriv(1,1);
+                val += 2. * De(_YZ_,_ZZ_) * Deriv(1,2);
+                val +=      De(_ZZ_,_XZ_) * Deriv(2,0);
+                val +=      De(_ZZ_,_YZ_) * Deriv(2,1);
+                val += 2. * De(_ZZ_,_ZZ_) * Deriv(2,2);
+                val *= 0.5;
+                ek(m_dimension*iu+2 + first_u, m_dimension*ju+2 + first_u) += weight * val;
+                
+            }
+        }
+    }
+    
+    
+    
+    /// Getting weight functions
+    TPZFMatrix<REAL>  & phi_p     =  datavec[m_p_b].phi;
+    int n_phi_p = phi_p.Rows();
+    
+    TPZFNMatrix<40,REAL> grad_phi_p(m_dimension,n_phi_p);
+    TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+    TPZAxesTools<REAL>::Axes2XYZ(datavec[m_p_b].dphix, grad_phi_p, datavec[m_p_b].axes);
+    TPZAxesTools<REAL>::Axes2XYZ(datavec[m_p_b].dsol[0], grad_p, datavec[m_p_b].axes);
+    
+    
+    /// Get the pressure at the integrations points
+    TMEM & memory  = this->MemItem(gp_index);
+    
+    /// Time
+    STATE dt       = m_simulation_data->dt();
+    STATE p_n      = datavec[m_p_b].sol[0][0];
+    
+    STATE p_0      = memory.p_0();
+    STATE p        = memory.p();
+    
+    TPZManVector<STATE,3> & last_Kl_grad_p        = memory.f_vec();
+    
+    STATE phi_n,dphi_ndp,phi;
+    REAL phi_0 = memory.phi_0();
+    this->porosity(gp_index,phi_n,dphi_ndp,phi);
+    
+    REAL kappa_n;
+    REAL dkappa_ndphi,dkappa_ndp;
+    this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
+    dkappa_ndp = dkappa_ndphi * dphi_ndp;
+    
+    TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3);
+    
+    K.Zero();
+    K(0,0) = memory.kappa_n();
+    K(1,1) = memory.kappa_n();
+    K(2,2) = memory.kappa_n();
+    
+    dKdp.Zero();
+    dKdp(0,0) = dkappa_ndp;
+    dKdp(1,1) = dkappa_ndp;
+    dKdp(2,2) = dkappa_ndp;
+    
+    STATE rho        = m_rho_0 * (1 + (m_c/m_scale_factor)*(p-p_0));
+    STATE rho_n      = m_rho_0 * (1 + (m_c/m_scale_factor)*(p_n-p_0));
+    STATE drho_ndp_n = m_c/m_scale_factor;
+    STATE lambda     = rho_n/m_eta;
+    
+    /// Defining local variables
+    TPZFNMatrix<3,STATE> Kl_grad_p_(3,1),dKdpl_grad_p_(3,1);
+    for (int i = 0; i < Dimension(); i++)
+    {
+        STATE dot     = 0.0;
+        STATE dKdpdot = 0.0;
+        for (int j = 0; j < Dimension(); j++)
+        {
+            dot        += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
+            dKdpdot    += dKdp(i,j)*grad_p(j,0);
+        }
+        
+        Kl_grad_p_(i,0)      = lambda * dot;
+        dKdpl_grad_p_(i,0)   = lambda * dKdpdot;
+    }
+    
+    /// Integration point contribution
+    TPZFNMatrix<3,STATE> phi_q_i(3,1), phi_q_j(3,1);
+    
+    if(!m_simulation_data->IsCurrentStateQ()){
+        return;
+    }
+    
+    TPZFNMatrix<3,STATE> Kl_grad_phi_j_(3,1);
+    for (int ip = 0; ip < n_phi_p; ip++)
+    {
+        
+        STATE Kl_grad_p_dot_grad_phi        = 0.0;
+        STATE last_Kl_grad_p_dot_grad_phi   = 0.0;
+        STATE dKdpl_grad_p_dot_grad_phi     = 0.0;
+        for (int i = 0; i < Dimension(); i++)
+        {
+            Kl_grad_p_dot_grad_phi      += Kl_grad_p_(i,0)*grad_phi_p(i,ip);
+            last_Kl_grad_p_dot_grad_phi += last_Kl_grad_p[i]*grad_phi_p(i,ip);
+            dKdpl_grad_p_dot_grad_phi   += dKdpl_grad_p_(i,0)*grad_phi_p(i,ip);
+            
+        }
+        
+        REAL Kl_grad_p_dot_grad_phi_avg = m_theta_scheme*Kl_grad_p_dot_grad_phi + (1.0-m_theta_scheme)*last_Kl_grad_p_dot_grad_phi;
+        ef(ip+m_dimension*n_phi_u) +=  weight * ( Kl_grad_p_dot_grad_phi_avg + (0.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
+        
+        for (int jp = 0; jp < n_phi_p; jp++)
+        {
+            
+            for (int i = 0; i < Dimension(); i++)
+            {
+                STATE dot = 0.0;
+                for (int j =0; j < Dimension(); j++)
+                {
+                    dot    += (1.0/m_scale_factor)*K(i,j)*grad_phi_p(j,jp);
+                }
+                
+                Kl_grad_phi_j_(i,0)     = lambda * dot;
+            }
+            
+            STATE Kl_grad_phi_j_dot_grad_phi_j = 0.0;
+            for (int i = 0; i < Dimension(); i++)
+            {
+                Kl_grad_phi_j_dot_grad_phi_j    += Kl_grad_phi_j_(i,0)*grad_phi_p(i,ip);
+                
+            }
+            
+            ek(ip+m_dimension*n_phi_u,jp+m_dimension*n_phi_u) +=  weight * ( m_theta_scheme*Kl_grad_phi_j_dot_grad_phi_j + m_theta_scheme*dKdpl_grad_p_dot_grad_phi + (0.0/dt) * ( phi_n * drho_ndp_n + dphi_ndp * rho_n ) * phi_p(jp,0)  * phi_p(ip,0) );
+        }
+        
+    }
+    
+    if (m_simulation_data->GetTransferCurrentToLastQ()) {
+        for (int i = 0; i < Dimension(); i++)
+        {
+            last_Kl_grad_p[i] = Kl_grad_p_(i,0);
+        }
+        this->MemItem(gp_index).Setf_vec(last_Kl_grad_p); // Update process for f function.
+        this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
+        this->MemItem(gp_index).Setq(this->MemItem(gp_index).q_n());
+    }
+    
 }
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
-    DebugStop();
+    
+    if (m_simulation_data->Get_must_accept_solution_Q()) {
+        
+        int gp_index = datavec[m_u_b].intGlobPtIndex;
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
+                this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n());
+            }else{
+                this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
+                this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n()) ;
+                
+                this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
+                this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
+                this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
+                
+            }
+            
+            return;
+        }
+        
+        
+        TPZTensor<STATE> epsilon,sigma;
+        Epsilon(datavec[m_u_b],epsilon);
+        T plastic_integrator(m_plastic_integrator);
+        plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
+        
+        if (m_simulation_data->IsCurrentStateQ()) {
+            
+            this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
+            this->MemItem(gp_index).SetSigma_n(sigma);
+            
+            TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
+            TPZManVector<STATE,3> u_n(m_dimension,0.0);
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu_sub_step());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }else{
+                TPZManVector<STATE,3> u(this->MemItem(gp_index).Getu());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }
+            this->MemItem(gp_index).Setu_n(u_n);
+            
+            // Pressure variable
+            STATE p = datavec[m_p_b].sol[0][0];
+            
+            // flux variable
+            TPZManVector<REAL,3> q(3);
+            {
+                REAL p_0      = this->MemItem(gp_index).p_0();
+                REAL p_n      = p;
+                REAL rho_n    = m_rho_0 * (1 + m_c/m_scale_factor*(p_n-p_0)); //  Provide the compressibility in MPa
+                REAL lambda   = rho_n/m_eta;
+                REAL k        = this->MemItem(gp_index).kappa_n();
+                TPZFNMatrix<9,REAL> grad_p(m_dimension,1);
+                TPZAxesTools<REAL>::Axes2XYZ(datavec[m_p_b].dsol[0], grad_p, datavec[m_p_b].axes);
+                for (int i = 0; i < m_dimension; i++)
+                {
+                    q[i] = (- (1.0/m_scale_factor) * k * lambda * grad_p[i]);
+                }
+                
+                this->MemItem(gp_index).Setp_n(p);
+                this->MemItem(gp_index).Setq_n(q);
+            }
+            
+//            /// Geomechanics porosity correction.
+//            {
+//                REAL alpha = this->MemItem(gp_index).Alpha();
+//                REAL Kdr   = this->MemItem(gp_index).Kdr();
+//                REAL p      = this->MemItem(gp_index).p();
+//                REAL p_n   = this->MemItem(gp_index).p_n();
+//                REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
+//                REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
+//                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
+//                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
+//            }
+            
+            { ///  Check for the need of substeps
+                REAL norm = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p - this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_p).Norm();
+                if (norm >= m_simulation_data->Get_max_plastic_strain()) {
+                    m_simulation_data->Set_must_use_sub_stepping_Q(true);
+                }
+            }
+            
+        }else{
+            this->MemItem(gp_index).SetPlasticState(plastic_integrator.fN);
+            this->MemItem(gp_index).SetSigma(sigma);
+            
+            TPZManVector<STATE,3> u    = datavec[m_u_b].sol[0];
+            this->MemItem(gp_index).Setu(u);
+            
+        }
+        
+    }
+    
+    TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
+    this->Contribute(datavec, weight, ek_fake, ef);
+    return;
 }
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
-    DebugStop();
+    
+    if(m_dimension == 3){
+        this->ContributeBC_3D(datavec,weight,ek,ef,bc);
+        return;
+    }
+    
+    TPZBndCondWithMem<TMEM> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TMEM> &>(bc);
+    int gp_index = datavec[m_u_b].intGlobPtIndex;
+    TMEM & memory = bc_with_memory.MemItem(gp_index);
+    
+    if (m_simulation_data->Get_must_accept_solution_Q())
+    {
+        
+        if (m_simulation_data->GetTransferCurrentToLastQ()) {
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n());
+            }else{
+                bc_with_memory.MemItem(gp_index).Setu_sub_step(bc_with_memory.MemItem(gp_index).Getu_n()) ;
+                bc_with_memory.MemItem(gp_index).Setu(bc_with_memory.MemItem(gp_index).Getu_n());
+                
+            }
+            return;
+        }
+        
+        
+        if (m_simulation_data->IsCurrentStateQ())
+        {
+            TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
+            TPZManVector<STATE,3> u_n(m_dimension,0.0);
+            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }else{
+                TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+                for (int i = 0; i < m_dimension; i++) {
+                    u_n[i] = delta_u[i] + u[i];
+                }
+            }
+            bc_with_memory.MemItem(gp_index).Setu_n(u_n);
+            
+        }else
+        {
+            TPZManVector<STATE,3> u    = datavec[m_u_b].sol[0];
+            bc_with_memory.MemItem(gp_index).Setu(u);
+        }
+    }
+    
+    TPZFMatrix<REAL>  &phiu = datavec[m_u_b].phi;
+    TPZFMatrix<REAL>  &phip = datavec[m_p_b].phi;
+    TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
+    REAL p  = datavec[m_p_b].sol[0][0];
+    
+    TPZManVector<STATE,3> u_n(m_dimension,0.0);
+    if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu_sub_step());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }else{
+        TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).Getu());
+        for (int i = 0; i < m_dimension; i++) {
+            u_n[i] = delta_u[i] + u[i];
+        }
+    }
+    
+    int phru = phiu.Rows();
+    int phrp = phip.Rows();
+    int in,jn;
+    
+    REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
+    
+    switch (bc.Type())
+    {
+    
+        case 4 : /// DunNq
+            /// Dirichlet of normal displacement and normal flux
+            
+        {
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Un displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(2*in+0,0)      += BigNumber*((u_n[0] - v[0])*n[0])*phiu(in,0)*weight;    // X displacement Value
+                ef(2*in+1,0)      += BigNumber*((u_n[1] - v[0])*n[1])*phiu(in,0)*weight;    // Y displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(2*in+0,2*jn+0)    += BigNumber*n[0]*phiu(in,0)*phiu(jn,0)*weight;    // X displacement
+                    ek(2*in+1,2*jn+1)    += BigNumber*n[1]*phiu(in,0)*phiu(jn,0)*weight;    // Y displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            break;
+        }
+            
+        case 13 : /// NtnDp
+            /// Dirichlet of normal displacement and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(2*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(2*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            REAL p_D = Value;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += weight * m_scale_factor * BigNumber * (p - p_D) * phip(ip,0);
+                
+                for (int jp = 0; jp < phrp; jp++)
+                {
+                    
+                    ek(ip+m_dimension*phru,jp+m_dimension*phru) += weight * m_scale_factor *  BigNumber * phip(jp,0) * phip(ip,0);
+                }
+            }
+
+            
+            break;
+        }
+            
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
 }
 
 template <class T, class TMEM>
@@ -268,10 +862,71 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TP
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t){
-    DebugStop();
+    
+    int gp_index = data.intGlobPtIndex;
+    TPZTensor<REAL> last_epsilon;
+    if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+        last_epsilon = this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_t;
+    }else{
+        last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
+    }
+
+    TPZFNMatrix<9,STATE> delta_eps(3,3,0.0), grad_delta_u, grad_delta_u_t;
+    TPZFMatrix<REAL>  & dsol_delta_u    = data.dsol[0];
+    TPZAxesTools<REAL>::Axes2XYZ(dsol_delta_u, grad_delta_u, data.axes);
+    grad_delta_u.Resize(3, 3);
+    grad_delta_u.Transpose(&grad_delta_u_t);
+    delta_eps = 0.5*(grad_delta_u + grad_delta_u_t);
+    
+    epsilon_t.XX() = delta_eps(0,0);
+    epsilon_t.XY() = delta_eps(0,1);
+    epsilon_t.XZ() = delta_eps(0,2);
+    epsilon_t.YY() = delta_eps(1,1);
+    epsilon_t.YZ() = delta_eps(1,2);
+    epsilon_t.ZZ() = delta_eps(2,2);
+    
+    epsilon_t += last_epsilon;
 }
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep){
-    DebugStop();
+
+    T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
+    
+}
+
+template <class T, class TMEM>
+void TPMRSPoroElastoPlastic<T,TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_ndp, REAL &phi){
+    
+    TMEM & memory = this->MemItem(gp_index);
+    
+    REAL alpha = memory.Alpha();
+    REAL Kdr   = memory.Kdr();
+    REAL phi_0 = memory.phi_0();
+    
+    REAL p_0   = memory.p_0();
+    REAL p     = memory.p();
+    REAL p_n   = memory.p_n();
+    
+    REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
+    REAL sigma_t_v   = (memory.GetSigma().I1()/3)  - alpha * p;
+    REAL sigma_t_v_n = (memory.GetSigma_n().I1()/3)  - alpha * p_n;
+    
+    REAL geo_delta_phi   = 1.0*(alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
+    REAL geo_delta_phi_n = 1.0*(alpha*alpha/Kdr)*(sigma_t_v_n-sigma_t_v_0);
+    
+    m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
+    m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
+    this->MemItem(gp_index).Setphi_n(phi_n);
+}
+
+
+template <class T, class TMEM>
+void TPMRSPoroElastoPlastic<T,TMEM>::permeability(long gp_index, REAL &kappa_n, REAL &dkappa_ndphi,REAL &phi,REAL &phi_0){
+    
+    TMEM & memory = this->MemItem(gp_index);
+    REAL kappa_0  = memory.kappa_0();
+    m_kappa_model.Permeability(kappa_n, dkappa_ndphi, kappa_0, phi, phi_0);
+    this->MemItem(gp_index).Setkappa_n(kappa_n);
 }

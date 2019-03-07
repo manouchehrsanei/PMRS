@@ -1188,15 +1188,15 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 DebugStop();
             }
             std::vector<std::pair<REAL, std::vector<REAL>>> pts_fc;
-            if (end_t_geo <= end_t_res) {
+            if (n_pts_geo <= n_pts_res) {
                 for (auto ip: pts_res) {
                     std::pair<REAL, std::vector<REAL>> pt_chunk;
                     pt_chunk.first = ip.first;
-                    for (auto fval: ip.second) {
-                        pt_chunk.second.push_back(fval);
-                    }
                     std::vector<REAL> f_values = int_geo.f(pt_chunk.first);
                     for (auto fval: f_values) {
+                        pt_chunk.second.push_back(fval);
+                    }
+                    for (auto fval: ip.second) {
                         pt_chunk.second.push_back(fval);
                     }
                     pts_fc.push_back(pt_chunk);
