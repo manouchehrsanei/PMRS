@@ -81,6 +81,9 @@ protected:
     /// value of scale factor
     REAL m_scale_factor;
     
+    /// Directive that states the use of fully coupled solver or SFI
+    bool m_is_fully_coupled_Q;
+    
     /// Directive that states the use of dual (true) or primal (false) formulation for monophacic flow
     bool m_is_dual_formulation_Q;
     
@@ -241,6 +244,7 @@ public:
         m_max_plastic_strain                      = other.m_max_plastic_strain;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
+        m_is_fully_coupled_Q                      = other.m_is_fully_coupled_Q;
         m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
         m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
         m_h_level                                 = other.m_h_level;
@@ -292,6 +296,7 @@ public:
             m_max_plastic_strain                      = other.m_max_plastic_strain;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
+            m_is_fully_coupled_Q                      = other.m_is_fully_coupled_Q;
             m_is_dual_formulation_Q                   = other.m_is_dual_formulation_Q;
             m_transfer_current_to_last_solution_Q     = other.m_transfer_current_to_last_solution_Q;
             m_h_level                                 = other.m_h_level;
@@ -363,6 +368,12 @@ public:
     /// Set the directive that states if the current solution must be accepted inside the memory
     void Set_must_accept_solution_Q(bool must_accept_solution_Q){
         m_must_accept_solution_Q = must_accept_solution_Q;
+    }
+
+    
+    /// Set the use of the use of fully coupled solver or SFI
+    void Set_is_fully_coupled_Q(bool is_fully_coupled_Q){
+        m_is_fully_coupled_Q = is_fully_coupled_Q;
     }
     
     /// Set the use of dual (true) or primal (false) formulation for monophacic flow
@@ -567,6 +578,9 @@ public:
     
     /// Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
+    
+    /// Get the use of the use of fully coupled solver or SFI
+    bool Get_is_fully_coupled_Q() {return m_is_fully_coupled_Q;}
     
     /// Get the use of dual (true) or primal (false) formulation for monophacic flow
     bool Get_is_dual_formulation_Q() { return m_is_dual_formulation_Q; }

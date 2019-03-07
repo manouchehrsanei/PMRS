@@ -25,6 +25,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_max_plastic_strain                  = 0.0;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
+    m_is_fully_coupled_Q                  = true;
     m_is_dual_formulation_Q               = true;
     m_transfer_current_to_last_solution_Q = false;
     m_h_level                             =   0;
@@ -183,6 +184,10 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     
     
     /// Begin:: Finite elements
+    container = doc_handler.FirstChild("CaseData").FirstChild("FEM").FirstChild("FullyCoupled").ToElement();
+    char_container = container->Attribute("useQs");
+    bool is_fully_coupled_Q = std::atoi(char_container);
+    
     container = doc_handler.FirstChild("CaseData").FirstChild("FEM").FirstChild("MixedFormulationQ").ToElement();
     char_container = container->Attribute("useQ");
     bool is_mixed_formulation_Q = std::atoi(char_container);
@@ -199,6 +204,7 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     char_container = container->Attribute("p_order");
     int diffusion_order = std::atoi(char_container);
     
+    m_is_fully_coupled_Q        = is_fully_coupled_Q;
     m_is_dual_formulation_Q     = is_mixed_formulation_Q;
     m_h_level                   = h_level;
     m_elasticity_order          = elasticity_order;
@@ -1273,6 +1279,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_max_plastic_strain = " << m_max_plastic_strain << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_scale_factor = " << m_scale_factor << std::endl;
+    std::cout << " m_is_fully_coupled_Q = " << m_is_fully_coupled_Q << std::endl;
     std::cout << " m_is_dual_formulation_Q = " << m_is_dual_formulation_Q << std::endl;
     std::cout << " m_transfer_current_to_last_solution_Q = " << m_transfer_current_to_last_solution_Q << std::endl;
     std::cout << " m_h_level = " << m_h_level << std::endl;
