@@ -349,6 +349,51 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
     
+    /// Biot term coupling
+    {
+        
+        REAL alpha = this->MemItem(gp_index).Alpha();
+        if (m_dimension == 2) {
+            for(int iu = 0; iu < n_phi_u; iu++ )
+            {
+                dvdx = grad_phi_u(0,iu);
+                dvdy = grad_phi_u(1,iu);
+                
+                ef(m_dimension*iu+0 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+                ef(m_dimension*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
+                
+                for (int jp = 0; jp < n_phi_p; jp++)
+                {
+                    ek(m_dimension*iu+0 + first_u,jp+m_dimension*n_phi_u)   +=    -1.0 * weight * (alpha*(phi_p(jp,0))*dvdx);    // x direction
+                    ek(m_dimension*iu+1 + first_u,jp+m_dimension*n_phi_u)   +=    -1.0 * weight * (alpha*(phi_p(jp,0))*dvdy);    // y direction
+                }
+            }
+        }
+        else{
+            REAL dvdz;
+            for(int iu = 0; iu < n_phi_u; iu++ )
+            {
+                dvdx = grad_phi_u(0,iu);
+                dvdy = grad_phi_u(1,iu);
+                dvdz = grad_phi_u(2,iu);
+                
+                ef(m_dimension*iu+0 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdx);    // x direction
+                ef(m_dimension*iu+1 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdy);    // y direction
+                ef(m_dimension*iu+2 + first_u)   +=    -1.0 * weight * (alpha*(p_n-p_0)*dvdz);    // z direction
+                
+                for (int jp = 0; jp < n_phi_p; jp++)
+                {
+                    ek(m_dimension*iu+0 + first_u,jp+m_dimension*n_phi_u)   +=    -1.0 * weight * (alpha*(phi_p(jp,0))*dvdx);    // x direction
+                    ek(m_dimension*iu+1 + first_u,jp+m_dimension*n_phi_u)   +=    -1.0 * weight * (alpha*(phi_p(jp,0))*dvdy);    // y direction
+                    ek(m_dimension*iu+2 + first_u,jp+m_dimension*n_phi_u)   +=    -1.0 * weight * (alpha*(phi_p(jp,0))*dvdz);    // z direction
+                }
+                
+            }
+        }
+    }
+    
+    
+    
     TPZManVector<STATE,3> & last_Kl_grad_p        = memory.f_vec();
     
     STATE phi_n,dphi_ndp,phi;
