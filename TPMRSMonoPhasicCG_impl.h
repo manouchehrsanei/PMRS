@@ -162,14 +162,15 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     REAL kappa_n;
     REAL dkappa_ndphi,dkappa_ndp;
     this->permeability(gp_index, kappa_n, dkappa_ndphi, phi_n, phi_0);
-    dkappa_ndp = dkappa_ndphi * dphi_ndp;
+    kappa_n *= (1.0/m_scale_factor);
+    dkappa_ndp = (1.0/m_scale_factor)*dkappa_ndphi * dphi_ndp;
     
     TPZFNMatrix<9,REAL> K(3,3),dKdp(3,3);
     
     K.Zero();
-    K(0,0) = memory.kappa_n();
-    K(1,1) = memory.kappa_n();
-    K(2,2) = memory.kappa_n();
+    K(0,0) = (1.0/m_scale_factor)*memory.kappa_n();
+    K(1,1) = (1.0/m_scale_factor)*memory.kappa_n();
+    K(2,2) = (1.0/m_scale_factor)*memory.kappa_n();
     
     dKdp.Zero();
     dKdp(0,0) = dkappa_ndp;
@@ -189,7 +190,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
         STATE dKdpdot = 0.0;
         for (int j = 0; j < Dimension(); j++)
         {
-            dot        += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
+            dot        += K(i,j)*grad_p(j,0);
             dKdpdot    += dKdp(i,j)*grad_p(j,0);
         }
         
@@ -230,7 +231,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
                 STATE dot = 0.0;
                 for (int j =0; j < Dimension(); j++)
                 {
-                    dot    += (1.0/m_scale_factor)*K(i,j)*grad_phi_p(j,jp);
+                    dot    += K(i,j)*grad_phi_p(j,jp);
                 }
                 
                 Kl_grad_phi_j_(i,0)     = lambda * dot;

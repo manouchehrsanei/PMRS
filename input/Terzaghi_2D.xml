@@ -8,7 +8,7 @@
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="0.001" />
-        <StepNumber n_time_steps="10" />
+        <StepNumber n_time_steps="100" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -40,15 +40,15 @@
     <!-- Finite element controls  -->
     <FEM>
         <MixedFormulationQ useQ="0" />
-        <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <HRefine h_level="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG_FC" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CG_FSS" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -63,16 +63,16 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
-            <time t="0.001" />
-            <time t="0.002" />
-            <time t="0.003" />
-            <time t="0.004" />
-            <time t="0.005" />
-            <time t="0.006" />
-            <time t="0.007" />
-            <time t="0.008" />
-            <time t="0.009" />
             <time t="0.01" />
+            <time t="0.02" />
+            <time t="0.03" />
+            <time t="0.04" />
+            <time t="0.05" />
+            <time t="0.06" />
+            <time t="0.07" />
+            <time t="0.08" />
+            <time t="0.09" />
+            <time t="0.1" />
         </ReportingTimes>        
     </OutputControls>
     <Physics>

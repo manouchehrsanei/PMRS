@@ -462,8 +462,6 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
     std::string file = name + "_fc.vtk";
     
     int n_time_steps = m_simulation_data->n_steps();
-    REAL r_norm = m_simulation_data->epsilon_res();
-    REAL dx_norm = m_simulation_data->epsilon_cor();
     REAL dt = m_simulation_data->dt();
     REAL time_value = 0.0;
     
@@ -474,8 +472,6 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
     std::cout << "TPMRSFullyCoupledAnalysis:: Begining for recurrent simulation process." <<std::endl;
     std::cout << std::endl << std::endl;
     
-    bool error_stop_criterion_Q = false;
-    bool dx_stop_criterion_Q = false;
     for (int it = 0; it < n_time_steps; it++) {
         /// Interpolate BC data
         time_value = dt * (it+1);

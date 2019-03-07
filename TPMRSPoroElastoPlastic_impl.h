@@ -549,25 +549,6 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
         
         int gp_index = datavec[m_u_b].intGlobPtIndex;
         
-        if (m_simulation_data->GetTransferCurrentToLastQ()) {
-            
-            if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
-                this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
-                this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n());
-            }else{
-                this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
-                this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n()) ;
-                
-                this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
-                this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
-                this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
-                
-            }
-            
-            return;
-        }
-        
-        
         TPZTensor<STATE> epsilon,sigma;
         Epsilon(datavec[m_u_b],epsilon);
         TPZFNMatrix<36,STATE> Dep(6,6,0.0);
@@ -637,6 +618,23 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
                 if (norm >= m_simulation_data->Get_max_plastic_strain()) {
                     m_simulation_data->Set_must_use_sub_stepping_Q(true);
                 }
+            }
+            
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                
+                if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+                    this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
+                    this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n());
+                }else{
+                    this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
+                    this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n()) ;
+                    
+                    this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
+                    this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
+                    this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
+                    
+                }
+                
             }
             
         }else{
