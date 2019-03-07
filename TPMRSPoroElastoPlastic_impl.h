@@ -1075,6 +1075,43 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &da
             break;
         }
             
+        case 22 : /// NtnNq
+            /// Neumann of traction and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(m_dimension*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(m_dimension*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+                ef(m_dimension*in+2,0)    += -1.0 * weight * tn * n[2] * phiu(in,0);        //    Tnz
+            }
+            
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            
+            break;
+        }
+            
+            
         default:
         {
             DebugStop();
