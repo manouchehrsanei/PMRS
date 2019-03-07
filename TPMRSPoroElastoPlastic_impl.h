@@ -771,9 +771,81 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             
             break;
         }
+           
+        case 6 : /// DuxNq
+            /// Dirichlet in x direction of displacement and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(m_dimension*in+0,0)      += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // x displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(m_dimension*in+0,m_dimension*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // x displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            break;
+        }
+
+        case 8 : /// DuyNq
+            /// Dirichlet in y direction of displacement and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(m_dimension*in+1,0)      += BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;    // y displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(m_dimension*in+1,m_dimension*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // y displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            break;
+        }
+
             
         case 13 : /// NtnDp
-            /// Dirichlet of normal displacement and normal flux
+            /// Neumann of traction and Dirichlet BC  PD
             
         {
             REAL v[1];
@@ -807,6 +879,41 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             break;
         }
             
+        case 14 : /// NtnNq
+            /// Neumann of traction and normal flux
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in <phru; in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(m_dimension*in+0,0)    += -1.0 * weight * tn * n[0] * phiu(in,0);        //    Tnx
+                ef(m_dimension*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
+            }
+            
+            
+            REAL Value = bc.Val2()(1,0);
+            STATE last_qn_N = memory.f();
+            STATE current_qn = Value;
+            STATE qn_N = m_theta_scheme*current_qn+(1.0-m_theta_scheme)*last_qn_N;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += -1.0 * weight * qn_N * phip(ip,0);
+            }
+            if (m_simulation_data->GetTransferCurrentToLastQ()) {
+                memory.Setf(current_qn);
+            }
+            
+            
+            break;
+        }
+
         default:
         {
             DebugStop();
@@ -933,7 +1040,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &da
         }
             
         case 21 : /// NtnDp
-            /// Dirichlet of normal displacement and normal flux
+            /// Neumann of traction and Dirichlet BC  PD
             
         {
             REAL v[1];
