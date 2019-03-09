@@ -202,6 +202,7 @@ int main(int argc, char *argv[])
 #endif
 
     if (is_fully_coupled_Q) {
+        
         TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
         TPMRSFullyCoupledAnalysis * FC_analysis = CreateFCSolver(sim_data);
         // Liking the memory to FC solver

@@ -1,26 +1,24 @@
 //
-//  TPMRSAxisymRKSolver.h
+//  TPMRSRKSolver.h
 //  PMRS
 //
-//  Created by Manouchehr Sanei on 3/8/19.
+//  Created by Manouchehr Sanei and Omar on 3/8/19.
 //
 //
 
-#ifndef TPMRSAxisymRKSolver_h
-#define TPMRSAxisymRKSolver_h
+#ifndef TPMRSRKSolver_h
+#define TPMRSRKSolver_h
 
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzfmatrix.h"
 
 #include "TPMRSSimulationData.h"
-
 #include "TPZElasticResponse.h"
 #include "TPZElasticCriterion.h"
-#
 
 
-class TPMRSAxisymRKSolver {
+class TPMRSRKSolver {
     
 private:
     
@@ -31,18 +29,16 @@ private:
     /// Material dimension
     int m_dimension;
     
-
-    
 public:
     
     /// Default constructor
-    TPMRSAxisymRKSolver();
+    TPMRSRKSolver();
     
     /// Destructor
-    ~TPMRSAxisymRKSolver();
+    ~TPMRSRKSolver();
     
     /// Copy constructor
-    TPMRSAxisymRKSolver(const TPMRSAxisymRKSolver & other);
+    TPMRSRKSolver(const TPMRSRKSolver & other);
     
     /// Class name
     const std::string Name() const;
@@ -74,4 +70,4 @@ public:
 
 
 
-#endif /* TPMRS_RK_Axisymmetric_Solver_h */
+#endif /* TPMRSRKSolver_h */

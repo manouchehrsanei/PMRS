@@ -1,43 +1,43 @@
 //
-//  TPMRSAxisymRKSolver.cpp
+//  TPMRSRKSolver.cpp
 //  PMRS
 //
 //  Created by Manouchehr Sanei on 3/8/19.
 //
 //
 
-#include "TPMRSAxisymRKSolver.h"
+#include "TPMRSRKSolver.h"
 
 /// Default constructor
-TPMRSAxisymRKSolver::TPMRSAxisymRKSolver(){
+TPMRSRKSolver::TPMRSRKSolver(){
     m_simulation_data = NULL;
     m_dimension       = 0;
 }
 
 /// Destructor
-TPMRSAxisymRKSolver::~TPMRSAxisymRKSolver(){
+TPMRSRKSolver::~TPMRSRKSolver(){
     
 }
 
 /// Copy constructor
-TPMRSAxisymRKSolver::TPMRSAxisymRKSolver(const TPMRSAxisymRKSolver & other){
+TPMRSRKSolver::TPMRSRKSolver(const TPMRSRKSolver & other){
     m_simulation_data       = other.m_simulation_data;
     m_dimension             = other.m_dimension;
 }
 
 
-const std::string TPMRSAxisymRKSolver::Name() const{
-    return "TPMRSAxisymRKSolver";
+const std::string TPMRSRKSolver::Name() const{
+    return "TPMRSRKSolver";
 }
 
-void TPMRSAxisymRKSolver::Print(std::ostream &out) const{
+void TPMRSRKSolver::Print(std::ostream &out) const{
     out << Name() << std::endl;
     out << "m_dimension = " << m_dimension << std::endl;
 
 }
 
 
-REAL TPMRSAxisymRKSolver::DisplacementAnalytic(REAL &r, REAL &young, REAL &nu, REAL &biotcof, REAL &u_w, REAL &u_r, REAL &sig_0, REAL &p_0, REAL &p_w, REAL &r_o, REAL &r_w){
+REAL TPMRSRKSolver::DisplacementAnalytic(REAL &r, REAL &young, REAL &nu, REAL &biotcof, REAL &u_w, REAL &u_r, REAL &sig_0, REAL &p_0, REAL &p_w, REAL &r_o, REAL &r_w){
     
     REAL dis = (biotcof*p_0*pow(r,2)*pow(r_o,2)*log(r) - biotcof*p_w*pow(r,2)*pow(r_o,2)*log(r) - biotcof*p_0*pow(r,2)*pow(r_w,2)*log(r) + biotcof*p_w*pow(r,2)*pow(r_w,2)*log(r) -
            biotcof*p_0*pow(r,2)*pow(r_o,2)*log(r_o) + biotcof*p_w*pow(r,2)*pow(r_o,2)*log(r_o) + biotcof*p_0*pow(r_o,2)*pow(r_w,2)*log(r_o) -
@@ -56,7 +56,7 @@ REAL TPMRSAxisymRKSolver::DisplacementAnalytic(REAL &r, REAL &young, REAL &nu, R
 }
 
 
-void TPMRSAxisymRKSolver::ConfigureSigma(){
+void TPMRSRKSolver::ConfigureSigma(){
    
     int n_regions = m_simulation_data->NumberOfRegions();
     
