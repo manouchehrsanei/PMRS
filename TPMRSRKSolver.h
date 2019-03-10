@@ -16,9 +16,9 @@
 #include "TPMRSSimulationData.h"
 #include "TPZElasticResponse.h"
 #include "TPZElasticCriterion.h"
+#include "TPMRSMemory.h"
 
-
-template <class T, class TMEM>
+template <class T, class TMEM = TPMRSMemory>
 class TPMRSRKSolver {
     
 private:
@@ -70,6 +70,9 @@ private:
     
     /// Vector of first second Lame parameter
     std::vector<REAL> m_mu;
+    
+    /// Directive to load memory vector entry
+    bool m_accept_solution_Q;
     
 public:
     
@@ -134,7 +137,7 @@ public:
         m_is_RK4_Q = true;
     }
     
-    /// Synchronize all the information 
+    /// Synchronize all the information
     void Synchronize();
     
     /// Perform the Runge-Kutta approximation
@@ -142,6 +145,9 @@ public:
     
     /// Print the Runge-Kutta approximation
     void PrintRKApproximation();
+    
+    /// Print the secondary variables (s_r,s_t,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
+    void PrintSecondaryVariables();
     
 private:
     
@@ -158,7 +164,7 @@ private:
     TPZTensor<REAL> Epsilon(int i, REAL & r, std::vector<REAL> & y);
     
     /// Function that computes stress state
-    TPZTensor<REAL> Sigma(TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep);
+    TPZTensor<REAL> Sigma(int i, TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep);
     
     /// First lame parameter
     REAL lambda(int i);

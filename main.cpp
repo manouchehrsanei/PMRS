@@ -295,12 +295,12 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     TPZTensor<REAL> sigma_0;
     sigma_0.Zero();
-    sigma_0.XX() = -40.0;
-    sigma_0.YY() = -40.0;
-    sigma_0.ZZ() = -40.0;
+    sigma_0.XX() = -30.0;
+    sigma_0.YY() = -30.0;
+    sigma_0.ZZ() = -30.0;
     
     /// Discretization
-    int n_steps = 100;
+    int n_steps = 20;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -309,12 +309,13 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-    REAL u_r        = -0.0001;
-    REAL sigma_r    = 0.550701;
-    REAL sigma_t    = 0.550701;
-    REAL sigma_z    = 0.550701;
-    REAL p_r        = 2.0e1;
-    REAL q_r        = -0.0000108574;
+    REAL u_r        = -0.0099604;
+    REAL sigma_r    = -0.27665;
+    REAL sigma_t    = -1.1067;
+    REAL sigma_z    = -0.276671;
+    REAL p_r        = 20.0;
+    REAL q_r        = -0.0000217147;
+    
     y_0.push_back(u_r);
     y_0.push_back(sigma_r);
     y_0.push_back(p_r);
@@ -396,7 +397,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
             RKSolver.PrintRKApproximation();
-            int aka = 0;
+            RKSolver.PrintSecondaryVariables();
             
         }else{
             // Elastoplastic material
@@ -410,6 +411,20 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
                     LEMC.SetElasticResponse(ER);
                     LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                    
+                    /// Configuring the solver
+                    TPMRSRKSolver<TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>,TPMRSMemory> RKSolver;
+                    RKSolver.SetPlasticIntegrator(LEMC);
+                    RKSolver.SetDefaultMemory(default_memory);
+                    RKSolver.SetInitialData(y_0);
+                    RKSolver.SetFluidData(eta, c_f);
+                    RKSolver.SetDiscretization(rw, re, n_steps);
+                    RKSolver.SetGrainBulkModulus(K_s);
+                    RKSolver.SetFourthOrderApproximation();
+                    RKSolver.Synchronize();
+                    RKSolver.ExecuteRKApproximation();
+                    RKSolver.PrintRKApproximation();
+                    RKSolver.PrintSecondaryVariables();
                     
                 }
                     break;

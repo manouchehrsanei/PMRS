@@ -417,6 +417,8 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
 //    sigma.CopyFrom(sigma_vec);
     
 #else
+    DebugStop();
+//    plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
     T plastic_integrator(m_plastic_integrator);
     plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
 #endif

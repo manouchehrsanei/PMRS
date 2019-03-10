@@ -25,6 +25,7 @@ TPMRSRKSolver<T,TMEM>::TPMRSRKSolver(){
     m_r_y.Resize(0, 0);
     m_lambda.resize(0);
     m_mu.resize(0);
+    m_accept_solution_Q = false;
 }
 
 template <class T, class TMEM>
@@ -51,6 +52,8 @@ TPMRSRKSolver<T,TMEM>::TPMRSRKSolver(const TPMRSRKSolver & other){
     m_r_y           = other.m_r_y;
     m_lambda        = other.m_lambda;
     m_mu            = other.m_mu;
+    m_accept_solution_Q = other.m_accept_solution_Q;
+    
 }
 
 template <class T, class TMEM>
@@ -77,6 +80,7 @@ TPMRSRKSolver<T,TMEM> & TPMRSRKSolver<T,TMEM>::operator=(const TPMRSRKSolver & o
     m_r_y           = other.m_r_y;
     m_lambda        = other.m_lambda;
     m_mu            = other.m_mu;
+    m_accept_solution_Q = other.m_accept_solution_Q;
     
     return *this;
 }
@@ -143,8 +147,8 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     
     REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
     f[0] = eps_t_rr;
-    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) - 2.0*mu*((ur/(r*r))+eps_t_rr/r);
-    f[2] = -alpha*(m_eta/kappa)*qr;
+    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + 2.0*mu*((ur/(r*r))-eps_t_rr/r);
+    f[2] = -(m_eta/kappa)*qr;
     f[3] = -qr/r;
     
     return f;
@@ -227,6 +231,10 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::RK4Approximation(int i, REAL & r, std::
     y_p_1 = a_add_b(y_p_1,s_k3);
     y_p_1 = a_add_b(y_p_1,s_k4);
 
+    m_accept_solution_Q = true;
+    f(i+1,r,y_p_1);
+    m_accept_solution_Q = false;
+    
     return y_p_1;
 }
 
@@ -257,6 +265,9 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
     int n_points = m_n_steps + 1;
     
     std::vector<REAL> y = m_y_0;
+    m_accept_solution_Q = true;
+    f(0,m_re,y);
+    m_accept_solution_Q = false;
     AppendTo(0,y);
     
     for (int i = 1; i < n_points; i++) {
@@ -288,6 +299,35 @@ void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(){
     m_r_y.Print("rkdata = ",std::cout,EMathematicaInput);
 }
 
+/// Print the secondary variables (s_r,s_t,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
+template <class T, class TMEM>
+void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
+    int n_data = m_memory.size();
+    int n_var = 9;
+    TPZFMatrix<REAL> s_data(n_data,n_var);
+    for (int i = 0; i < n_data; i++) {
+        REAL r = m_r_y(i,0);
+        REAL s_r = m_memory[i].GetSigma_n().XX();
+        REAL s_t = m_memory[i].GetSigma_n().YY();
+        REAL eps_t_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
+        REAL eps_t_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
+        REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
+        REAL eps_p_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
+        REAL phi = m_memory[i].phi_n();
+        REAL kappa = m_memory[i].kappa_n();
+        s_data(i,0) = r;
+        s_data(i,1) = s_r;
+        s_data(i,2) = s_t;
+        s_data(i,3) = eps_t_r;
+        s_data(i,4) = eps_t_t;
+        s_data(i,5) = eps_p_r;
+        s_data(i,6) = eps_p_t;
+        s_data(i,7) = phi;
+        s_data(i,8) = kappa;
+    }
+    s_data.Print("rksdata = ",std::cout,EMathematicaInput);
+}
+
 template <class T, class TMEM>
 TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Epsilon(int i, REAL & r, std::vector<REAL> & y){
 
@@ -309,10 +349,16 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Epsilon(int i, REAL & r, std::vector<REAL
 }
 
 template <class T, class TMEM>
-TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep){
+TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep){
     TPZTensor<REAL> sigma;
     T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
     plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,Dep);
+    
+    if(m_accept_solution_Q){
+        m_memory[i].GetPlasticState_n() = plastic_integrator.GetState();
+        m_memory[i].SetSigma_n(sigma);
+    }
     return sigma;
 }
 
@@ -342,7 +388,7 @@ REAL TPMRSRKSolver<T,TMEM>::Porosity(int i, REAL & r, std::vector<REAL> & y){
     /// Reconstruction of epsilon, sigma and elastoplastic parameters
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
     TPZTensor<REAL> epsilon = Epsilon(i,r,y);
-    TPZTensor<REAL> sigma   = Sigma(epsilon,&Dep);
+    TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
     
     /// getting the elastoplastic Kdr_ep
     REAL lambda = Dep(0,5);
@@ -366,9 +412,12 @@ REAL TPMRSRKSolver<T,TMEM>::Porosity(int i, REAL & r, std::vector<REAL> & y){
     phi += S*(pr - p_0);
     
     /// update variables
-    m_lambda[i] = lambda;
-    m_mu[i] = mu;
-    m_memory[i].SetAlpha(alpha);
+    if(m_accept_solution_Q){
+        m_lambda[i] = lambda;
+        m_mu[i] = mu;
+        m_memory[i].SetAlpha(alpha);
+        m_memory[i].Setphi_n(phi);
+    }
     return phi;
 }
 
@@ -379,6 +428,12 @@ REAL TPMRSRKSolver<T,TMEM>::Permeability(int i, REAL & phi){
     REAL phi_0 = m_memory[i].phi_0();
     REAL kappa_0 = m_memory[i].kappa_0()*s;
     REAL kappa = kappa_0*pow(phi/phi_0,A);
+    
+    /// update variables
+    if(m_accept_solution_Q){
+        m_memory[i].Setkappa_n(kappa);
+    }
+    
     return kappa;
 }
 
