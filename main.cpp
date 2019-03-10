@@ -300,7 +300,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.ZZ() = -30.0;
     
     /// Discretization
-    int n_steps = 10;
+    int n_steps = 20;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -309,10 +309,10 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-    REAL u_r        = -0.0099604;
-    REAL sigma_r    = -0.27665;
-    REAL sigma_t    = -1.1067;
-    REAL sigma_z    = -0.276671;
+    REAL u_r        = -0.00956044;
+    REAL sigma_r    = -0.26554;
+    REAL sigma_t    = -1.06226;
+    REAL sigma_z    = -0.265561;
     REAL p_r        = 20.0;
     REAL q_r        = -0.0000217147;
     

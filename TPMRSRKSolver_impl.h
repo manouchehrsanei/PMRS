@@ -391,13 +391,13 @@ void TPMRSRKSolver<T,TMEM>::AcceptPoint(int i, REAL & r, std::vector<REAL> & y){
         TPZTensor<REAL> epsilon = Epsilon(i,r,y);
         TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-        REAL error_l  = fabs(l - Dep(0,5));
+        REAL error_l  = fabs(l - Dep(0,3));
         REAL error_mu  = fabs(mu - Dep(1,1)/2.0);
         check_Q = error_l < tol && error_mu < tol;
         if (check_Q) {
             break;
         }
-        l = Dep(0,5);
+        l = Dep(0,3);
         mu = Dep(1,1)/2.0;
     }
 
