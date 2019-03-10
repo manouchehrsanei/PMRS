@@ -25,6 +25,9 @@ const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
         return *this;
     }
     
+    TPMRSMonoPhasicMemory::operator=(other);
+    TPMRSElastoPlasticMemory::operator=(other);
+    
     m_alpha = other.m_alpha;
     m_Kdr   = other.m_Kdr;
     

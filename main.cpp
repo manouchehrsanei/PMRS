@@ -63,6 +63,9 @@
 #include "pzporoelastoplasticmem.h"
 #include "TPZSandlerDimaggio.h"
 
+/// Runge-Kutta solver
+#include "TPMRSRKSolver_impl.h"
+
 /// Analysis
 #include "pzpostprocanalysis.h"
 #include "pzanalysis.h"
@@ -157,7 +160,7 @@ void Apply_Stress(TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> &LEDS
 TPZFMatrix<REAL> Read_Duplet(int n_data, std::string file);
 /// End
 
-
+void RunRKApproximation(TPMRSSimulationData * sim_data);
 
 int main(int argc, char *argv[])
 {
@@ -194,6 +197,10 @@ int main(int argc, char *argv[])
     // Simulation data to be configurated
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
+    
+    RunRKApproximation(sim_data);
+    
+    return 0;
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     
@@ -282,6 +289,174 @@ int main(int argc, char *argv[])
 
     
 	return EXIT_SUCCESS;
+}
+
+void RunRKApproximation(TPMRSSimulationData * sim_data){
+    
+    TPZTensor<REAL> sigma_0;
+    sigma_0.Zero();
+    sigma_0.XX() = -40.0;
+    sigma_0.YY() = -40.0;
+    sigma_0.ZZ() = -40.0;
+    
+    /// Discretization
+    int n_steps = 100;
+    REAL rw = 0.1;
+    REAL re = 10.0;
+    
+    
+    /// Initial data at re
+    std::vector<REAL> y_0;
+    TPZTensor<REAL> sigma,eps;
+    sigma.Zero();
+    REAL u_r        = -0.0001;
+    REAL sigma_r    = 0.550701;
+    REAL sigma_t    = 0.550701;
+    REAL sigma_z    = 0.550701;
+    REAL p_r        = 2.0e1;
+    REAL q_r        = -0.0000108574;
+    y_0.push_back(u_r);
+    y_0.push_back(sigma_r);
+    y_0.push_back(p_r);
+    y_0.push_back(q_r);
+    
+    sigma.XX() = sigma_r;
+    sigma.YY() = sigma_t;
+    sigma.ZZ() = sigma_z;
+    
+    /// Configuring the elastoplastic integrator
+    TPMRSMemory default_memory;
+    
+    {
+        if (sim_data->MaterialProps().size()!=1) {
+            DebugStop();
+        }
+        
+        int index = 0;
+        
+        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk = sim_data->MaterialProps()[index];
+        
+        TPMRSUndrainedParameters udrained_parameters(std::get<0>(chunk));
+        TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+        std::vector<REAL> undrained_pars = udrained_parameters.GetParameters();
+        std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
+        
+        REAL phi_0   = undrained_pars[2];
+        REAL kappa_0 = undrained_pars[3];
+        REAL E      = poroperm_pars[0];
+        REAL nu     = poroperm_pars[1];
+        REAL alpha  = poroperm_pars[2];
+        REAL c_f    = poroperm_pars[3];
+        REAL eta    = poroperm_pars[4];
+        REAL Kdr    = E/(3.0*(1.0-2.0*nu));
+
+        
+        REAL K_s;
+        if (IsZero(alpha-1)) {
+            K_s = 1.0e20;
+        }else{
+            K_s = Kdr/(1.0 - alpha);
+        }
+    
+        TPZElasticResponse ER;
+        ER.SetEngineeringData(E, nu);
+
+        ER.ComputeStrain(sigma, eps);
+        default_memory.SetAlpha(alpha);
+        default_memory.SetKdr(Kdr);
+        default_memory.Setphi_0(phi_0);
+        default_memory.Setphi_n(phi_0);
+        default_memory.Setkappa_0(kappa_0);
+        default_memory.Setkappa_n(kappa_0);
+        default_memory.SetSigma_0(sigma_0);
+        default_memory.SetSigma(sigma_0);
+        default_memory.SetSigma_n(sigma_0);
+        default_memory.GetPlasticState_0().m_eps_t = eps;
+        default_memory.GetPlasticState().m_eps_t = eps;
+        default_memory.GetPlasticState_n().m_eps_t = eps;
+        
+        // Plastic corrector
+        TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
+        std::vector<REAL> p_pars = plasticity_parameters.GetParameters();
+        
+        if (p_pars.size() == 0) {
+            // Elastic material
+            TPZElasticCriterion Elastic;
+            Elastic.SetElasticResponse(ER);
+            
+            /// Configuring the solver
+            TPMRSRKSolver<TPZElasticCriterion,TPMRSMemory> RKSolver;
+            RKSolver.SetPlasticIntegrator(Elastic);
+            RKSolver.SetDefaultMemory(default_memory);
+            RKSolver.SetInitialData(y_0);
+            RKSolver.SetFluidData(eta, c_f);
+            RKSolver.SetDiscretization(rw, re, n_steps);
+            RKSolver.SetGrainBulkModulus(K_s);
+            RKSolver.SetFourthOrderApproximation();
+            RKSolver.Synchronize();
+            RKSolver.ExecuteRKApproximation();
+            RKSolver.PrintRKApproximation();
+            int aka = 0;
+            
+        }else{
+            // Elastoplastic material
+            switch (plasticity_parameters.GetModel()) {
+                case plasticity_parameters.ep_mc: {
+                    // Mohr Coulomb data
+                    REAL cohesion    = p_pars[0];
+                    REAL phi         = (p_pars[1]*M_PI/180);
+                    REAL psi         = phi;
+                    
+                    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
+                    LEMC.SetElasticResponse(ER);
+                    LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                    
+                }
+                    break;
+                case plasticity_parameters.ep_ds: {
+                    // Dimaggio Sandler data
+                    
+                    STATE G   = E / (2.0 * (1.0 + nu));
+                    STATE K   = E / (3.0 * (1.0 - 2 * nu));
+                    
+                    REAL A    = p_pars[0];
+                    REAL B    = p_pars[1];
+                    REAL C    = p_pars[2];
+                    REAL D    = p_pars[3];
+                    REAL R    = p_pars[4];
+                    REAL W    = p_pars[5];
+                    REAL phi = 0, psi = 1.0, N = 0;
+                    
+                    REAL Pc = -137;
+                    TPZTensor<REAL> sigma;
+                    sigma.Zero();
+                    
+                    sigma.XX() = Pc;
+                    sigma.YY() = Pc;
+                    sigma.ZZ() = Pc;
+                    
+                    
+                    TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse> LEDS;
+                    LEDS.SetElasticResponse(ER);
+                    LEDS.fYC.SetUp(A, B, C, D, K, G, W, R, phi, N, psi);
+                    
+                    
+                    // Initial damage data
+                    REAL k_0;
+                    LEDS.InitialDamage(sigma, k_0);
+                    LEDS.fN.m_hardening = k_0;
+                
+                }
+                    break;
+                default:{
+                    std::cout << "Material not implemented. " << std::endl;
+                    DebugStop();
+                }
+                    break;
+            }
+        }
+    }
+    
 }
 
 

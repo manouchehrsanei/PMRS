@@ -23,38 +23,53 @@ class TPMRSRKSolver {
     
 private:
     
-    /// Pointer of Simulation data
-    TPMRSSimulationData * m_simulation_data;
-    
-    /// Material dimension
-    int m_dimension;
-    
-    /// Number of state variables
-    int m_n_state;
-    
     /// Number of spatial steps
     int m_n_steps;
     
     /// Initial state for the vector of states variables
-    std::vector<REAL> y_0;
-    
-    /// Spatial step size
-    REAL m_dr;
-    
+    std::vector<REAL> m_y_0;
+
     /// Wellbore region radius
     REAL m_re;
     
     /// Wellbore radius
     REAL m_rw;
     
-    /// Array that storage the Runge-Kutta approximated solution
-    TPZFMatrix<REAL> m_r_y;
+    /// Fluid viscosity
+    REAL m_eta;
+    
+    /// Fluid compressibility
+    REAL m_cf;
+    
+    /// Grain bulk modulus
+    REAL m_K_s;
+    
+    /// Spatial step size
+    REAL m_dr;
+    
+    /// Default memory item
+    TMEM m_default_memory;
+    
+    /// Directive that stands for fourth Runge-Kutta approximation
+    bool m_is_RK4_Q;
+    
+    /// Number of state variables
+    int m_n_state;
     
     /// Plastic integrator object composed by a yield function and a elastic predictor
     T m_plastic_integrator;
     
-    /// Fluid viscosity
-    REAL m_eta;
+    /// Vector of memory items
+    std::vector<TMEM> m_memory;
+    
+    /// Array that storage the Runge-Kutta approximated solution
+    TPZFMatrix<REAL> m_r_y;
+    
+    /// Vector of first Lame parameter
+    std::vector<REAL> m_lambda;
+    
+    /// Vector of first second Lame parameter
+    std::vector<REAL> m_mu;
     
 public:
     
@@ -86,35 +101,41 @@ public:
         return m_plastic_integrator;
     }
     
-    /// Set the fluid viscosity
-    void SetFluidViscosity(REAL eta){
+    /// Set the fluid data
+    void SetFluidData(REAL eta, REAL cf){
         m_eta = eta;
+        m_cf  = cf;
+    }
+
+    
+    /// Set the Grain bulk modulus
+    void SetGrainBulkModulus(REAL K_s){
+        m_K_s = K_s;
     }
     
-    /// Get the fluid viscosity
-    REAL GetFluidViscosity(){
-        return m_eta;
-    }
-    
-    /// Set the reservoir dimensions
-    void SetReservoirDimensions(REAL rw, REAL re){
+    void SetDiscretization(REAL rw, REAL re, int n_steps){
         m_rw = rw;
         m_re = re;
+        m_n_steps = n_steps;
+        m_dr = (m_rw - m_re)/REAL(n_steps);
     }
     
-    /// Set the reservoir dimensions
-    void SetNumberOfSteps(int n_steps){
-        m_n_steps = ;
+    void SetInitialData(std::vector<REAL> y_0){
+        m_y_0 = y_0;
     }
     
-    /// Right hand side function
-    std::vector<REAL> f(std::vector<REAL> & y);
+    /// Set the Default memory item
+    void SetDefaultMemory(TMEM & default_memory){
+        m_default_memory = default_memory;
+    }
     
-    /// Runge-Kutta method with second order accuracy
-    std::vector<REAL> RK2Approximation(std::vector<REAL> & y_n);
+    /// Set the directive that stands for fourth Runge-Kutta approximation
+    void SetFourthOrderApproximation(){
+        m_is_RK4_Q = true;
+    }
     
-    /// Runge-Kutta method with fourth order accuracy
-    std::vector<REAL> RK4Approximation(std::vector<REAL> & y_n);
+    /// Synchronize all the information 
+    void Synchronize();
     
     /// Perform the Runge-Kutta approximation
     void ExecuteRKApproximation();
@@ -122,23 +143,49 @@ public:
     /// Print the Runge-Kutta approximation
     void PrintRKApproximation();
     
+private:
+    
+    /// Right hand side function
+    std::vector<REAL> f(int i, REAL & r, std::vector<REAL> & y);
+    
+    /// Runge-Kutta method with second order accuracy
+    std::vector<REAL> RK2Approximation(int i, REAL & r, std::vector<REAL> & y);
+    
+    /// Runge-Kutta method with fourth order accuracy
+    std::vector<REAL> RK4Approximation(int i, REAL & r, std::vector<REAL> & y);
+    
     /// Function that computes total strain state
-    TPZTensor<REAL> Epsilon(std::vector<REAL> & y, std::vector<REAL> & y_n);
+    TPZTensor<REAL> Epsilon(int i, REAL & r, std::vector<REAL> & y);
     
     /// Function that computes stress state
     TPZTensor<REAL> Sigma(TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep);
     
-    /// Bulk modulus function
-    REAL K(std::vector<REAL> & y, std::vector<REAL> & y_n);
+    /// First lame parameter
+    REAL lambda(int i);
+    
+    /// Second lame parameter
+    REAL mu(int i);
+    
+    /// Bulk modulus parameter
+    REAL K(REAL & lambda, REAL & mu);
     
     /// Bulk modulus function
-    REAL alpha(REAL & K, REAL & K_s);
+    REAL Alpha(REAL & K);
     
     /// Porosity function
-    REAL Porosity(std::vector<REAL> & y, std::vector<REAL> & y_n);
+    REAL Porosity(int i, REAL & r, std::vector<REAL> & y);
     
     /// Permeability function
-    REAL Permeability(REAL & phi);
+    REAL Permeability(int i, REAL & phi);
+    
+    /// Append solution to m_r_y
+    void AppendTo(int i, std::vector<REAL> y);
+    
+    /// Zaxpy for std::vector
+    std::vector<REAL> a_times_v(const REAL a, std::vector<REAL> & v);
+    
+    /// Sumation of two vector a and b
+    std::vector<REAL> a_add_b(std::vector<REAL> & a, std::vector<REAL> & b);
 
 };
 
