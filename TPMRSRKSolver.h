@@ -154,6 +154,9 @@ private:
     /// Right hand side function
     std::vector<REAL> f(int i, REAL & r, std::vector<REAL> & y);
     
+    /// Accept the point approximation
+    void AcceptPoint(int i, REAL & r, std::vector<REAL> & y);
+    
     /// Runge-Kutta method with second order accuracy
     std::vector<REAL> RK2Approximation(int i, REAL & r, std::vector<REAL> & y);
     

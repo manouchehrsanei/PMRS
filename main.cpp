@@ -300,7 +300,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.ZZ() = -30.0;
     
     /// Discretization
-    int n_steps = 20;
+    int n_steps = 10;
     REAL rw = 0.1;
     REAL re = 10.0;
     
