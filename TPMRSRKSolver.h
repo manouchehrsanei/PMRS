@@ -157,6 +157,9 @@ private:
     /// Accept the point approximation
     void AcceptPoint(int i, REAL & r, std::vector<REAL> & y);
     
+    /// Euler method with first order accuracy
+    std::vector<REAL> EulerApproximation(int i, REAL & r, std::vector<REAL> & y);
+    
     /// Runge-Kutta method with second order accuracy
     std::vector<REAL> RK2Approximation(int i, REAL & r, std::vector<REAL> & y);
     

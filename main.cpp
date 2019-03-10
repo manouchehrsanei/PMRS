@@ -300,7 +300,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.ZZ() = -30.0;
     
     /// Discretization
-    int n_steps = 20;
+    int n_steps = 1000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -361,20 +361,6 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
         TPZElasticResponse ER;
         ER.SetEngineeringData(E, nu);
-
-        ER.ComputeStrain(sigma, eps);
-        default_memory.SetAlpha(alpha);
-        default_memory.SetKdr(Kdr);
-        default_memory.Setphi_0(phi_0);
-        default_memory.Setphi_n(phi_0);
-        default_memory.Setkappa_0(kappa_0);
-        default_memory.Setkappa_n(kappa_0);
-        default_memory.SetSigma_0(sigma_0);
-        default_memory.SetSigma(sigma_0);
-        default_memory.SetSigma_n(sigma_0);
-        default_memory.GetPlasticState_0().m_eps_t = eps;
-        default_memory.GetPlasticState().m_eps_t = eps;
-        default_memory.GetPlasticState_n().m_eps_t = eps;
         
         // Plastic corrector
         TPMRSPlasticityParameters plasticity_parameters(std::get<4>(chunk));
@@ -384,6 +370,20 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             // Elastic material
             TPZElasticCriterion Elastic;
             Elastic.SetElasticResponse(ER);
+            
+            Elastic.ApplyLoad(sigma, eps);
+            default_memory.SetAlpha(alpha);
+            default_memory.SetKdr(Kdr);
+            default_memory.Setphi_0(phi_0);
+            default_memory.Setphi_n(phi_0);
+            default_memory.Setkappa_0(kappa_0);
+            default_memory.Setkappa_n(kappa_0);
+            default_memory.SetSigma_0(sigma_0);
+            default_memory.SetSigma(sigma_0);
+            default_memory.SetSigma_n(sigma_0);
+            default_memory.GetPlasticState_0().m_eps_t = eps;
+            default_memory.GetPlasticState().m_eps_t = eps;
+            default_memory.GetPlasticState_n().m_eps_t = eps;
             
             /// Configuring the solver
             TPMRSRKSolver<TPZElasticCriterion,TPMRSMemory> RKSolver;
@@ -397,7 +397,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
             RKSolver.PrintRKApproximation();
-            RKSolver.PrintSecondaryVariables();
+//            RKSolver.PrintSecondaryVariables();
             
         }else{
             // Elastoplastic material
@@ -411,6 +411,20 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
                     LEMC.SetElasticResponse(ER);
                     LEMC.fYC.SetUp(phi, psi, cohesion, ER);
+                    
+                    LEMC.ApplyLoad(sigma, eps);
+                    default_memory.SetAlpha(alpha);
+                    default_memory.SetKdr(Kdr);
+                    default_memory.Setphi_0(phi_0);
+                    default_memory.Setphi_n(phi_0);
+                    default_memory.Setkappa_0(kappa_0);
+                    default_memory.Setkappa_n(kappa_0);
+                    default_memory.SetSigma_0(sigma_0);
+                    default_memory.SetSigma(sigma_0);
+                    default_memory.SetSigma_n(sigma_0);
+                    default_memory.GetPlasticState_0().m_eps_t = eps;
+                    default_memory.GetPlasticState().m_eps_t = eps;
+                    default_memory.GetPlasticState_n().m_eps_t = eps;
                     
                     /// Configuring the solver
                     TPMRSRKSolver<TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>,TPMRSMemory> RKSolver;

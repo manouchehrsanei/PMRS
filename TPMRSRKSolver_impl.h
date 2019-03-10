@@ -126,8 +126,44 @@ void TPMRSRKSolver<T,TMEM>::Synchronize(){
     }
 }
 
+#define new_RK_Q
+
 template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & y){
+    
+
+
+#ifdef new_RK_Q
+    
+    REAL ur = y[0];
+    REAL sr = y[1];
+    REAL qr = y[3];
+    REAL sr_0 = m_memory[i].GetSigma_0().XX();
+    REAL st_0 = m_memory[i].GetSigma_0().YY();
+    
+    REAL phi = Porosity(i,r,y);
+    REAL kappa = Permeability(i,phi);
+    
+    std::vector<REAL> f(4);
+    REAL alpha = m_memory[i].Alpha();
+    TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
+    
+    TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+    TPZTensor<REAL> sigma;
+    T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
+    sigma = m_memory[i].GetSigma_n();
+    
+    /// Reconstructing sigma
+//    sigma.XX() = sr;
+    plastic_integrator.ApplyLoad(sigma, eps_t);
+    
+    f[0] = eps_t.XX();
+    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
+    f[2] = -(m_eta/kappa)*qr;
+    f[3] = -qr/r;
+    
+#else
     
     REAL ur = y[0];
     REAL sr = y[1];
@@ -143,14 +179,37 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL l = this->lambda(i);
     REAL mu = this->mu(i);
     REAL alpha = m_memory[i].Alpha();
-    
+
     REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
     f[0] = eps_t_rr;
     f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + 2.0*mu*((ur/(r*r))-eps_t_rr/r);
     f[2] = -(m_eta/kappa)*qr;
     f[3] = -qr/r;
+    
+#endif
 
     return f;
+}
+
+template <class T, class TMEM>
+std::vector<REAL> TPMRSRKSolver<T,TMEM>::EulerApproximation(int i, REAL & r, std::vector<REAL> & y){
+    
+    REAL h = m_dr;
+    REAL s = 0.5;
+    REAL hhalf = s*h;
+    
+    REAL half_r = hhalf + r;
+    
+    /// k1
+    std::vector<REAL> k1;
+    k1 = f(i,r,y);
+    k1 = a_times_v(h,k1);
+    
+    std::vector<REAL> y_p_1(4);
+    y_p_1 = a_add_b(y_p_1,y);
+    y_p_1 = a_add_b(y_p_1,k1);
+    
+    return y_p_1;
 }
 
 template <class T, class TMEM>
@@ -265,7 +324,8 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
         
         REAL r = m_dr*(i-1) + m_re;
         if(m_is_RK4_Q){
-            y = RK4Approximation(i-1,r,y);
+            y = EulerApproximation(i-1,r,y);
+//            y = RK4Approximation(i-1,r,y);
         }else{
             y = RK2Approximation(i-1,r,y);
         }
