@@ -135,8 +135,6 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
 
 #ifdef new_RK_Q
     
-    REAL ur = y[0];
-    REAL sr = y[1];
     REAL qr = y[3];
     REAL sr_0 = m_memory[i].GetSigma_0().XX();
     REAL st_0 = m_memory[i].GetSigma_0().YY();
@@ -147,17 +145,8 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     std::vector<REAL> f(4);
     REAL alpha = m_memory[i].Alpha();
     TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
-    
-    TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-    TPZTensor<REAL> sigma;
-    T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
-    sigma = m_memory[i].GetSigma_n();
-    
-    /// Reconstructing sigma
-//    sigma.XX() = sr;
-    plastic_integrator.ApplyLoad(sigma, eps_t);
-    
+    TPZTensor<REAL> sigma = m_memory[i].GetSigma_n();
+        
     f[0] = eps_t.XX();
     f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
     f[2] = -(m_eta/kappa)*qr;
@@ -195,10 +184,6 @@ template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::EulerApproximation(int i, REAL & r, std::vector<REAL> & y){
     
     REAL h = m_dr;
-    REAL s = 0.5;
-    REAL hhalf = s*h;
-    
-    REAL half_r = hhalf + r;
     
     /// k1
     std::vector<REAL> k1;
@@ -436,6 +421,29 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, T
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::AcceptPoint(int i, REAL & r, std::vector<REAL> & y){
     
+#ifdef new_RK_Q
+    
+    m_accept_solution_Q = true;
+    /// update secondary variables
+//    TPZTensor<REAL> epsilon = m_memory[i].GetPlasticState_n().m_eps_t;
+    TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+    TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+    TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
+    REAL l = Dep(0,3);
+    REAL mu = Dep(1,1)/2.0;
+    REAL Kdr_ep = l + (2.0/3.0)*mu;
+    REAL alpha = 1.0 - Kdr_ep/m_K_s;
+    REAL phi = Porosity(i,r,y);
+    REAL kappa = Permeability(i,phi);
+    m_lambda[i] = l;
+    m_mu[i] = mu;
+    m_memory[i].Setphi_n(phi);
+    m_memory[i].Setkappa_n(kappa);
+    m_memory[i].SetAlpha(alpha);
+    m_accept_solution_Q = false;
+    
+#else
+    
     REAL last_l = this->lambda(i);
     REAL last_mu = this->mu(i);
     
@@ -480,6 +488,8 @@ void TPMRSRKSolver<T,TMEM>::AcceptPoint(int i, REAL & r, std::vector<REAL> & y){
     m_memory[i].Setkappa_n(kappa);
     m_memory[i].SetAlpha(alpha);
     m_accept_solution_Q = false;
+    
+#endif
 }
 
 template <class T, class TMEM>
