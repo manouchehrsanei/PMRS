@@ -32,9 +32,6 @@ private:
     /// Initial state for the vector of states variables
     std::vector<REAL> m_y_0;
     
-    /// Permeability value parameters
-    std::vector<REAL> m_kappa_data;
-    
     /// Defines the permeability model
     TPMRSKappaParameters m_kappa_models;
 
@@ -137,12 +134,7 @@ public:
     void SetInitialData(std::vector<REAL> y_0){
         m_y_0 = y_0;
     }
-    
-    /// Set the initial data parameters
-    void SetkappaData(std::vector<REAL> kappa_param){
-        m_kappa_data = kappa_param;
-    }
-    
+
     
     /// Set the Default memory item
     void SetDefaultMemory(TMEM & default_memory){

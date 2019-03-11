@@ -680,6 +680,8 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 {
                     if (n_plas_pars!=2) {
                         std::cout << "MCModel::Please set n_parameters = 2" << std::endl;
+                        std::cout << std::endl;
+                        DebugStop();
                     }
                     char_container = sub_container->Attribute("cohesion");
                     if (!char_container) {
@@ -702,6 +704,8 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
                 {
                     if (n_plas_pars!=7) {
                         std::cout << "DSModel::Please set n_parameters = 7" << std::endl;
+                        std::cout << std::endl;
+                        DebugStop();
                     }
                     char_container = sub_container->Attribute("a");
                     if (!char_container) {

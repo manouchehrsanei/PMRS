@@ -553,35 +553,5 @@ REAL TPMRSRKSolver<T,TMEM>::Permeability(int i, REAL & phi){
     m_model.Permeability(kappa, dkappa_dphi, kappa_0, phi, phi_0);
     return kappa;
     
-    // MS this is ridiculous you have the permeability function above!
-//    switch (m_model.GetModel())
-//    {
-//        case m_model.k_constant : {
-//            REAL kappa   = kappa_0;
-//
-//            return kappa;
-//        }
-//            break;
-//
-//        case m_model.k_petunin : {
-//            REAL A      = m_kappa_data[0];
-//
-//            REAL kappa  = kappa_0*pow(phi/phi_0,A);
-//            return kappa;
-//
-//        }
-//            break;
-//        case m_model.k_davies : {
-//            REAL C      = m_kappa_data[0];
-//
-//            REAL kappa  = exp(C*(-1.0 + phi/phi_0))*kappa_0;
-//            return kappa;
-//
-//        }
-//            break;
-//        default : {
-//            DebugStop();
-//        }
-//    }
 }
 
