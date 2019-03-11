@@ -309,13 +309,13 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-    REAL u_r        = -0.00956044;
-    REAL sigma_r    = -0.26554;
-    REAL sigma_t    = -1.06226;
-    REAL sigma_z    = -0.265561;
+    REAL u_r        = -0.00974042;
+    REAL sigma_r    = -0.27054;
+    REAL sigma_t    = -1.08226;
+    REAL sigma_z    = -0.27056;
     REAL p_r        = 20.0;
     REAL q_r        = -0.0000217147;
-    
+
     y_0.push_back(u_r);
     y_0.push_back(sigma_r);
     y_0.push_back(p_r);
@@ -372,6 +372,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             Elastic.SetElasticResponse(ER);
             
             Elastic.ApplyLoad(sigma, eps);
+            eps.ZZ() = 0.0;
             default_memory.SetAlpha(alpha);
             default_memory.SetKdr(Kdr);
             default_memory.Setphi_0(phi_0);
@@ -397,7 +398,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
             RKSolver.PrintRKApproximation();
-//            RKSolver.PrintSecondaryVariables();
+            RKSolver.PrintSecondaryVariables();
             
         }else{
             // Elastoplastic material

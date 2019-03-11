@@ -154,8 +154,8 @@ private:
     /// Right hand side function
     std::vector<REAL> f(int i, REAL & r, std::vector<REAL> & y);
     
-    /// Accept the point approximation
-    void AcceptPoint(int i, REAL & r, std::vector<REAL> & y);
+    /// Reconstruc an approximated eps for coherence with mem and accept the point approximation
+    void ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y);
     
     /// Euler method with first order accuracy
     std::vector<REAL> EulerApproximation(int i, REAL & r, std::vector<REAL> & y);

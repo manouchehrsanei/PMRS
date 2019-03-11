@@ -146,7 +146,7 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL alpha = m_memory[i].Alpha();
     TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
     TPZTensor<REAL> sigma = m_memory[i].GetSigma_n();
-        
+    
     f[0] = eps_t.XX();
     f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
     f[2] = -(m_eta/kappa)*qr;
@@ -190,7 +190,7 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::EulerApproximation(int i, REAL & r, std
     k1 = f(i,r,y);
     k1 = a_times_v(h,k1);
     
-    std::vector<REAL> y_p_1(4);
+    std::vector<REAL> y_p_1(4,0.0);
     y_p_1 = a_add_b(y_p_1,y);
     y_p_1 = a_add_b(y_p_1,k1);
     
@@ -302,7 +302,7 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
     int n_points = m_n_steps + 1;
     
     std::vector<REAL> y = m_y_0;
-    AcceptPoint(0,m_re,y);
+    ReconstructAndAcceptPoint(0,m_re,y);
     AppendTo(0,y);
     
     for (int i = 1; i < n_points; i++) {
@@ -314,7 +314,7 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
         }else{
             y = RK2Approximation(i-1,r,y);
         }
-        AcceptPoint(i,r,y);
+        ReconstructAndAcceptPoint(i,r,y);
         AppendTo(i,y);
     }
     
@@ -414,23 +414,44 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, T
     if(m_accept_solution_Q){
         m_memory[i].GetPlasticState_n() = plastic_integrator.GetState();
         m_memory[i].SetSigma_n(sigma);
+        if (!IsZero(plastic_integrator.GetState().m_eps_p.Norm())) {
+            std::cout << "Plasticity " <<std::endl;
+        }
     }
     return sigma;
 }
 
 template <class T, class TMEM>
-void TPMRSRKSolver<T,TMEM>::AcceptPoint(int i, REAL & r, std::vector<REAL> & y){
+void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y){
     
 #ifdef new_RK_Q
     
     m_accept_solution_Q = true;
     /// update secondary variables
-//    TPZTensor<REAL> epsilon = m_memory[i].GetPlasticState_n().m_eps_t;
-    TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+    REAL l = this->lambda(i);
+    REAL mu = this->mu(i);
+    TPZTensor<REAL> epsilon = Epsilon(i,r,y); /// Resconstructed eps
+    TPZTensor<REAL> sigma;
+    
+    sigma.Zero();
+    REAL u_r = y[0];
+    REAL s_r = y[1];
+    REAL eps_r = epsilon.XX();
+    REAL s_z = s_r  - 2.0*mu*eps_r;
+    REAL s_t = s_z  + 2.0*mu*u_r/r;
+    sigma.XX() = s_r;
+    sigma.YY() = s_t;
+    sigma.ZZ() = s_z;
+    
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-    TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-    REAL l = Dep(0,3);
-    REAL mu = Dep(1,1)/2.0;
+//    T plastic_integrator(m_plastic_integrator);
+//    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
+//    plastic_integrator.ApplyLoad(sigma,epsilon);
+    
+    /// now update all the variables
+    sigma = Sigma(i,epsilon,&Dep);
+    l = Dep(0,3);
+    mu = Dep(1,1)/2.0;
     REAL Kdr_ep = l + (2.0/3.0)*mu;
     REAL alpha = 1.0 - Kdr_ep/m_K_s;
     REAL phi = Porosity(i,r,y);
