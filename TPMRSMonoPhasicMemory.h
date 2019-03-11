@@ -56,6 +56,7 @@ private:
     /// Value vector function f(q,p) at last state (for CG right hand side) (required for Crank-Nicolson method)
     TPZManVector<STATE,3> m_f_vec;
     
+    
 public:
     
     /// Default constructor

@@ -18,6 +18,9 @@
 #include "TPZElasticCriterion.h"
 #include "TPMRSMemory.h"
 
+#include "TPMRSKappaParameters.h"
+
+
 template <class T, class TMEM = TPMRSMemory>
 class TPMRSRKSolver {
     
@@ -28,6 +31,12 @@ private:
     
     /// Initial state for the vector of states variables
     std::vector<REAL> m_y_0;
+    
+    /// Permeability value parameters
+    std::vector<REAL> m_kappa_data;
+    
+    /// Defines the permeability model
+    TPMRSKappaParameters m_kappa_models;
 
     /// Wellbore region radius
     REAL m_re;
@@ -116,6 +125,7 @@ public:
         m_K_s = K_s;
     }
     
+    /// Set the discretization parameters
     void SetDiscretization(REAL rw, REAL re, int n_steps){
         m_rw = rw;
         m_re = re;
@@ -123,9 +133,16 @@ public:
         m_dr = (m_rw - m_re)/REAL(n_steps);
     }
     
+    /// Set the initial data parameters
     void SetInitialData(std::vector<REAL> y_0){
         m_y_0 = y_0;
     }
+    
+    /// Set the initial data parameters
+    void SetkappaData(std::vector<REAL> kappa_param){
+        m_kappa_data = kappa_param;
+    }
+    
     
     /// Set the Default memory item
     void SetDefaultMemory(TMEM & default_memory){
@@ -136,6 +153,17 @@ public:
     void SetFourthOrderApproximation(){
         m_is_RK4_Q = true;
     }
+    
+    /// Set the Permeability Parameters
+    void SetKappaParameters(TPMRSKappaParameters kappa_models){
+        m_kappa_models = kappa_models;
+    }
+    
+    /// Get the Permeability Parameters
+    TPMRSKappaParameters GetKappaParameters(){
+        return m_kappa_models;
+    }
+    
     
     /// Synchronize all the information
     void Synchronize();

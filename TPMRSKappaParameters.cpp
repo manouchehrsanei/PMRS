@@ -170,6 +170,7 @@ std::vector<REAL> & TPMRSKappaParameters::GetParameters(){
     return m_parameters;
 }
 
+
 TPMRSKappaParameters::EKappaModel TPMRSKappaParameters::GetModel(){
     return m_model;
 }

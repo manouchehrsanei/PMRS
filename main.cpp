@@ -340,17 +340,22 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
         TPMRSUndrainedParameters udrained_parameters(std::get<0>(chunk));
         TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
         std::vector<REAL> undrained_pars = udrained_parameters.GetParameters();
-        std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
+        std::vector<REAL> poroperm_pars  = poro_parameters.GetParameters();
         
         REAL phi_0   = undrained_pars[2];
         REAL kappa_0 = undrained_pars[3];
-        REAL E      = poroperm_pars[0];
-        REAL nu     = poroperm_pars[1];
-        REAL alpha  = poroperm_pars[2];
-        REAL c_f    = poroperm_pars[3];
-        REAL eta    = poroperm_pars[4];
-        REAL Kdr    = E/(3.0*(1.0-2.0*nu));
+        REAL E       = poroperm_pars[0];
+        REAL nu      = poroperm_pars[1];
+        REAL alpha   = poroperm_pars[2];
+        REAL c_f     = poroperm_pars[3];
+        REAL eta     = poroperm_pars[4];
+        REAL Kdr     = E/(3.0*(1.0-2.0*nu));
 
+        
+        TPMRSKappaParameters kappa_parameters(std::get<3>(chunk));
+        std::vector<REAL> kappa_param    = kappa_parameters.GetParameters();
+        std::vector<REAL> k_val;
+  
         
         REAL K_s;
         if (IsZero(alpha-1)) {
@@ -388,6 +393,41 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             
             /// Configuring the solver
             TPMRSRKSolver<TPZElasticCriterion,TPMRSMemory> RKSolver;
+            
+            /// Configuring the permeability model
+            if (kappa_param.size() == 0) {
+                RKSolver.SetKappaParameters(kappa_parameters);
+                
+            }else{
+                // Permeability model
+                switch (kappa_parameters.GetModel()) {
+                    case kappa_parameters.k_petunin: {
+                        // Petunin data
+                        REAL A    = kappa_param[0];
+                        k_val.push_back(A);
+                        RKSolver.SetkappaData(k_val);
+                        RKSolver.SetKappaParameters(kappa_parameters);
+                        
+                    }
+                        break;
+                    case kappa_parameters.k_davies: {
+                        // Davies data
+                        REAL C    = kappa_param[0];
+                        k_val.push_back(C);
+                        RKSolver.SetkappaData(k_val);
+                        RKSolver.SetKappaParameters(kappa_parameters);
+                        
+                        
+                    }
+                        break;
+                    default:{
+                        std::cout << "Permeability model is not implemented. " << std::endl;
+                        DebugStop();
+                    }
+                        break;
+                }
+            }
+            
             RKSolver.SetPlasticIntegrator(Elastic);
             RKSolver.SetDefaultMemory(default_memory);
             RKSolver.SetInitialData(y_0);
@@ -429,6 +469,41 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     
                     /// Configuring the solver
                     TPMRSRKSolver<TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>,TPMRSMemory> RKSolver;
+                    
+                    /// Configuring the permeability model
+                    if (kappa_param.size() == 0) {
+                        RKSolver.SetKappaParameters(kappa_parameters);
+                        
+                    }else{
+                        // Permeability model
+                        switch (kappa_parameters.GetModel()) {
+                            case kappa_parameters.k_petunin: {
+                                // Petunin data
+                                REAL A    = kappa_param[0];
+                                k_val.push_back(A);
+                                RKSolver.SetkappaData(k_val);
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                                
+                            }
+                                break;
+                            case kappa_parameters.k_davies: {
+                                // Davies data
+                                REAL C    = kappa_param[0];
+                                k_val.push_back(C);
+                                RKSolver.SetkappaData(k_val);
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                                
+                                
+                            }
+                                break;
+                            default:{
+                                std::cout << "Permeability model is not implemented. " << std::endl;
+                                DebugStop();
+                            }
+                                break;
+                        }
+                    }
+                    
                     RKSolver.SetPlasticIntegrator(LEMC);
                     RKSolver.SetDefaultMemory(default_memory);
                     RKSolver.SetInitialData(y_0);

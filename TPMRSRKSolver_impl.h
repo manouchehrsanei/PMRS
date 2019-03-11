@@ -543,11 +543,41 @@ REAL TPMRSRKSolver<T,TMEM>::Porosity(int i, REAL & r, std::vector<REAL> & y){
 
 template <class T, class TMEM>
 REAL TPMRSRKSolver<T,TMEM>::Permeability(int i, REAL & phi){
-    REAL A = 0.0;
+
     REAL s = 1.0e6;
     REAL phi_0 = m_memory[i].phi_0();
     REAL kappa_0 = m_memory[i].kappa_0()*s;
-    REAL kappa = kappa_0*pow(phi/phi_0,A);
-    return kappa;
+    
+    TPMRSKappaParameters m_model = GetKappaParameters();
+
+    switch (m_model.GetModel())
+    {
+        case m_model.k_constant : {
+            REAL kappa   = kappa_0;
+            
+            return kappa;
+        }
+            break;
+
+        case m_model.k_petunin : {
+            REAL A      = m_kappa_data[0];
+
+            REAL kappa  = kappa_0*pow(phi/phi_0,A);
+            return kappa;
+
+        }
+            break;
+        case m_model.k_davies : {
+            REAL C      = m_kappa_data[0];
+            
+            REAL kappa  = exp(C*(-1.0 + phi/phi_0))*kappa_0;
+            return kappa;
+
+        }
+            break;
+        default : {
+            DebugStop();
+        }
+    }
 }
 
