@@ -290,7 +290,7 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
 
 void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(int i_time_step){
     
-    TPZFMatrix<REAL> res_dx = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
+    TPZFMatrix<REAL> res_dx  = m_reservoir_analysis->X_n()-m_reservoir_analysis->X();
     TPZFMatrix<REAL> last_du = m_geomechanic_analysis->Solution();
     
     REAL psudo_time;

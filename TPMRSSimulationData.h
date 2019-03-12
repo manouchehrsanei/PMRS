@@ -217,7 +217,7 @@ protected:
     /// Number of level of substeps during solving geomecanics
     int m_n_sub_step_level;
     
-    /// String that stands for the used acceleration method (None,Aitken,..,ect)
+    /// String that stands for the used acceleration method (None,FDM,SDM)
     std::string m_nonlinear_acceleration;
     
 public:
@@ -371,7 +371,7 @@ public:
     }
 
     
-    /// Set the use of the use of fully coupled solver or SFI
+    /// Set the use of fully coupled solver or SFI
     void Set_is_fully_coupled_Q(bool is_fully_coupled_Q){
         m_is_fully_coupled_Q = is_fully_coupled_Q;
     }
@@ -387,7 +387,7 @@ public:
     /// Setup for fixed stress split schemes
     void SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations);
     
-    /// Get time values being reported
+    /// Set time values being reported
     void SetReportingTimes(TPZStack< REAL , 500 > & reporting_times){
         m_reporting_times = reporting_times;
     }
@@ -579,7 +579,7 @@ public:
     /// Get the directive that states if the current solution must be accepted inside the memory
     bool Get_must_accept_solution_Q() { return m_must_accept_solution_Q; }
     
-    /// Get the use of the use of fully coupled solver or SFI
+    /// Get the use of fully coupled solver or SFI
     bool Get_is_fully_coupled_Q() {return m_is_fully_coupled_Q;}
     
     /// Get the use of dual (true) or primal (false) formulation for monophacic flow

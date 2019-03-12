@@ -13,7 +13,6 @@
 
 TPMRSFullyCoupledAnalysis::TPMRSFullyCoupledAnalysis() : TPZAnalysis()
 {
-    
     m_simulation_data = NULL;
     m_meshvec.Resize(2);
     m_X_n.Resize(0,0);
@@ -41,15 +40,18 @@ TPMRSFullyCoupledAnalysis::TPMRSFullyCoupledAnalysis(const TPMRSFullyCoupledAnal
 
 TPMRSFullyCoupledAnalysis & TPMRSFullyCoupledAnalysis::operator=(const TPMRSFullyCoupledAnalysis &other)
 {
-    if (this != & other) {  /// prevent self-assignment
-        
-        m_simulation_data = other.m_simulation_data;
-        m_meshvec         = other.m_meshvec;
-        m_X_n             = other.m_X_n;
-        m_X               = other.m_X;
-        m_error           = other.m_error;
-        m_dx_norm         = other.m_dx_norm;
+    /// check for self-assignment
+    if(&other == this){
+        return *this;
     }
+    
+    m_simulation_data = other.m_simulation_data;
+    m_meshvec         = other.m_meshvec;
+    m_X_n             = other.m_X_n;
+    m_X               = other.m_X;
+    m_error           = other.m_error;
+    m_dx_norm         = other.m_dx_norm;
+    
     return *this;
 }
 
@@ -85,7 +87,7 @@ void TPMRSFullyCoupledAnalysis::ConfiguratePostProcessor(){
     }
     
     scalnames = m_simulation_data->s_names_res();
-    vecnames = m_simulation_data->v_names_res();
+    vecnames  = m_simulation_data->v_names_res();
     for (auto i : scalnames) {
         names.push_back(i);
     }
@@ -457,8 +459,8 @@ void TPMRSFullyCoupledAnalysis::ExecuteTimeEvolution(){
     std::string file = name + "_fc.vtk";
     
     int n_time_steps = m_simulation_data->n_steps();
-    REAL dt = m_simulation_data->dt();
-    REAL time_value = 0.0;
+    REAL dt          = m_simulation_data->dt();
+    REAL time_value  = 0.0;
     
     
     std::cout << std::endl;

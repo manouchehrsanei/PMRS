@@ -60,6 +60,19 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             this->SetStructuralMatrix(struct_mat);
         }
             break;
+        case ELDLt:
+        {
+#ifdef USING_MKL
+            TPZSymetricSpStructMatrix struct_mat(Mesh());
+            struct_mat.SetNumThreads(number_threads);
+            this->SetStructuralMatrix(struct_mat);
+#else
+            TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(Mesh());
+            struct_mat.SetNumThreads(number_threads);
+            this->SetStructuralMatrix(struct_mat);
+#endif
+        }
+            break;
         case ELU:
         {
             
@@ -73,19 +86,6 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             this->SetStructuralMatrix(struct_mat);
 #endif
             
-        }
-            break;
-        case ELDLt:
-        {
-#ifdef USING_MKL
-            TPZSymetricSpStructMatrix struct_mat(Mesh());
-            struct_mat.SetNumThreads(number_threads);
-            this->SetStructuralMatrix(struct_mat);
-#else
-            TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(Mesh());
-            struct_mat.SetNumThreads(number_threads);
-            this->SetStructuralMatrix(struct_mat);
-#endif
         }
             break;
         default:

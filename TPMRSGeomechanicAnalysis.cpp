@@ -240,12 +240,12 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
     LoadSolution(); /// Load the current analysis solution on the cmesh
-    bool residual_stop_criterion_Q = false;
+    bool residual_stop_criterion_Q   = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
-    REAL r_norm = m_simulation_data->epsilon_res();
+    REAL r_norm  = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
-    int n_it = m_simulation_data->n_iterations();
+    int n_it     = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
         
@@ -282,7 +282,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         correction_stop_criterion_Q = norm_dx  < dx_norm;
         
         m_k_iterations = i;
-        m_error = norm_res;
+        m_error   = norm_res;
         m_dx_norm = norm_dx;
         
         if (residual_stop_criterion_Q /*&&  correction_stop_criterion_Q*/) {
@@ -313,10 +313,10 @@ void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
     /// The process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     TPZFMatrix<STATE> dx(Solution());
-    bool residual_stop_criterion_Q = false;
+    bool residual_stop_criterion_Q   = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
-    REAL r_norm = m_simulation_data->epsilon_res();
+    REAL r_norm  = m_simulation_data->epsilon_res();
     REAL dx_norm = m_simulation_data->epsilon_cor();
     int n_it = m_simulation_data->n_iterations();
     

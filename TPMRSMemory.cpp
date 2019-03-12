@@ -9,13 +9,15 @@
 
 
 TPMRSMemory::TPMRSMemory() : TPMRSMonoPhasicMemory() , TPMRSElastoPlasticMemory() {
-    m_alpha  = 0.0;
-    m_Kdr    = 0.0;
+    m_alpha     = 0.0;
+    m_Kdr       = 0.0;
+    m_delta_phi = 0;
 }
 
 TPMRSMemory::TPMRSMemory(const TPMRSMemory & other): TPMRSMonoPhasicMemory(other), TPMRSElastoPlasticMemory(other) {
-    m_alpha = other.m_alpha;
-    m_Kdr   = other.m_Kdr;
+    m_alpha     = other.m_alpha;
+    m_Kdr       = other.m_Kdr;
+    m_delta_phi = other.m_delta_phi;
 }
 
 const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
@@ -28,8 +30,9 @@ const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
     TPMRSMonoPhasicMemory::operator=(other);
     TPMRSElastoPlasticMemory::operator=(other);
     
-    m_alpha = other.m_alpha;
-    m_Kdr   = other.m_Kdr;
+    m_alpha     = other.m_alpha;
+    m_Kdr       = other.m_Kdr;
+    m_delta_phi = other.m_delta_phi;
     
     return *this;
 }
