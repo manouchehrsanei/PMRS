@@ -208,10 +208,9 @@ public:
         Setc(c);
     }
     
-    /// Set Crank-Nicolson method and Zienkiewicz method
+    /// Set Crank-Nicolson method
     void SetCrank_Nicolson(){
-        //        m_theta_scheme = 0.5;
-        m_theta_scheme = 0.6667;
+        m_theta_scheme = 0.5;
     }
     
     

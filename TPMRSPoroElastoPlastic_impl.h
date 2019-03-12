@@ -12,7 +12,7 @@
 template <class T, class TMEM>
 TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic() : TPZMatWithMem<TMEM>() {
     
-    m_simulation_data = NULL;
+    m_simulation_data   = NULL;
     m_dimension         = 0;
     m_c                 = 0;
     m_eta               = 0;
@@ -24,7 +24,7 @@ TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic() : TPZMatWithMem<TMEM>()
 template <class T, class TMEM>
 TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic(int matid) : TPZMatWithMem<TMEM>(matid) {
     
-    m_simulation_data = NULL;
+    m_simulation_data   = NULL;
     m_dimension         = 0;
     m_c                 = 0;
     m_eta               = 0;
@@ -40,16 +40,16 @@ TPMRSPoroElastoPlastic<T,TMEM>::~TPMRSPoroElastoPlastic(){
 
 template <class T, class TMEM>
 TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic(const TPMRSPoroElastoPlastic& other): TPZMatWithMem<TMEM>(other){
-    m_simulation_data   = other.m_simulation_data;
-    m_dimension         = other.m_dimension;
-    m_plastic_integrator    = other.m_plastic_integrator;
-    m_c                 = other.m_c;
-    m_eta               = other.m_eta;
-    m_rho_0             = other.m_rho_0;
-    m_scale_factor      = other.m_scale_factor;
-    m_phi_model         = other.m_phi_model;
-    m_kappa_model       = other.m_kappa_model;
-    m_theta_scheme      = other.m_theta_scheme;
+    m_simulation_data    = other.m_simulation_data;
+    m_dimension          = other.m_dimension;
+    m_plastic_integrator = other.m_plastic_integrator;
+    m_c                  = other.m_c;
+    m_eta                = other.m_eta;
+    m_rho_0              = other.m_rho_0;
+    m_scale_factor       = other.m_scale_factor;
+    m_phi_model          = other.m_phi_model;
+    m_kappa_model        = other.m_kappa_model;
+    m_theta_scheme       = other.m_theta_scheme;
 }
 
 template <class T, class TMEM>
@@ -60,16 +60,16 @@ TPMRSPoroElastoPlastic<T,TMEM> & TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElasto
         return *this;
     }
     
-    m_simulation_data   = other.m_simulation_data;
-    m_dimension         = other.m_dimension;
-    m_plastic_integrator    = other.m_plastic_integrator;
-    m_c                 = other.m_c;
-    m_eta               = other.m_eta;
-    m_rho_0             = other.m_rho_0;
-    m_scale_factor      = other.m_scale_factor;
-    m_phi_model         = other.m_phi_model;
-    m_kappa_model       = other.m_kappa_model;
-    m_theta_scheme      = other.m_theta_scheme;
+    m_simulation_data    = other.m_simulation_data;
+    m_dimension          = other.m_dimension;
+    m_plastic_integrator = other.m_plastic_integrator;
+    m_c                  = other.m_c;
+    m_eta                = other.m_eta;
+    m_rho_0              = other.m_rho_0;
+    m_scale_factor       = other.m_scale_factor;
+    m_phi_model          = other.m_phi_model;
+    m_kappa_model        = other.m_kappa_model;
+    m_theta_scheme       = other.m_theta_scheme;
     return *this;
     
 }
@@ -441,14 +441,14 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
         STATE dKdsigmadot = 0.0;
         for (int j = 0; j < Dimension(); j++)
         {
-            dot        += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
-            dKdpdot    += dKdp(i,j)*grad_p(j,0);
+            dot            += (1.0/m_scale_factor)*K(i,j)*grad_p(j,0);
+            dKdpdot        += dKdp(i,j)*grad_p(j,0);
             dKdsigmadot    += dKdsigma(i,j)*grad_p(j,0);
         }
         
-        Kl_grad_p_(i,0)      = lambda * dot;
-        dKdpl_grad_p_(i,0)   = lambda * dKdpdot;
-        dKdsigmal_grad_p_(i,0)   = lambda * dKdsigmadot;
+        Kl_grad_p_(i,0)         = lambda * dot;
+        dKdpl_grad_p_(i,0)      = lambda * dKdpdot;
+        dKdsigmal_grad_p_(i,0)  = lambda * dKdsigmadot;
     }
     
     /// Integration point contribution
