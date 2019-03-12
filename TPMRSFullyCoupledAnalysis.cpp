@@ -11,7 +11,6 @@
 #include "pzfstrmatrix.h"
 #include "TPZElasticCriterion.h"
 
-/// default costructor
 TPMRSFullyCoupledAnalysis::TPMRSFullyCoupledAnalysis() : TPZAnalysis()
 {
     
@@ -19,40 +18,37 @@ TPMRSFullyCoupledAnalysis::TPMRSFullyCoupledAnalysis() : TPZAnalysis()
     m_meshvec.Resize(2);
     m_X_n.Resize(0,0);
     m_X.Resize(0,0);
-    m_error    = 1.0;
-    m_dx_norm  = 1.0;
+    m_error        = 1.0;
+    m_dx_norm      = 1.0;
     m_k_iterations = 0;
     
 }
 
-/// default destructor
 TPMRSFullyCoupledAnalysis::~TPMRSFullyCoupledAnalysis(){
     
 }
 
-/// copy constructor
 TPMRSFullyCoupledAnalysis::TPMRSFullyCoupledAnalysis(const TPMRSFullyCoupledAnalysis &other)
 {
     m_simulation_data = other.m_simulation_data;
-    m_meshvec        = other.m_meshvec;
-    m_X_n            = other.m_X_n;
-    m_X              = other.m_X;
-    m_error          = other.m_error;
-    m_dx_norm        = other.m_dx_norm;
+    m_meshvec         = other.m_meshvec;
+    m_X_n             = other.m_X_n;
+    m_X               = other.m_X;
+    m_error           = other.m_error;
+    m_dx_norm         = other.m_dx_norm;
     
 }
 
-/// Copy assignemnt operator
 TPMRSFullyCoupledAnalysis & TPMRSFullyCoupledAnalysis::operator=(const TPMRSFullyCoupledAnalysis &other)
 {
     if (this != & other) {  /// prevent self-assignment
         
         m_simulation_data = other.m_simulation_data;
-        m_meshvec        = other.m_meshvec;
-        m_X_n            = other.m_X_n;
-        m_X              = other.m_X;
-        m_error          = other.m_error;
-        m_dx_norm        = other.m_dx_norm;
+        m_meshvec         = other.m_meshvec;
+        m_X_n             = other.m_X_n;
+        m_X               = other.m_X;
+        m_error           = other.m_error;
+        m_dx_norm         = other.m_dx_norm;
     }
     return *this;
 }
@@ -103,7 +99,6 @@ void TPMRSFullyCoupledAnalysis::ConfiguratePostProcessor(){
     m_post_processor->SetStructuralMatrix(structmatrix);
 }
 
-/// Resize and fill residue and solution vectors
 void TPMRSFullyCoupledAnalysis::AdjustVectors()
 {
     

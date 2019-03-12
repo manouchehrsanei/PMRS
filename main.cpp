@@ -198,9 +198,9 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-    RunRKApproximation(sim_data);
-    
-    return 0;
+//    RunRKApproximation(sim_data);
+//    
+//    return 0;
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     
@@ -549,6 +549,71 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     REAL k_0;
                     LEDS.InitialDamage(sigma, k_0);
                     LEDS.fN.m_hardening = k_0;
+                    
+                    LEDS.ApplyLoad(sigma, eps);
+                    default_memory.SetAlpha(alpha);
+                    default_memory.SetKdr(Kdr);
+                    default_memory.Setphi_0(phi_0);
+                    default_memory.Setphi_n(phi_0);
+                    default_memory.Setkappa_0(kappa_0);
+                    default_memory.Setkappa_n(kappa_0);
+                    default_memory.SetSigma_0(sigma_0);
+                    default_memory.SetSigma(sigma_0);
+                    default_memory.SetSigma_n(sigma_0);
+                    default_memory.GetPlasticState_0().m_eps_t = eps;
+                    default_memory.GetPlasticState().m_eps_t = eps;
+                    default_memory.GetPlasticState_n().m_eps_t = eps;
+                    
+                    
+                    /// Configuring the solver
+                    TPMRSRKSolver<TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>,TPMRSMemory> RKSolver;
+                    
+                    /// Configuring the permeability model
+                    if (kappa_param.size() == 0) {
+                        RKSolver.SetKappaParameters(kappa_parameters);
+                        
+                    }else{
+                        // Permeability models
+                        switch (kappa_parameters.GetModel()) {
+                            case kappa_parameters.k_petunin: {
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                            }
+                                break;
+                            case kappa_parameters.k_davies: {
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                            }
+                                break;
+                            case kappa_parameters.k_costa: {
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                            }
+                                break;
+                            case kappa_parameters.k_nelson: {
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                            }
+                                break;
+                            case kappa_parameters.k_bayles: {
+                                RKSolver.SetKappaParameters(kappa_parameters);
+                            }
+                                break;
+                            default:{
+                                std::cout << "Permeability model is not implemented. " << std::endl;
+                                DebugStop();
+                            }
+                                break;
+                        }
+                    }
+                    
+                    RKSolver.SetPlasticIntegrator(LEDS);
+                    RKSolver.SetDefaultMemory(default_memory);
+                    RKSolver.SetInitialData(y_0);
+                    RKSolver.SetFluidData(eta, c_f);
+                    RKSolver.SetDiscretization(rw, re, n_steps);
+                    RKSolver.SetGrainBulkModulus(K_s);
+                    RKSolver.SetFourthOrderApproximation();
+                    RKSolver.Synchronize();
+                    RKSolver.ExecuteRKApproximation();
+                    RKSolver.PrintRKApproximation();
+                    RKSolver.PrintSecondaryVariables();
                 
                 }
                     break;
@@ -562,7 +627,6 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     }
     
 }
-
 
 
 TPMRSFullyCoupledAnalysis * CreateFCSolver(TPMRSSimulationData * sim_data)

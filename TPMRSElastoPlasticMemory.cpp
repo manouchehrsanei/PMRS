@@ -42,17 +42,17 @@ const TPMRSElastoPlasticMemory & TPMRSElastoPlasticMemory::operator=(const TPMRS
         return *this;
     }
     
-    m_sigma_n           = other.m_sigma_n;
-    m_plastic_strain_n  = other.m_plastic_strain_n;
-    m_u_n               = other.m_u_n;
-    m_sigma             = other.m_sigma;
-    m_plastic_strain    = other.m_plastic_strain;
-    m_u                 = other.m_u;
-    m_sigma_0           = other.m_sigma_0;
-    m_plastic_strain_0  = other.m_plastic_strain_0;
-    m_u_0               = other.m_u_0;
+    m_sigma_n                 = other.m_sigma_n;
+    m_plastic_strain_n        = other.m_plastic_strain_n;
+    m_u_n                     = other.m_u_n;
+    m_sigma                   = other.m_sigma;
+    m_plastic_strain          = other.m_plastic_strain;
+    m_u                       = other.m_u;
+    m_sigma_0                 = other.m_sigma_0;
+    m_plastic_strain_0        = other.m_plastic_strain_0;
+    m_u_0                     = other.m_u_0;
     m_plastic_strain_sub_step = other.m_plastic_strain_sub_step;
-    m_u_sub_step        = other.m_u_sub_step;
+    m_u_sub_step              = other.m_u_sub_step;
     
     return *this;
 }

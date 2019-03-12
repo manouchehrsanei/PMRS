@@ -57,13 +57,11 @@ TPMRSSimulationData::TPMRSSimulationData()
     
 }
 
-TPMRSSimulationData::~TPMRSSimulationData()
-{
+TPMRSSimulationData::~TPMRSSimulationData() {
     
 }
 
-void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
-{
+void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     
     TiXmlDocument document(simulation_file);
     bool file_ok_Q = false;
@@ -232,24 +230,20 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     int vtk_resolution = std::atoi(char_container);
     m_vtk_resolution = vtk_resolution;
 
-    
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("n_outputs_geo");
     int n_outputs_geo = std::atoi(char_container);
     m_n_outputs_geo = n_outputs_geo;
-
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("n_outputs_res");
     int n_outputs_res = std::atoi(char_container);
     m_n_outputs_res = n_outputs_res;
     
-    
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("draw_geometry_Q");
     bool is_draw_geometry_Q = std::atoi(char_container);
     m_is_draw_geometry_Q     = is_draw_geometry_Q;
-    
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("performance_summary_Q");
@@ -257,7 +251,6 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file)
     m_performance_summary_Q     = is_performance_summary_Q;
     
     
-
     int is_r = 0;
     int iv_r = 0;
     container = doc_handler.FirstChild( "CaseData" ).FirstChild( "OutputControls" ).FirstChild( "OutputControlsRes" ).FirstChild( "Var" ).ToElement();

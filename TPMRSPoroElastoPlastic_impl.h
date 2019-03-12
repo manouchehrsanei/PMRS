@@ -475,7 +475,9 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
             
         }
         
+        // @TODO:: m_theta_scheme is just only has effect here, if you apply less coefficient for last solution, the result is better, as the same Zienkiewicz method
         REAL Kl_grad_p_dot_grad_phi_avg = m_theta_scheme*Kl_grad_p_dot_grad_phi + (1.0-m_theta_scheme)*last_Kl_grad_p_dot_grad_phi;
+        
         ef(ip+m_dimension*n_phi_u) +=  weight * ( Kl_grad_p_dot_grad_phi_avg + (1.0/dt) * ( phi_n*rho_n - phi*rho ) * phi_p(ip,0) );
         
         if (m_dimension == 2) {
