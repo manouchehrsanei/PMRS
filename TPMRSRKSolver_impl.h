@@ -2,7 +2,7 @@
 //  TPMRSRKSolver_impl.hpp
 //  PMRS
 //
-//  Created by Omar Durán on 3/9/19.
+//  Created by Manouchehr Sanei and Omar on 3/9/19.
 //
 
 #include "TPMRSRKSolver.h"
@@ -36,23 +36,23 @@ TPMRSRKSolver<T,TMEM>::~TPMRSRKSolver(){
 template <class T, class TMEM>
 TPMRSRKSolver<T,TMEM>::TPMRSRKSolver(const TPMRSRKSolver & other){
     
-    m_n_steps       = other.m_n_steps;
-    m_y_0           = other.m_y_0;
-    m_re            = other.m_re;
-    m_rw            = other.m_rw;
-    m_eta           = other.m_eta;
-    m_cf            = other.m_cf;
-    m_K_s           = other.m_K_s;
-    m_dr            = other.m_dr;
-    m_default_memory = other.m_default_memory;
-    m_is_RK4_Q      = other.m_is_RK4_Q;
-    m_n_state       = other.m_n_state;
+    m_n_steps            = other.m_n_steps;
+    m_y_0                = other.m_y_0;
+    m_re                 = other.m_re;
+    m_rw                 = other.m_rw;
+    m_eta                = other.m_eta;
+    m_cf                 = other.m_cf;
+    m_K_s                = other.m_K_s;
+    m_dr                 = other.m_dr;
+    m_default_memory     = other.m_default_memory;
+    m_is_RK4_Q           = other.m_is_RK4_Q;
+    m_n_state            = other.m_n_state;
     m_plastic_integrator = other.m_plastic_integrator;
-    m_memory        = other.m_memory;
-    m_r_y           = other.m_r_y;
-    m_lambda        = other.m_lambda;
-    m_mu            = other.m_mu;
-    m_accept_solution_Q = other.m_accept_solution_Q;
+    m_memory             = other.m_memory;
+    m_r_y                = other.m_r_y;
+    m_lambda             = other.m_lambda;
+    m_mu                 = other.m_mu;
+    m_accept_solution_Q  = other.m_accept_solution_Q;
     
 }
 
@@ -64,23 +64,23 @@ TPMRSRKSolver<T,TMEM> & TPMRSRKSolver<T,TMEM>::operator=(const TPMRSRKSolver & o
         return *this;
     }
     
-    m_n_steps       = other.m_n_steps;
-    m_y_0           = other.m_y_0;
-    m_re            = other.m_re;
-    m_rw            = other.m_rw;
-    m_eta           = other.m_eta;
-    m_cf            = other.m_cf;
-    m_K_s           = other.m_K_s;
-    m_dr            = other.m_dr;
-    m_default_memory = other.m_default_memory;
-    m_is_RK4_Q      = other.m_is_RK4_Q;
-    m_n_state       = other.m_n_state;
+    m_n_steps            = other.m_n_steps;
+    m_y_0                = other.m_y_0;
+    m_re                 = other.m_re;
+    m_rw                 = other.m_rw;
+    m_eta                = other.m_eta;
+    m_cf                 = other.m_cf;
+    m_K_s                = other.m_K_s;
+    m_dr                 = other.m_dr;
+    m_default_memory     = other.m_default_memory;
+    m_is_RK4_Q           = other.m_is_RK4_Q;
+    m_n_state            = other.m_n_state;
     m_plastic_integrator = other.m_plastic_integrator;
-    m_memory        = other.m_memory;
-    m_r_y           = other.m_r_y;
-    m_lambda        = other.m_lambda;
-    m_mu            = other.m_mu;
-    m_accept_solution_Q = other.m_accept_solution_Q;
+    m_memory             = other.m_memory;
+    m_r_y                = other.m_r_y;
+    m_lambda             = other.m_lambda;
+    m_mu                 = other.m_mu;
+    m_accept_solution_Q  = other.m_accept_solution_Q;
     
     return *this;
 }
@@ -139,7 +139,7 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL sr_0 = m_memory[i].GetSigma_0().XX();
     REAL st_0 = m_memory[i].GetSigma_0().YY();
     
-    REAL phi = Porosity(i,r,y);
+    REAL phi   = Porosity(i,r,y);
     REAL kappa = Permeability(i,phi);
     
     std::vector<REAL> f(4);
@@ -160,7 +160,7 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL sr_0 = m_memory[i].GetSigma_0().XX();
     REAL st_0 = m_memory[i].GetSigma_0().YY();
     
-    REAL phi = Porosity(i,r,y);
+    REAL phi   = Porosity(i,r,y);
     REAL kappa = Permeability(i,phi);
     
     std::vector<REAL> f(4);

@@ -74,7 +74,7 @@ private:
     /// Vector of first Lame parameter
     std::vector<REAL> m_lambda;
     
-    /// Vector of first second Lame parameter
+    /// Vector of second Lame parameter
     std::vector<REAL> m_mu;
     
     /// Directive to load memory vector entry
@@ -201,7 +201,7 @@ private:
     /// Bulk modulus parameter
     REAL K(REAL & lambda, REAL & mu);
     
-    /// Bulk modulus function
+    /// Biot coefficient function
     REAL Alpha(REAL & K);
     
     /// Porosity function
