@@ -409,6 +409,9 @@ public:
     /// Get the current time value
     REAL t() { return m_time; }
     
+    /// Set the number of time steps
+    void Set_n_steps(int nstep){m_n_steps = nstep;}
+    
     /// Get the number of time steps
     int n_steps() { return m_n_steps; }
     
@@ -587,6 +590,11 @@ public:
     
     //// Get crank nicolson directive for time derivative (false Euler method)
     bool Get_is_crank_nicolson_Q() { return m_is_crank_nicolson_Q; }
+    
+    //// Set crank nicolson directive for time derivative (false Euler method)
+    void Set_is_crank_nicolson_Q(bool is_crank_nicolson_Q){
+        m_is_current_state_Q = is_crank_nicolson_Q;
+    }
     
     //// Set directive for using substeps during solving geomecanics
     void Set_must_use_sub_stepping_Q(bool must_use_sub_stepping_Q) {
