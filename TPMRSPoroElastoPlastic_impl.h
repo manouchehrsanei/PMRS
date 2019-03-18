@@ -774,6 +774,46 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             break;
         }
            
+            
+        case 5 : /// DuxDp
+            /// Dirichlet in x direction of displacement and Dirichlet of pore pressure
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Ux displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(m_dimension*in+0,0)      += BigNumber*(u_n[0] - v[0])*phiu(in,0)*weight;    // x displacement Value
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(m_dimension*in+0,m_dimension*jn+0)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // x displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            REAL p_D = Value;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += weight * m_scale_factor * BigNumber * (p - p_D) * phip(ip,0);
+                
+                for (int jp = 0; jp < phrp; jp++)
+                {
+                    
+                    ek(ip+m_dimension*phru,jp+m_dimension*phru) += weight * m_scale_factor *  BigNumber * phip(jp,0) * phip(ip,0);
+                }
+            }
+
+            
+            break;
+        }
+            
+            
+            
         case 6 : /// DuxNq
             /// Dirichlet in x direction of displacement and normal flux
             
@@ -808,6 +848,46 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
             
             break;
         }
+            
+            
+        case 7 : /// DuyDp
+            /// Dirichlet in y direction of displacement and Dirichlet of pore pressure
+            
+        {
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Uy displacement
+            
+            for(in = 0 ; in < phru; in++)
+            {
+                ///    Contribution for load Vector
+                ef(m_dimension*in+1,0)      += BigNumber*(u_n[1] - v[0])*phiu(in,0)*weight;    // y displacement Value
+                
+                
+                for (jn = 0 ; jn < phru; jn++)
+                {
+                    ///    Contribution for Stiffness Matrix
+                    ek(m_dimension*in+1,m_dimension*jn+1)    += BigNumber*phiu(in,0)*phiu(jn,0)*weight;    // y displacement
+                    
+                }
+            }
+            
+            REAL Value = bc.Val2()(1,0);
+            REAL p_D = Value;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += weight * m_scale_factor * BigNumber * (p - p_D) * phip(ip,0);
+                
+                for (int jp = 0; jp < phrp; jp++)
+                {
+                    
+                    ek(ip+m_dimension*phru,jp+m_dimension*phru) += weight * m_scale_factor *  BigNumber * phip(jp,0) * phip(ip,0);
+                }
+            }
+
+            
+            break;
+        }
+
 
         case 8 : /// DuyNq
             /// Dirichlet in y direction of displacement and normal flux
