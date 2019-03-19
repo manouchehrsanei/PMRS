@@ -42,8 +42,8 @@
         <FullyCoupled useQs="0" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -128,10 +128,10 @@
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="NS" n_data="3" >
-            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="1.0" sxx="25.0" sxy="0.0" sxz="0.0" syy="-40.0" syz="0.0" szz="25.0" /> 
-            <Data t="1.0e10" sxx="25.0" sxy="0.0" sxz="0.0" syy="-40.0" syz="0.0" szz="25.0" /> 
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="1.0" tn="20.0" />
+            <Data t="1.0e10" tn="2050.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="NS" n_data="3" >
             <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
