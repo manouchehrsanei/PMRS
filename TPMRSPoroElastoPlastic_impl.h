@@ -122,7 +122,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
     // Getting weight functions
     TPZFMatrix<REAL>  & phi_u     =  datavec[m_u_b].phi;
     int n_phi_u = phi_u.Rows();
-    int first_u  = 0;
+    int first_u = 0;
     
     TPZFNMatrix<40,REAL> grad_phi_u(3,n_phi_u);
     TPZAxesTools<REAL>::Axes2XYZ(datavec[m_u_b].dphix, grad_phi_u, datavec[m_u_b].axes);
@@ -599,6 +599,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
                     q[i] = (- (1.0/m_scale_factor) * k * lambda * grad_p[i]);
                 }
                 
+                
                 this->MemItem(gp_index).Setp_n(p);
                 this->MemItem(gp_index).Setq_n(q);
             }
@@ -955,7 +956,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
                 }
             
             /// Dirichlet BC of PD
-            REAL Value = bc.Val2()(1,0);
+            REAL Value = bc.Val2()(6,0);
             REAL p_D = Value;
             for (int ip = 0; ip < phrp; ip++)
             {
@@ -1254,15 +1255,15 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC_3D(TPZVec<TPZMaterialData> &da
 
 template <class T, class TMEM>
 int TPMRSPoroElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
-    if (!strcmp("u"   , name.c_str())) return 0;
-    if (!strcmp("s"   , name.c_str())) return 1;
-    if (!strcmp("e"   , name.c_str())) return 2;
-    if (!strcmp("ep"  , name.c_str())) return 3;
-    if (!strcmp("s_t" , name.c_str())) return 4;
+    if (!strcmp("u"     , name.c_str())) return 0;
+    if (!strcmp("s"     , name.c_str())) return 1;
+    if (!strcmp("e"     , name.c_str())) return 2;
+    if (!strcmp("ep"    , name.c_str())) return 3;
+    if (!strcmp("s_t"   , name.c_str())) return 4;
     if (!strcmp("p"     , name.c_str())) return 5;
     if (!strcmp("phi"   , name.c_str())) return 6;
     if (!strcmp("kappa" , name.c_str())) return 7;
-    if (!strcmp("q"    , name.c_str()))  return 8;
+    if (!strcmp("q"     , name.c_str())) return 8;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 

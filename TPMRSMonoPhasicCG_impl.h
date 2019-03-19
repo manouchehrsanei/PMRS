@@ -304,10 +304,7 @@ void TPMRSMonoPhasicCG<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZ
     TPZFMatrix<STATE>  ek_fake(ef.Rows(),ef.Rows(),0.0);
     this->Contribute(data, weight, ek_fake, ef);
     
-    
     return;
-    
-    
     
 }
 

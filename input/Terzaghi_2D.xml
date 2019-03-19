@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.0001" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="1e10" />
+        <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="1" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -39,7 +39,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <FullyCoupled useQs="0" />
+        <FullyCoupled useQs="1" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="1" />
         <Elasticity p_order="2" />
@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CN" n_divisions="2" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D_CN_FC" n_divisions="2" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -64,16 +64,7 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
-            <time t="0.0001" />
-            <time t="0.0002" />
-            <time t="0.0003" />
-            <time t="0.0004" />
-            <time t="0.0005" />
-            <time t="0.0006" />
-            <time t="0.0007" />
-            <time t="0.0008" />
-            <time t="0.0009" />
-            <time t="0.0010" />
+            <time t="1e10" />
         </ReportingTimes>        
     </OutputControls>
     <Physics>
@@ -130,30 +121,30 @@
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Dun" n_data="2" >
             <Data t="0" un="0.0" />
-            <Data t="0.001" un="0.0" />
+            <Data t="1e10" un="0.0" />
         </Geomechanic>            
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
             <Data t="0" tn="0.0" />
-            <Data t="0.001" tn="0.0" />
+            <Data t="1e10" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dun" n_data="2" >
             <Data t="0" un="0.0" />            
-            <Data t="0.001" un="0.0" />
+            <Data t="1e10" un="0.0" />
         </Geomechanic> 
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />              
-            <Data t="0.001" qn="0.0" />
+            <Data t="1e10" qn="0.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="1.0" />
-            <Data t="0.0001" p="0.0" />
-            <Data t="0.001" p="0.0" />             
+            <Data t="1.0" p="0.0" />
+            <Data t="1e10" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />
-            <Data t="0.001" qn="0.0" />             
+            <Data t="1e10" qn="0.0" />             
         </Reservoir> 
     </BCReservoirs>     
 </CaseData>
