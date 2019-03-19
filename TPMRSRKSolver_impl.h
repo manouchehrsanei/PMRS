@@ -309,8 +309,8 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
         
         REAL r = m_dr*(i-1) + m_re;
         if(m_is_RK4_Q){
-            y = EulerApproximation(i-1,r,y);
-//            y = RK4Approximation(i-1,r,y);
+//            y = EulerApproximation(i-1,r,y);
+            y = RK4Approximation(i-1,r,y);
         }else{
             y = RK2Approximation(i-1,r,y);
         }
@@ -342,8 +342,8 @@ void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
     TPZFMatrix<REAL> s_data(n_data,n_var);
     for (int i = 0; i < n_data; i++) {
         REAL r       = m_r_y(i,0);
-        REAL s_r     = m_memory[i].GetSigma_n().XX();
-        REAL s_t     = m_memory[i].GetSigma_n().YY();
+        REAL s_r     = m_memory[i].GetSigma_n().XX() + m_memory[i].GetSigma_0().XX();
+        REAL s_t     = m_memory[i].GetSigma_n().YY() + m_memory[i].GetSigma_0().YY();
         REAL eps_t_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
         REAL eps_t_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
         REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();

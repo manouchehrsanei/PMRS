@@ -926,8 +926,56 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
         }
 
             
+        case 9 : /// NSDp
+            /// Neumann of normal sigma and Dirichlet BC of PD
+            
+        {
+                /// Neumann of normal sigma
+                TPZManVector<REAL,3> n = datavec[m_u_b].normal;
+                TPZFNMatrix<9,REAL> sigma(3,3),normal(3,1),t(3,1);
+                t.Zero();
+                sigma(0,0)              = bc.Val2()(0,0);    //    sigma_xx
+                sigma(0,1) = sigma(1,0) = bc.Val2()(1,0);    //    sigma_xy
+                sigma(0,2) = sigma(2,0) = bc.Val2()(2,0);    //    sigma_xz
+                sigma(1,1)              = bc.Val2()(3,0);    //    sigma_yy
+                sigma(1,2) = sigma(2,1) = bc.Val2()(4,0);    //    sigma_yz
+                sigma(2,2)              = bc.Val2()(5,0);    //    sigma_zz
+                normal(0,0) = n[0];
+                normal(1,0) = n[1];
+                normal(2,0) = n[2];
+                sigma.Multiply(normal, t);
+                
+                ///    Neumann condition for each state variable
+                ///    Elasticity Equation
+                for(in = 0 ; in <phru; in++)
+                {
+                    ///   Normal Tension Components on neumman boundary
+                    ef(2*in+0,0)    += -1.0 * weight * t(0,0) * phiu(in,0);        //    Tnx
+                    ef(2*in+1,0)    += -1.0 * weight * t(1,0) * phiu(in,0);        //    Tny
+                }
+            
+            /// Dirichlet BC of PD
+            REAL Value = bc.Val2()(1,0);
+            REAL p_D = Value;
+            for (int ip = 0; ip < phrp; ip++)
+            {
+                ef(ip+m_dimension*phru) += weight * m_scale_factor * BigNumber * (p - p_D) * phip(ip,0);
+                
+                for (int jp = 0; jp < phrp; jp++)
+                {
+                    
+                    ek(ip+m_dimension*phru,jp+m_dimension*phru) += weight * m_scale_factor *  BigNumber * phip(jp,0) * phip(ip,0);
+                }
+            }
+            
+            
+            break;
+        }
+            
+            
+            
         case 13 : /// NtnDp
-            /// Neumann of traction and Dirichlet BC  PD
+            /// Neumann of traction and Dirichlet BC of PD
             
         {
             REAL v[1];
@@ -944,6 +992,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::ContributeBC(TPZVec<TPZMaterialData> &datav
                 ef(m_dimension*in+1,0)    += -1.0 * weight * tn * n[1] * phiu(in,0);        //    Tny
             }
             
+            /// Dirichlet BC of PD
             REAL Value = bc.Val2()(1,0);
             REAL p_D = Value;
             for (int ip = 0; ip < phrp; ip++)
