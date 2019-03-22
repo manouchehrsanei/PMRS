@@ -132,25 +132,45 @@ template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & y){
     
 
-
 #ifdef new_RK_Q
     
+    
+    REAL ur = y[0];
+    REAL sr = y[1];
     REAL qr = y[3];
-    REAL sr_0 = m_memory[i].GetSigma_0().XX();
-    REAL st_0 = m_memory[i].GetSigma_0().YY();
     
     REAL phi   = Porosity(i,r,y);
     REAL kappa = Permeability(i,phi);
     
     std::vector<REAL> f(4);
-    REAL alpha = m_memory[i].Alpha();
-    TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
-    TPZTensor<REAL> sigma = m_memory[i].GetSigma_n();
     
-    f[0] = eps_t.XX();
-    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
+    REAL l = this->lambda(i);
+    REAL mu = this->mu(i);
+    REAL alpha = m_memory[i].Alpha();
+    
+    REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
+    f[0] = eps_t_rr;
+    f[1] = ((-sr+((2*mu*ur)/(r))+l*((ur/r)+((r*sr-(l*ur))/(r*(l+2*mu)))))/(r))-alpha*(m_eta/kappa)*qr;
     f[2] = -(m_eta/kappa)*qr;
     f[3] = -qr/r;
+    
+    
+//    REAL qr = y[3];
+//    REAL sr_0 = m_memory[i].GetSigma_0().XX();
+//    REAL st_0 = m_memory[i].GetSigma_0().YY();
+//    
+//    REAL phi   = Porosity(i,r,y);
+//    REAL kappa = Permeability(i,phi);
+//    
+//    std::vector<REAL> f(4);
+//    REAL alpha = m_memory[i].Alpha();
+//    TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
+//    TPZTensor<REAL> sigma = m_memory[i].GetSigma_n();
+//    
+//    f[0] = eps_t.XX();
+//    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
+//    f[2] = -(m_eta/kappa)*qr;
+//    f[3] = -qr/r;
     
 #else
     
@@ -334,16 +354,22 @@ void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(){
     m_r_y.Print("rkdata = ",std::cout,EMathematicaInput);
 }
 
-/// Print the secondary variables (s_r,s_t,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
+/// Print the secondary variables (s_r,s_t,s_z,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
     int n_data = m_memory.size();
-    int n_var = 9;
+    int n_var = 10;
     TPZFMatrix<REAL> s_data(n_data,n_var);
     for (int i = 0; i < n_data; i++) {
         REAL r       = m_r_y(i,0);
-        REAL s_r     = m_memory[i].GetSigma_n().XX() + m_memory[i].GetSigma_0().XX();
-        REAL s_t     = m_memory[i].GetSigma_n().YY() + m_memory[i].GetSigma_0().YY();
+//        REAL s_r     = m_memory[i].GetSigma_n().XX() + m_memory[i].GetSigma_0().XX();
+//        REAL s_t     = m_memory[i].GetSigma_n().YY() + m_memory[i].GetSigma_0().YY();
+//        REAL s_z     = m_memory[i].GetSigma_n().ZZ() + m_memory[i].GetSigma_0().ZZ();
+        
+        REAL s_r     = m_memory[i].GetSigma_n().XX();
+        REAL s_t     = m_memory[i].GetSigma_n().YY();
+        REAL s_z     = m_memory[i].GetSigma_n().ZZ();
+        
         REAL eps_t_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
         REAL eps_t_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
         REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
@@ -353,12 +379,13 @@ void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
         s_data(i,0) = r;
         s_data(i,1) = s_r;
         s_data(i,2) = s_t;
-        s_data(i,3) = eps_t_r;
-        s_data(i,4) = eps_t_t;
-        s_data(i,5) = eps_p_r;
-        s_data(i,6) = eps_p_t;
-        s_data(i,7) = phi;
-        s_data(i,8) = kappa;
+        s_data(i,3) = s_z;
+        s_data(i,4) = eps_t_r;
+        s_data(i,5) = eps_t_t;
+        s_data(i,6) = eps_p_r;
+        s_data(i,7) = eps_p_t;
+        s_data(i,8) = phi;
+        s_data(i,9) = kappa;
     }
     s_data.Print("rksdata = ",std::cout,EMathematicaInput);
 }
@@ -437,8 +464,13 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL u_r = y[0];
     REAL s_r = y[1];
     REAL eps_r = epsilon.XX();
-    REAL s_z = s_r  - 2.0*mu*eps_r;
-    REAL s_t = s_z  + 2.0*mu*u_r/r;
+    
+//    REAL s_z = s_r  - 2.0*mu*eps_r;
+//    REAL s_t = s_z  + 2.0*mu*u_r/r;
+    
+    REAL s_t = 2.0*mu*eps_r+l*(eps_r+((r*s_r-l*u_r)/(r*(l+2*mu))));
+    REAL s_z = -(l*(l*(-s_r-s_t)-2*mu*(s_r+s_t)))/(2*(l+mu)*(l+2*mu));
+    
     sigma.XX() = s_r;
     sigma.YY() = s_t;
     sigma.ZZ() = s_z;

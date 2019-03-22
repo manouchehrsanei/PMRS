@@ -198,9 +198,9 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-    RunRKApproximation(sim_data);
-    
-    return 0;
+//    RunRKApproximation(sim_data);
+//    
+//    return 0;
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     
@@ -295,25 +295,24 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     TPZTensor<REAL> sigma_0;
     sigma_0.Zero();
-    sigma_0.XX() = 0.0;
-    sigma_0.YY() = 0.0;
-    sigma_0.ZZ() = 0.0;
+    sigma_0.XX() = -50.0;
+    sigma_0.YY() = -50.0;
+    sigma_0.ZZ() = -50.0;
     
     /// Discretization
-    int n_steps = 200;
+    int n_steps = 500;
     REAL rw = 0.1;
     REAL re = 10.0;
-    
     
     /// Initial data at re
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-    REAL u_r        = -0.0010;
-    REAL sigma_r    = -32.0;
-    REAL sigma_t    = -32.822;
-    REAL sigma_z    = -32.1644;
-    REAL p_r        = 20.0;
+    REAL u_r        = -0.000024;
+    REAL sigma_r    = 0.004;
+    REAL sigma_t    = -0.004;
+    REAL sigma_z    = 0.0;
+    REAL p_r        = 0.0;
     REAL q_r        = 0.0;
 
     y_0.push_back(u_r);
