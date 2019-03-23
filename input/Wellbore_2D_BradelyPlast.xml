@@ -42,8 +42,8 @@
         <FullyCoupled useQs="0" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -82,7 +82,7 @@
             <PoroMechParameters Eyoung="2000.0" nu="0.2" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0"/>
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="5.0" friction="24.0"/>              
+            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="1.0" friction="15.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -128,15 +128,15 @@
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
-            <Data t="0" tn="0.0" />
-            <Data t="1.0" tn="20.0" />
-            <Data t="1.0e10" tn="50.0" />
+        <Geomechanic bc_id="2" type="NS" n_data="3" >
+            <Data t="0" sxx="90.0" sxy="0.0" sxz="0.0" syy="40.0" syz="0.0" szz="50.0" /> 
+            <Data t="1.0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="1.0e10" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
         </Geomechanic>
         <Geomechanic bc_id="3" type="NS" n_data="3" >
-            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="1.0" sxx="-0.27054" sxy="0.0" sxz="0.0" syy="-1.08226" syz="0.0" szz="-0.27056" /> 
-            <Data t="1.0e10" sxx="-0.27054" sxy="0.0" sxz="0.0" syy="-1.08226" syz="0.0" szz="-0.27056" /> 
+            <Data t="0" sxx="50.0" sxy="0.0" sxz="0.0" syy="50.0" syz="0.0" szz="50.0" /> 
+            <Data t="1.0" sxx="0.004" sxy="0.0" sxz="0.0" syy="-0.004" syz="0.0" szz="0.0" /> 
+            <Data t="1.0e10" sxx="0.004" sxy="0.0" sxz="0.0" syy="-0.004" syz="0.0" szz="0.0" /> 
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -148,8 +148,8 @@
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="20.0" />
-            <Data t="1.0" p="10.0" />
-            <Data t="1.0e10" p="10.0" />
+            <Data t="1.0" p="20.0" />
+            <Data t="1.0e10" p="20.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="20.0" />

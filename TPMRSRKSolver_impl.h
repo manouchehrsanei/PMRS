@@ -130,11 +130,9 @@ void TPMRSRKSolver<T,TMEM>::Synchronize(){
 
 template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & y){
-    
 
 #ifdef new_RK_Q
-    
-    
+
     REAL ur = y[0];
     REAL sr = y[1];
     REAL qr = y[3];
@@ -177,8 +175,6 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL ur = y[0];
     REAL sr = y[1];
     REAL qr = y[3];
-    REAL sr_0 = m_memory[i].GetSigma_0().XX();
-    REAL st_0 = m_memory[i].GetSigma_0().YY();
     
     REAL phi   = Porosity(i,r,y);
     REAL kappa = Permeability(i,phi);
@@ -188,10 +184,10 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL l = this->lambda(i);
     REAL mu = this->mu(i);
     REAL alpha = m_memory[i].Alpha();
-
+    
     REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
     f[0] = eps_t_rr;
-    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + 2.0*mu*((ur/(r*r))-eps_t_rr/r);
+    f[1] = ((-sr+((2*mu*ur)/(r))+l*((ur/r)+((r*sr-(l*ur))/(r*(l+2*mu)))))/(r))-alpha*(m_eta/kappa)*qr;
     f[2] = -(m_eta/kappa)*qr;
     f[3] = -qr/r;
     
@@ -362,14 +358,9 @@ void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
     TPZFMatrix<REAL> s_data(n_data,n_var);
     for (int i = 0; i < n_data; i++) {
         REAL r       = m_r_y(i,0);
-//        REAL s_r     = m_memory[i].GetSigma_n().XX() + m_memory[i].GetSigma_0().XX();
-//        REAL s_t     = m_memory[i].GetSigma_n().YY() + m_memory[i].GetSigma_0().YY();
-//        REAL s_z     = m_memory[i].GetSigma_n().ZZ() + m_memory[i].GetSigma_0().ZZ();
-        
         REAL s_r     = m_memory[i].GetSigma_n().XX();
         REAL s_t     = m_memory[i].GetSigma_n().YY();
         REAL s_z     = m_memory[i].GetSigma_n().ZZ();
-        
         REAL eps_t_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
         REAL eps_t_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
         REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
@@ -464,10 +455,6 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL u_r = y[0];
     REAL s_r = y[1];
     REAL eps_r = epsilon.XX();
-    
-//    REAL s_z = s_r  - 2.0*mu*eps_r;
-//    REAL s_t = s_z  + 2.0*mu*u_r/r;
-    
     REAL s_t = 2.0*mu*eps_r+l*(eps_r+((r*s_r-l*u_r)/(r*(l+2*mu))));
     REAL s_z = -(l*(l*(-s_r-s_t)-2*mu*(s_r+s_t)))/(2*(l+mu)*(l+2*mu));
     
@@ -476,11 +463,13 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     sigma.ZZ() = s_z;
     
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+    
 //    T plastic_integrator(m_plastic_integrator);
 //    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
 //    plastic_integrator.ApplyLoad(sigma,epsilon);
     
     /// now update all the variables
+    
     sigma = Sigma(i,epsilon,&Dep);
     l = Dep(0,3);
     mu = Dep(1,1)/2.0;
@@ -496,7 +485,7 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     m_accept_solution_Q = false;
     
 #else
-    
+
     REAL last_l = this->lambda(i);
     REAL last_mu = this->mu(i);
     
