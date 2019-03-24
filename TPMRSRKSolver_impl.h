@@ -126,7 +126,7 @@ void TPMRSRKSolver<T,TMEM>::Synchronize(){
     }
 }
 
-#define new_RK_Q
+//#define new_RK_Q
 
 template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & y){
