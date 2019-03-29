@@ -12,7 +12,7 @@
 lc =1.0e1;
 r =0.0275;
 h =0.069;
-nh = 5;
+nh = 11;
 nr = 2;
 
 
@@ -39,12 +39,12 @@ Transfinite Line {l1,l3} = nr;
 Transfinite Surface {s1};
 Recombine Surface"*";
 
-
-rigth[] = {l2};
-left[] = {l4};
-top[] = {l3};
-bottom[] = {l1};
 plug[] = {s1};
+bottom[] = {l1};
+rigth[] = {l2};
+top[] = {l3};
+left[] = {l4};
+
 
 
 Physical Surface("plug") = {plug[]};

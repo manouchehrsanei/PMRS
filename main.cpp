@@ -198,9 +198,9 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-    RunRKApproximation(sim_data);
-    
-    return 0;
+//    RunRKApproximation(sim_data);
+//    
+//    return 0;
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     
