@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
             SFI_analysis->ExecuteStaticSolution();
             FC_analysis->PostProcessTimeStep(file);
             
-            /// Compute undarined response
+            /// Compute undrained response
             SFI_analysis->ExecuteUndrainedStaticSolution();
             FC_analysis->PostProcessTimeStep(file);
         }
