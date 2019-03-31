@@ -11,7 +11,7 @@ Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
 wr = 0.1;
-fr = 60.0;
+fr = 10.0;
 
 nt = 8;
 nr = 16;

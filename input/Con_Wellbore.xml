@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
         <NState n_state="6" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
@@ -108,11 +108,11 @@
     </RegionsDefinition>
     <!-- BCInitialGeomechanics -->
     <BCInitialGeomechanics>
-        <InitialGeomechanic bc_id="2" type="NS" n_data="1" >
-            <Data t="0" sxx="-120.0" sxy="0.0" sxz="0.0" syy="-120.0" syz="0.0" szz="-120.0" /> 
+        <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
+            <Data t="0" tn="-90." />
         </InitialGeomechanic>            
-        <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
-            <Data t="0" sxx="-120.0" sxy="0.0" sxz="0.0" syy="-120.0" syz="0.0" szz="-120.0" /> 
+        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
+            <Data t="0" tn="-90.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />            
@@ -123,29 +123,29 @@
     </BCInitialGeomechanics>
     <BCInitialReservoir>
         <InitialReservoir bc_id="2" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />              
+            <Data t="0" p="40.0" />              
         </InitialReservoir>
         <InitialReservoir bc_id="3" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />             
+            <Data t="0" p="40.0" />             
         </InitialReservoir>
         <InitialReservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />             
+            <Data t="0" p="40.0" />             
         </InitialReservoir>            
         <InitialReservoir bc_id="5" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />             
+            <Data t="0" p="40.0" />             
         </InitialReservoir>            
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="NS" n_data="3" >
-            <Data t="0" sxx="80.0" sxy="0.0" sxz="0.0" syy="80.0" syz="0.0" szz="80.0" /> 
-            <Data t="100" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="1000" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+            <Data t="0" tn="40.0" />
+            <Data t="100" tn="0.0" />
+            <Data t="1000" tn="0.0" />
         </Geomechanic>
-        <Geomechanic bc_id="3" type="NS" n_data="3" >
-            <Data t="0" sxx="0.0001" sxy="0.0" sxz="0.0001" syy="0.0" syz="0.0" szz="0.0001" /> 
-            <Data t="100" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="1000" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0001" />
+            <Data t="100" tn="0.0" />
+            <Data t="1000" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -156,20 +156,20 @@
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
-            <Data t="0" p="60.0" />
-            <Data t="100" p="40.0" />
-            <Data t="1000" p="40.0" />
+            <Data t="0" p="40.0" />
+            <Data t="100" p="20.0" />
+            <Data t="1000" p="20.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
-            <Data t="0" p="60.0" />
-            <Data t="100" p="60.0" />
-            <Data t="1000" p="60.0" />
+            <Data t="0" p="40.0" />
+            <Data t="100" p="40.0" />
+            <Data t="1000" p="40.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />
+            <Data t="0" p="40.0" />
         </Reservoir>            
         <Reservoir bc_id="5" type="Dp" n_data="1" >
-            <Data t="0" p="60.0" />  
+            <Data t="0" p="40.0" />  
         </Reservoir>            
     </BCReservoirs>       
 </CaseData>
