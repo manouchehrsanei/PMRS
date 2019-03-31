@@ -3,11 +3,11 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Con_Wellbore.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.01" />
+        <StepSize dt="100" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -39,7 +39,7 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <FullyCoupled useQs="0" />
+        <FullyCoupled useQs="1" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
@@ -64,16 +64,16 @@
             <Var v_name="q" />
         </OutputControlsRes> 
         <ReportingTimes>
-            <time t="0.01" />
-            <time t="0.02" />
-            <time t="0.03" />
-            <time t="0.04" />
-            <time t="0.05" />
-            <time t="0.06" />
-            <time t="0.07" />
-            <time t="0.08" />
-            <time t="0.09" />
-            <time t="0.10" />
+            <time t="100" />
+            <time t="200" />
+            <time t="300" />
+            <time t="400" />
+            <time t="500" />
+            <time t="600" />
+            <time t="700" />
+            <time t="800" />
+            <time t="900" />                                                                        
+            <time t="1000" />            
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -139,13 +139,13 @@
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="NS" n_data="3" >
             <Data t="0" sxx="80.0" sxy="0.0" sxz="0.0" syy="80.0" syz="0.0" szz="80.0" /> 
-            <Data t="0.01" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="0.1" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="100" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="1000" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
         </Geomechanic>
         <Geomechanic bc_id="3" type="NS" n_data="3" >
             <Data t="0" sxx="0.0001" sxy="0.0" sxz="0.0001" syy="0.0" syz="0.0" szz="0.0001" /> 
-            <Data t="0.01" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
-            <Data t="0.1" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="100" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="1000" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -157,13 +157,13 @@
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="60.0" />
-            <Data t="0.01" p="40.0" />
-            <Data t="0.1" p="40.0" />
+            <Data t="100" p="40.0" />
+            <Data t="1000" p="40.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="60.0" />
-            <Data t="0.01" p="60.0" />
-            <Data t="0.1" p="60.0" />
+            <Data t="100" p="60.0" />
+            <Data t="1000" p="60.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
             <Data t="0" p="60.0" />
