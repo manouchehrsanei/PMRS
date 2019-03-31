@@ -550,8 +550,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     LEDS.InitialDamage(sigma, k_0);
                     LEDS.fN.m_hardening = k_0;
                     LEDS.fN.m_hardening = k_0;
-//                    LEDS.fN.m_eps_t.Zero();
-//                    LEDS.fN.m_eps_p.Zero();
+                    LEDS.fN.m_eps_t.Zero();
+                    LEDS.fN.m_eps_p.Zero();
                     
                     LEDS.ApplyLoad(sigma, eps);
                     default_memory.SetAlpha(alpha);
