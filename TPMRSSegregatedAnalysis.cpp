@@ -909,10 +909,10 @@ void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialCond
                         REAL D    = p_pars[3];
                         REAL R    = p_pars[4];
                         REAL W    = p_pars[5];
-//                        REAL X0   = p_pars[6];
+                        REAL X0   = p_pars[6];
                         REAL phi = 0, psi = 1.0, N = 0;
                         
-                        REAL Pc = -137;
+                        REAL Pc = X0/3.0;
                         TPZTensor<REAL> sigma;
                         sigma.Zero();
         
@@ -930,6 +930,9 @@ void TPMRSSegregatedAnalysis::ConfigureGeomechanicsBC(REAL t, bool IsInitialCond
                         REAL k_0;
                         LEDS.InitialDamage(sigma, k_0);
                         LEDS.fN.m_hardening = k_0;
+                        LEDS.fYC.SetInitialDamage(k_0);
+                        LEDS.fN.m_eps_t.Zero();
+                        LEDS.fN.m_eps_p.Zero();
         
                         
                         TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory> * vol_material = new TPMRSElastoPlastic <TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>, TPMRSMemory>(matid);
