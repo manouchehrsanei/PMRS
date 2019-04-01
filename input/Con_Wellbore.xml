@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_2D_DS" n_divisions="0" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Wellbore_2D_LE_pw_10" n_divisions="0" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -91,7 +91,7 @@
             <PoroMechParameters Eyoung="29269.0" nu="0.203" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" a="20.0" />
-            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="116.67" b="0.0036895" c="111.48" d="0.018768" r="0.91969" w="0.006605" x0="-220.289"/>    
+            <PlasticityParameters plasticity_model="DS" n_parameters="0" a="116.67" b="0.0036895" c="111.48" d="0.018768" r="0.91969" w="0.006605" x0="-220.289"/>    
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
