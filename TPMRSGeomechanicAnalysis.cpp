@@ -251,7 +251,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 10) {
+        if (i <= 5) {
             this->ExecuteNewtonInteration();
             dx += Solution();
             norm_dx  = Norm(Solution());
