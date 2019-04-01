@@ -710,7 +710,10 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         time_value = dt * (it+1);
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
-  
+        
+        /// Reseting initial du == 0
+        m_geomechanic_analysis->Solution().Zero();
+        
         for (int k = 1; k <= n_max_fss_iterations; k++) {
 
 #ifdef USING_BOOST
