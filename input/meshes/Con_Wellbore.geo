@@ -13,9 +13,9 @@ Mesh.SecondOrderLinear = 0;
 wr = 0.1;
 fr = 10.0;
 
-nt = 8;
-nr = 16;
-radial_progression = 1.5;
+nt = 10;
+nr = 20;
+radial_progression = 1.25;
 
 // center point
 pc = newp; Point(pc) = {0,0,0};

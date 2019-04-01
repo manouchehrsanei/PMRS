@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
         <NState n_state="6" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
@@ -42,8 +42,8 @@
         <FullyCoupled useQs="0" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -88,10 +88,10 @@
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
             <InitialPoroMechParameters Eyoung_u="29269.0" nu_u="0.203" phi_0="0.25" kappa_0="2.0e-13" />            
-            <PoroMechParameters Eyoung="29269.3" nu="0.203" alpha="0.65" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <PoroMechParameters Eyoung="29269.0" nu="0.203" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" a="20.0" />
-            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="152.54" b="0.0015489" c="146.29" d="0.018768" r="0.919" w="0.06605" x0="-280.289"/>    
+            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="116.67" b="0.0036895" c="111.48" d="0.018768" r="0.91969" w="0.006605" x0="-180.289"/>    
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -109,10 +109,10 @@
     <!-- BCInitialGeomechanics -->
     <BCInitialGeomechanics>
         <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
-            <Data t="0" tn="-100." />
+            <Data t="0" tn="-120." />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
-            <Data t="0" tn="-100.0" />
+            <Data t="0" tn="-120.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />            
@@ -138,7 +138,7 @@
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="3" >
-            <Data t="0" tn="60.0" />
+            <Data t="0" tn="50.0" />
             <Data t="10" tn="0.0" />
             <Data t="1000" tn="0.0" />
         </Geomechanic>
