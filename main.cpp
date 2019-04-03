@@ -198,9 +198,9 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-//    RunRKApproximation(sim_data);
-//    
-//    return 0;
+    RunRKApproximation(sim_data);
+    
+    return 0;
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     
@@ -300,7 +300,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.ZZ() = -50.0;
     
     /// Discretization
-    int n_steps = 100;
+    int n_steps = 1000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -309,7 +309,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
     REAL u_r        = -0.000024;
-    REAL sigma_r    = 0.004;
+//    REAL sigma_r    = 0.004;
+    REAL sigma_r    = 0.012;
     REAL sigma_t    = -0.004;
     REAL sigma_z    = 0.0;
     REAL p_r        = 0.0;
@@ -434,7 +435,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.SetFourthOrderApproximation();
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
-            RKSolver.PrintRKApproximation();
+//            RKSolver.PrintRKApproximation();
             RKSolver.PrintSecondaryVariables();
             
         }else{
@@ -549,7 +550,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     REAL k_0;
                     LEDS.InitialDamage(sigma, k_0);
                     LEDS.fN.m_hardening = k_0;
-                    LEDS.fN.m_hardening = k_0;
+                    LEDS.fYC.SetInitialDamage(k_0);
                     LEDS.fN.m_eps_t.Zero();
                     LEDS.fN.m_eps_p.Zero();
                     
@@ -615,7 +616,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
-                    RKSolver.PrintRKApproximation();
+//                    RKSolver.PrintRKApproximation();
                     RKSolver.PrintSecondaryVariables();
                 
                 }

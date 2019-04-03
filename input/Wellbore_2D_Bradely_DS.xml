@@ -3,19 +3,19 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Con_Wellbore.msh" />
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="10" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="1.0e10" />
+        <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.01" />
-        <Correction cor_tolerance="0.01" />
+        <Residue res_tolerance="0.0001" />
+        <Correction cor_tolerance="0.0001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Wellbore_2D_LE_pw_10" n_divisions="0" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Wellbore_2D" n_divisions="1" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -64,16 +64,7 @@
             <Var v_name="q" />
         </OutputControlsRes> 
         <ReportingTimes>
-            <time t="10" />
-            <time t="20" />
-            <time t="30" />
-            <time t="40" />
-            <time t="50" />
-            <time t="60" />
-            <time t="70" />
-            <time t="80" />
-            <time t="90" />                                                                        
-            <time t="100" />            
+            <time t="1.0e10" />
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -87,11 +78,11 @@
     <RegionsDefinition>
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
-            <InitialPoroMechParameters Eyoung_u="29269.0" nu_u="0.203" phi_0="0.25" kappa_0="2.0e-13" />            
-            <PoroMechParameters Eyoung="29269.0" nu="0.203" alpha="1.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2700.0" />
+            <InitialPoroMechParameters Eyoung_u="2000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="2000.0" nu="0.2" alpha="0.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Constant" n_parameters="0" a="20.0" />
-            <PlasticityParameters plasticity_model="DS" n_parameters="0" a="116.67" b="0.0036895" c="111.48" d="0.018768" r="0.91969" w="0.006605" x0="-220.289"/>    
+            <KappaParameters kappa_model="Constant" n_parameters="0" a="2.0"/>
+             <PlasticityParameters plasticity_model="DS" n_parameters="7" a="120.0" b="0.004" c="110.0" d="0.01" r="1.0" w="0.005" x0="-200.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -108,11 +99,11 @@
     </RegionsDefinition>
     <!-- BCInitialGeomechanics -->
     <BCInitialGeomechanics>
-        <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
-            <Data t="0" tn="-120." />
+        <InitialGeomechanic bc_id="2" type="NS" n_data="1" >
+            <Data t="0" sxx="-50.0" sxy="0.0" sxz="0.0" syy="-50.0" syz="0.0" szz="-50.0" /> 
         </InitialGeomechanic>            
-        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
-            <Data t="0" tn="-120.0" />
+        <InitialGeomechanic bc_id="3" type="NS" n_data="1" >
+            <Data t="0" sxx="-50.0" sxy="0.0" sxz="0.0" syy="-50.0" syz="0.0" szz="-50.0" /> 
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />            
@@ -123,29 +114,29 @@
     </BCInitialGeomechanics>
     <BCInitialReservoir>
         <InitialReservoir bc_id="2" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />              
+            <Data t="0" p="20.0" />              
         </InitialReservoir>
         <InitialReservoir bc_id="3" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />             
+            <Data t="0" p="20.0" />             
         </InitialReservoir>
         <InitialReservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />             
+            <Data t="0" p="20.0" />             
         </InitialReservoir>            
         <InitialReservoir bc_id="5" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />             
+            <Data t="0" p="20.0" />             
         </InitialReservoir>            
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
-            <Data t="0" tn="60.0" />
-            <Data t="10" tn="0.0" />
-            <Data t="1000" tn="0.0" />
+        <Geomechanic bc_id="2" type="NS" n_data="3" >
+            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="1.0" sxx="10.0" sxy="0.0" sxz="0.0" syy="10.0" syz="0.0" szz="50.0" /> 
+            <Data t="1.0e10" sxx="10.0" sxy="0.0" sxz="0.0" syy="10.0" syz="0.0" szz="50.0" /> 
         </Geomechanic>
-        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
-            <Data t="0" tn="0.0" />
-            <Data t="10" tn="0.0" />
-            <Data t="1000" tn="0.0" />
+        <Geomechanic bc_id="3" type="NS" n_data="3" >
+            <Data t="0" sxx="0.0" sxy="0.0" sxz="0.0" syy="0.0" syz="0.0" szz="0.0" /> 
+            <Data t="1.0" sxx="49.996" sxy="0.0" sxz="0.0" syy="49.996" syz="0.0" szz="50.0" /> 
+            <Data t="1.0e10" sxx="49.996" sxy="0.0" sxz="0.0" syy="49.996" syz="0.0" szz="50.0" /> 
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -156,20 +147,20 @@
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
-            <Data t="0" p="40.0" />
-            <Data t="10" p="10.0" />
-            <Data t="1000" p="10.0" />
+            <Data t="0" p="20.0" />
+            <Data t="1.0" p="19.9" />
+            <Data t="1.0e10" p="19.9" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
-            <Data t="0" p="40.0" />
-            <Data t="10" p="40.0" />
-            <Data t="1000" p="40.0" />
+            <Data t="0" p="20.0" />
+            <Data t="1.0" p="20.0" />
+            <Data t="1.0e10" p="20.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />
+            <Data t="0" p="20.0" />
         </Reservoir>            
         <Reservoir bc_id="5" type="Dp" n_data="1" >
-            <Data t="0" p="40.0" />  
+            <Data t="0" p="20.0" />  
         </Reservoir>            
     </BCReservoirs>       
 </CaseData>
