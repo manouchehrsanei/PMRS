@@ -1313,9 +1313,10 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                 this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
                 
+                REAL geo_delta_phi_n = 0.0; //  Geomechanic update. in terms of total eps
+                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
             }
-            REAL geo_delta_phi_n = 0.0; //  Geomechanic update. in terms of total eps
-            this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
+
             return;
         }
         
@@ -1351,12 +1352,12 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 REAL Kdr   = this->MemItem(gp_index).Kdr();
                 REAL p      = this->MemItem(gp_index).p();
                 REAL p_n   = this->MemItem(gp_index).p_n();
-//                REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
-//                REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
-//                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
-                REAL epsilon_t_v   = (this->MemItem(gp_index).GetPlasticState().m_eps_t.I1()/3);
-                REAL epsilon_t_v_n = (this->MemItem(gp_index).GetPlasticState_n().m_eps_t.I1()/3);
-                REAL geo_delta_phi_n = alpha*(epsilon_t_v_n-epsilon_t_v); //  Geomechanic update. in terms of total eps
+                REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
+                REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
+                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
+//                REAL epsilon_t_v   = (this->MemItem(gp_index).GetPlasticState().m_eps_t.I1()/3);
+//                REAL epsilon_t_v_n = (this->MemItem(gp_index).GetPlasticState_n().m_eps_t.I1()/3);
+//                REAL geo_delta_phi_n = alpha*(epsilon_t_v_n-epsilon_t_v); //  Geomechanic update. in terms of total eps
                 this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
             }
             

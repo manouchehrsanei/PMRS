@@ -762,6 +762,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             this->PostProcessTimeStep(file_geo, file_res);
 #endif
             if ((error_stop_criterion_Q && (k > n_enforced_fss_iterations)) && dx_stop_criterion_Q) {
+                std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with fss iterations = " << k << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for res = " << m_reservoir_analysis->Get_error() << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: Iterative process converged with residue norm for geo = " << m_geomechanic_analysis->Get_error() << std::endl;
                 std::cout << "-----------------------------------------------------------------------------------------" << std::endl;
