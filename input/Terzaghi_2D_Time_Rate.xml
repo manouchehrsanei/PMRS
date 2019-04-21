@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
         <NState n_state="6" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
@@ -39,11 +39,11 @@
     </ScaleFactor>    
     <!-- Finite element controls  -->
     <FEM>
-        <FullyCoupled useQs="0" />
+        <FullyCoupled useQs="1" />
         <MixedFormulationQ useQ="1" />
         <HRefine h_level="1" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -64,6 +64,15 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
+            <time t="0.01" />
+            <time t="0.02" />
+            <time t="0.03" />
+            <time t="0.04" />
+            <time t="0.05" />
+            <time t="0.06" />
+            <time t="0.07" />
+            <time t="0.08" />
+            <time t="0.09" />
             <time t="0.1" />
         </ReportingTimes>        
     </OutputControls>
