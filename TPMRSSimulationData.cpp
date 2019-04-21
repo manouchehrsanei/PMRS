@@ -457,9 +457,9 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
         }
         pars[1] = std::atof(char_container);
         
-        char_container = sub_container->Attribute("alpha");
+        char_container = sub_container->Attribute("Ks");
         if (!char_container) {
-            std::cout << "Please provide alpha." << std::endl;
+            std::cout << "Please provide Ks." << std::endl;
             DebugStop();
         }
         pars[2] = std::atof(char_container);
