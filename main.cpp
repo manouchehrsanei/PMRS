@@ -165,6 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
+    bool RK_approximation_Q = false;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -198,9 +199,9 @@ int main(int argc, char *argv[])
     TPMRSSimulationData * sim_data = new TPMRSSimulationData;
     sim_data->ReadSimulationFile(simulation_file);
     
-    RunRKApproximation(sim_data);
-    
-    return 0;
+    if (RK_approximation_Q) {
+        RunRKApproximation(sim_data);
+    }
     
     bool is_fully_coupled_Q = sim_data->Get_is_fully_coupled_Q();
     

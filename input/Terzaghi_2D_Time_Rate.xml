@@ -3,19 +3,19 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Terzaghi_2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.00001" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="0.01" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
         <Residue res_tolerance="0.0000001" />
-        <Correction cor_tolerance="0.00001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -40,7 +40,7 @@
     <!-- Finite element controls  -->
     <FEM>
         <FullyCoupled useQs="0" />
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="1" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="2" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="0" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -64,106 +64,7 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
-            <time t="0.00001" />
-            <time t="0.00002" />
-            <time t="0.00003" />
-            <time t="0.00004" />
-            <time t="0.00005" />
-            <time t="0.00006" />
-            <time t="0.00007" />
-            <time t="0.00008" />
-            <time t="0.00009" />
-            <time t="0.00010" />
-            <time t="0.00011" />
-            <time t="0.00012" />
-            <time t="0.00013" />
-            <time t="0.00014" />
-            <time t="0.00015" />
-            <time t="0.00016" />
-            <time t="0.00017" />
-            <time t="0.00018" />
-            <time t="0.00019" />
-            <time t="0.00020" />
-            <time t="0.00021" />
-            <time t="0.00022" />
-            <time t="0.00023" />
-            <time t="0.00024" />
-            <time t="0.00025" />
-            <time t="0.00026" />
-            <time t="0.00027" />
-            <time t="0.00028" />
-            <time t="0.00029" />
-            <time t="0.00030" />
-            <time t="0.00031" />
-            <time t="0.00032" />
-            <time t="0.00033" />
-            <time t="0.00034" />
-            <time t="0.00035" />
-            <time t="0.00036" />
-            <time t="0.00037" />
-            <time t="0.00038" />
-            <time t="0.00039" />
-            <time t="0.00040" />
-            <time t="0.00041" />
-            <time t="0.00042" />
-            <time t="0.00043" />
-            <time t="0.00044" />
-            <time t="0.00045" />
-            <time t="0.00046" />
-            <time t="0.00047" />
-            <time t="0.00048" />
-            <time t="0.00049" />
-            <time t="0.00050" />
-            <time t="0.00051" />
-            <time t="0.00052" />
-            <time t="0.00053" />
-            <time t="0.00054" />
-            <time t="0.00055" />
-            <time t="0.00056" />
-            <time t="0.00057" />
-            <time t="0.00058" />
-            <time t="0.00059" />
-            <time t="0.00060" />
-            <time t="0.00061" />
-            <time t="0.00062" />
-            <time t="0.00063" />
-            <time t="0.00064" />
-            <time t="0.00065" />
-            <time t="0.00066" />
-            <time t="0.00067" />
-            <time t="0.00068" />
-            <time t="0.00069" />
-            <time t="0.00070" />
-            <time t="0.00071" />
-            <time t="0.00072" />
-            <time t="0.00073" />
-            <time t="0.00074" />
-            <time t="0.00075" />
-            <time t="0.00076" />
-            <time t="0.00077" />
-            <time t="0.00078" />
-            <time t="0.00079" />
-            <time t="0.00080" />
-            <time t="0.00081" />
-            <time t="0.00082" />
-            <time t="0.00083" />
-            <time t="0.00084" />
-            <time t="0.00085" />
-            <time t="0.00086" />
-            <time t="0.00087" />
-            <time t="0.00088" />
-            <time t="0.00089" />
-            <time t="0.00090" />
-            <time t="0.00091" />
-            <time t="0.00092" />
-            <time t="0.00093" />
-            <time t="0.00094" />
-            <time t="0.00095" />
-            <time t="0.00096" />
-            <time t="0.00097" />
-            <time t="0.00098" />
-            <time t="0.00099" />
-            <time t="0.00100" />
+            <time t="0.1" />
         </ReportingTimes>        
     </OutputControls>
     <Physics>
@@ -220,30 +121,31 @@
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Dun" n_data="2" >
             <Data t="0" un="0.0" />
-            <Data t="0.001" un="0.0" />
+            <Data t="0.1" un="0.0" />
         </Geomechanic>            
-        <Geomechanic bc_id="3" type="Ntn" n_data="2" >
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="0.001" tn="0.0" />
+            <Data t="0.01" tn="0.0" />
+            <Data t="0.1" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dun" n_data="2" >
             <Data t="0" un="0.0" />            
-            <Data t="0.001" un="0.0" />
+            <Data t="0.1" un="0.0" />
         </Geomechanic> 
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />              
-            <Data t="0.001" qn="0.0" />
+            <Data t="0.1" qn="0.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="1.0" />
-            <Data t="0.00001" p="0.0" />
-            <Data t="0.001" p="0.0" />             
+            <Data t="0.01" p="0.0" />
+            <Data t="0.1" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
             <Data t="0" qn="0.0" />
-            <Data t="0.001" qn="0.0" />             
+            <Data t="0.1" qn="0.0" />             
         </Reservoir> 
     </BCReservoirs>     
 </CaseData>

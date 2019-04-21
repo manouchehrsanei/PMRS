@@ -1079,9 +1079,6 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     /// Initial reservoir state
     m_reservoir_analysis->ExecuteOneTimeStep();
     m_reservoir_analysis->UpdateState();
-//    m_simulation_data->SetTransferCurrentToLastQ(true);
-//    m_reservoir_analysis->UpdateState();
-//    m_simulation_data->SetTransferCurrentToLastQ(false);
     
     /// Compute stress state corresponding to reservoir state
     m_geomechanic_analysis->ExecuteOneTimeStep(true);

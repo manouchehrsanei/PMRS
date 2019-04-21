@@ -1,7 +1,7 @@
 
 ////////////////////////////////////////////////////////////////
 // Terzaghi_2D
-// Created 10/03/2018 by Manouchehr Sanei
+// Created 10/03/2018 by Manouchehr Sanei and Omar Durán
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
@@ -9,9 +9,9 @@
 // Parameters
 ////////////////////////////////////////////////////////////////
 
-lc =1.0e1;
-r =0.01;
-h =0.1;
+lc = 1.0e1;
+r = 0.1;
+h = 1.0;
 nh = 11;
 nr = 1;
 Is3DQ = 0;
