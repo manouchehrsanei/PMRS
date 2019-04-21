@@ -1352,9 +1352,16 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 REAL Kdr   = this->MemItem(gp_index).Kdr();
                 REAL p      = this->MemItem(gp_index).p();
                 REAL p_n   = this->MemItem(gp_index).p_n();
+                
+                REAL epsilon_p_v   = (this->MemItem(gp_index).GetPlasticState().m_eps_p.I1()/3);
+                REAL epsilon_p_v_n = (this->MemItem(gp_index).GetPlasticState_n().m_eps_p.I1()/3);
+                REAL phi_p   = alpha * epsilon_p_v;
+                REAL phi_p_n = alpha * epsilon_p_v_n;
+                
                 REAL sigma_t_v   = (this->MemItem(gp_index).GetSigma().I1()/3) - alpha * p;
                 REAL sigma_t_v_n = (this->MemItem(gp_index).GetSigma_n().I1()/3)  - alpha * p_n;
-                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v); //  Geomechanic update.
+                REAL geo_delta_phi_n = (alpha/Kdr)*(sigma_t_v_n-sigma_t_v) + (phi_p_n - phi_p); //  Geomechanic update.
+                
 //                REAL epsilon_t_v   = (this->MemItem(gp_index).GetPlasticState().m_eps_t.I1()/3);
 //                REAL epsilon_t_v_n = (this->MemItem(gp_index).GetPlasticState_n().m_eps_t.I1()/3);
 //                REAL geo_delta_phi_n = alpha*(epsilon_t_v_n-epsilon_t_v); //  Geomechanic update. in terms of total eps

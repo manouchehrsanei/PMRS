@@ -490,15 +490,15 @@ void TPMRSMonoPhasicCG<TMEM>::porosity(long gp_index, REAL &phi_n, REAL &dphi_nd
     REAL p     = memory.p();
     REAL p_n   = memory.p_n();
     
+    REAL epsilon_p_v_0 = (this->MemItem(gp_index).GetPlasticState_0().m_eps_p.I1()/3);
+    REAL epsilon_p_v   = (this->MemItem(gp_index).GetPlasticState().m_eps_p.I1()/3);
+    REAL phi_p_0 = alpha * epsilon_p_v_0;
+    REAL phi_p   = alpha * epsilon_p_v;
+    
     REAL sigma_t_v_0 = (memory.GetSigma_0().I1()/3) - alpha * p_0;
     REAL sigma_t_v   = (memory.GetSigma().I1()/3)  - alpha * p;
-    
-    REAL epsilon_t_v   = (memory.GetPlasticState().m_eps_t.I1()/3);
-    REAL epsilon_t_v_n = (memory.GetPlasticState_n().m_eps_t.I1()/3);
-    
-    REAL geo_delta_phi   = (alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
-    REAL geo_delta_phi_n = memory.delta_phi() + (alpha/Kdr)*(sigma_t_v-sigma_t_v_0);
-
+    REAL geo_delta_phi   = (alpha/Kdr)*(sigma_t_v-sigma_t_v_0) + (phi_p - phi_p_0);
+    REAL geo_delta_phi_n = memory.delta_phi() + (alpha/Kdr)*(sigma_t_v-sigma_t_v_0) + (phi_p - phi_p_0);
 
     m_phi_model.Porosity(phi, dphi_ndp, phi_0, p, p_0, alpha, Kdr, geo_delta_phi);
     m_phi_model.Porosity(phi_n, dphi_ndp, phi_0, p_n, p_0, alpha, Kdr, geo_delta_phi_n);
