@@ -139,17 +139,18 @@ void TPMRSSegregatedAnalysis::FillMemory(TPZCompMesh * cmesh){
         REAL kappa_0 = undrained_pars[3];
         REAL Eyoung  = poroperm_pars[0];
         REAL nu      = poroperm_pars[1];
-        REAL alpha   = poroperm_pars[2];
+        REAL Ks      = poroperm_pars[2];
         REAL Kdr     = Eyoung/(3.0*(1.0-2.0*nu));
-        
+        REAL alpha   = 1.0 - (Kdr/Ks);
         std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
         
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
             memory_vector.get()->operator [](i).Setphi_0(phi_0);
             memory_vector.get()->operator [](i).Setkappa_0(kappa_0);
-            memory_vector.get()->operator [](i).SetAlpha(alpha);
+            memory_vector.get()->operator [](i).SetKs(Ks);
             memory_vector.get()->operator [](i).SetKdr(Kdr);
+            memory_vector.get()->operator [](i).SetAlpha(alpha);
         }
         
     }

@@ -16,11 +16,14 @@ class TPMRSMemory : public TPMRSMonoPhasicMemory, public TPMRSElastoPlasticMemor
     
 private:
     
-    /// Biot-Willis coefficient
-    REAL m_alpha;
+    /// Grain bulk modulus
+    REAL m_Ks;
     
     /// Drained bulk modulus
     REAL m_Kdr;
+    
+    /// Biot's coefficient
+    REAL m_alpha;
     
     /// lagrangian porosity correction realted to geomechanics and fss iterations
     STATE m_delta_phi;
@@ -59,13 +62,14 @@ public:
     
     virtual int ClassId() const;
     
-    void SetAlpha(REAL alpha){
-        m_alpha  = alpha;
+    void SetKs(REAL Ks){
+        m_Ks  = Ks;
     }
     
-    REAL Alpha(){
-        return m_alpha;
+    REAL Ks(){
+        return m_Ks;
     }
+    
     
     void SetKdr(REAL Kdr){
         m_Kdr  = Kdr;
@@ -73,6 +77,14 @@ public:
     
     REAL Kdr(){
         return m_Kdr;
+    }
+    
+    void SetAlpha(REAL alpha){
+        m_alpha  = alpha;
+    }
+    
+    REAL Alpha(){
+        return m_alpha;
     }
     
     void Setdelta_phi(REAL delta_phi){

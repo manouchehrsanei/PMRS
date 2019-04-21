@@ -9,14 +9,16 @@
 
 
 TPMRSMemory::TPMRSMemory() : TPMRSMonoPhasicMemory() , TPMRSElastoPlasticMemory() {
-    m_alpha     = 0.0;
+    m_Ks        = 0.0;
     m_Kdr       = 0.0;
+    m_alpha     = 0.0;
     m_delta_phi = 0;
 }
 
 TPMRSMemory::TPMRSMemory(const TPMRSMemory & other): TPMRSMonoPhasicMemory(other), TPMRSElastoPlasticMemory(other) {
-    m_alpha     = other.m_alpha;
+    m_Ks        = other.m_Ks;
     m_Kdr       = other.m_Kdr;
+    m_alpha     = other.m_alpha;
     m_delta_phi = other.m_delta_phi;
 }
 
@@ -30,8 +32,9 @@ const TPMRSMemory & TPMRSMemory::operator=(const TPMRSMemory & other) {
     TPMRSMonoPhasicMemory::operator=(other);
     TPMRSElastoPlasticMemory::operator=(other);
     
-    m_alpha     = other.m_alpha;
+    m_Ks        = other.m_Ks;
     m_Kdr       = other.m_Kdr;
+    m_alpha     = other.m_alpha;
     m_delta_phi = other.m_delta_phi;
     
     return *this;
@@ -58,8 +61,9 @@ void TPMRSMemory::Read(TPZStream &buf, void *context){
 void TPMRSMemory::Print(std::ostream &out) const {
     TPMRSMonoPhasicMemory::Print(out);
     TPMRSElastoPlasticMemory::Print(out);
-    out << "\n Biot-Willis coefficient          = " << m_alpha;
+    out << "\n Biot-Willis coefficient          = " << m_Ks;
     out << "\n Drained bulk modulus             = " << m_Kdr;
+    out << "\n Biot's coefficient               = " << m_alpha;
     out << "\n lagrangian porosity correction   = " << m_delta_phi;
 }
 

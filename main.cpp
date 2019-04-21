@@ -349,18 +349,11 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
         REAL kappa_0 = undrained_pars[3];
         REAL E       = poroperm_pars[0];
         REAL nu      = poroperm_pars[1];
-        REAL alpha   = poroperm_pars[2];
+        REAL Ks      = poroperm_pars[2];
         REAL c_f     = poroperm_pars[3];
         REAL eta     = poroperm_pars[4];
         REAL Kdr     = E/(3.0*(1.0-2.0*nu));
         
-        
-        REAL K_s;
-        if (IsZero(alpha-1)) {
-            K_s = 1.0e20;
-        }else{
-            K_s = Kdr/(1.0 - alpha);
-        }
     
         TPZElasticResponse ER;
         ER.SetEngineeringData(E, nu);
@@ -376,7 +369,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             
             Elastic.ApplyLoad(sigma, eps);
             eps.ZZ() = 0.0;
-            default_memory.SetAlpha(alpha);
+            default_memory.SetKs(Ks);
             default_memory.SetKdr(Kdr);
             default_memory.Setphi_0(phi_0);
             default_memory.Setphi_n(phi_0);
@@ -432,7 +425,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.SetInitialData(y_0);
             RKSolver.SetFluidData(eta, c_f);
             RKSolver.SetDiscretization(rw, re, n_steps);
-            RKSolver.SetGrainBulkModulus(K_s);
+            RKSolver.SetGrainBulkModulus(Ks);
             RKSolver.SetFourthOrderApproximation();
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
@@ -453,7 +446,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     LEMC.fYC.SetUp(phi, psi, cohesion, ER);
                     
                     LEMC.ApplyLoad(sigma, eps);
-                    default_memory.SetAlpha(alpha);
+                    default_memory.SetKs(Ks);
                     default_memory.SetKdr(Kdr);
                     default_memory.Setphi_0(phi_0);
                     default_memory.Setphi_n(phi_0);
@@ -509,7 +502,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetInitialData(y_0);
                     RKSolver.SetFluidData(eta, c_f);
                     RKSolver.SetDiscretization(rw, re, n_steps);
-                    RKSolver.SetGrainBulkModulus(K_s);
+                    RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
@@ -556,7 +549,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     LEDS.fN.m_eps_p.Zero();
                     
                     LEDS.ApplyLoad(sigma, eps);
-                    default_memory.SetAlpha(alpha);
+                    default_memory.SetKs(Ks);
                     default_memory.SetKdr(Kdr);
                     default_memory.Setphi_0(phi_0);
                     default_memory.Setphi_n(phi_0);
@@ -613,7 +606,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetInitialData(y_0);
                     RKSolver.SetFluidData(eta, c_f);
                     RKSolver.SetDiscretization(rw, re, n_steps);
-                    RKSolver.SetGrainBulkModulus(K_s);
+                    RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();

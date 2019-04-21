@@ -1313,10 +1313,24 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                 this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
                 
-                REAL geo_delta_phi_n = 0.0; //  Geomechanic update. in terms of total eps
-                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
+                TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+                TPZTensor<STATE> epsilon,sigma;
+                Epsilon(data,epsilon);
+                T plastic_integrator(m_plastic_integrator);
+                plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
+                
+                REAL lambda, G;
+                lambda = Dep(0,5);
+                G = Dep(4,4)/2.0;
+                REAL Kep = lambda + (2.0/3.0)*G;
+                REAL Ks = this->MemItem(gp_index).Ks();
+                REAL alpha = 1.0 - (Kep/Ks);
+                this->MemItem(gp_index).SetAlpha(alpha);
+                
+//                REAL geo_delta_phi_n = 0.0; //  Geomechanic update. in terms of total eps
+//                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
             }
-
+        
             return;
         }
         
