@@ -40,8 +40,8 @@
     <!-- Finite element controls  -->
     <FEM>
         <FullyCoupled useQs="0" />
-        <MixedFormulationQ useQ="0" />
-        <HRefine h_level="1" />
+        <MixedFormulationQ useQ="1" />
+        <HRefine h_level="0" />
         <Elasticity p_order="3" />
         <Diffusion p_order="2" />
     </FEM>
@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Terzaghi_2D_CG" n_divisions="0" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Terzaghi_2D" n_divisions="2" n_outputs_geo="5" n_outputs_res="4" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -81,7 +81,7 @@
         <!-- Region definition -->
         <RegionData mat_id="1" n_boundaries_geo="3" n_boundaries_res ="3">
             <InitialPoroMechParameters Eyoung_u="1000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
-            <PoroMechParameters Eyoung="1000.0" nu="0.2" alpha="1.0" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
+            <PoroMechParameters Eyoung="1000.0" nu="0.2" Ks="1.0" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Constant" n_parameters="0" a="20.0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="1.0" friction="20.0"/>            
