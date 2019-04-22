@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
         
         if (sim_data->Get_is_performance_summary_Q()) {
             std::ofstream summary_file("PMRS_performance_summary.txt");
-            iterations.Print("iteraions = ",summary_file,EMathematicaInput);
+            iterations.Print("iterations = ",summary_file,EMathematicaInput);
             residuals.Print("residuals = ",summary_file,EMathematicaInput);
             cpu_time.Print("time = ",summary_file,EMathematicaInput);
             summary_file.flush();

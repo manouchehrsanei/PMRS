@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="0.00625" />
-        <StepNumber n_time_steps="160" />
+        <StepSize dt="0.0125" />
+        <StepNumber n_time_steps="80" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -22,7 +22,7 @@
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
         <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
-        <NState n_state="6" /> <!-- NState = {2,4,6}  -->
+        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
@@ -64,7 +64,9 @@
             <Var v_name="q" />
         </OutputControlsRes>
         <ReportingTimes>
-            <time t="1.0" />
+<!--             <time t="0.1" />
+            <time t="0.5" />
+            <time t="1.0" /> -->
         </ReportingTimes>        
     </OutputControls>
     <Physics>
@@ -139,7 +141,7 @@
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="1.0" />
-            <Data t="0.00625" p="0.0" />
+            <Data t="0.0125" p="0.0" />
             <Data t="1.0" p="0.0" />             
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="2" >
