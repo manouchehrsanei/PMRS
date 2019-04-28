@@ -440,7 +440,7 @@ void TPMRSMonoPhasicCG<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<RE
             break;
         case 3:
         {
-            Solout[0] = memory.div_q_n(); //  Variable without meaning.
+            Solout[0] = -1942; //  Meaningless variable.
         }
             break;
         case 4:

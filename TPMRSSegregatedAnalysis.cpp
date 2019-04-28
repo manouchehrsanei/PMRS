@@ -744,11 +744,24 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             m_residuals_summary(it,2) += m_geomechanic_analysis->Get_error();
             
             /// Relative error http://mathworld.wolfram.com/RelativeError.html
-            m_fss_p_norm  = Norm(m_reservoir_analysis->X_n() - m_p_m)/Norm(m_p_m);
-            m_fss_du_norm =  Norm(m_geomechanic_analysis->Solution() - m_u_m)/Norm(m_u_m);
+            REAL p_error = Norm(m_reservoir_analysis->X_n() - m_p_m);
+            REAL du_error = Norm(m_geomechanic_analysis->Solution() - m_u_m);
+            REAL last_p_norm = Norm(m_p_m);
+            REAL last_du_norm = Norm(m_u_m);
+            m_fss_p_norm  = p_error/last_p_norm;
+            m_fss_du_norm = du_error/last_du_norm;
+    
+            if (IsZero(p_error) && IsZero(last_p_norm)) {
+                m_fss_p_norm = p_error;
+            }
+            
+            if (IsZero(du_error) && IsZero(last_du_norm)) {
+                m_fss_du_norm = du_error;
+            }
             
             m_p_m = m_reservoir_analysis->X_n();
             m_u_m = m_geomechanic_analysis->Solution();
+            
             
             m_residuals_summary(it,3) = m_fss_p_norm;
             m_residuals_summary(it,4) = m_fss_du_norm;

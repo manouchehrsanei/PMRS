@@ -1264,6 +1264,7 @@ int TPMRSPoroElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
     if (!strcmp("phi"   , name.c_str())) return 6;
     if (!strcmp("kappa" , name.c_str())) return 7;
     if (!strcmp("q"     , name.c_str())) return 8;
+    if (!strcmp("div_q" , name.c_str())) return 9;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -1288,6 +1289,8 @@ int TPMRSPoroElastoPlastic<T,TMEM>::NSolutionVariables(int var){
             return 1; /// Scalar
         case 8:
             return m_dimension; /// Vector
+        case 9:
+            return 1; /// Scalar
             
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -1371,6 +1374,11 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TP
             {
                 Solout[i] = memory.q_n()[i];
             }
+        }
+            break;
+        case 9:
+        {
+                Solout[0] = -1942; // Meaningless variable.
         }
             break;
         default:
