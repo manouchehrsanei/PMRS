@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_CG" n_divisions="0" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_CG" n_divisions="4" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
