@@ -94,18 +94,18 @@ template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::Print(std::ostream &out) const{
     
     out << Name() << std::endl;
-    out << "m_n_steps = " << m_n_steps << std::endl;
-    out << "m_y_0 = " << m_y_0 << std::endl;
-    out << "m_re = " << m_re << std::endl;
-    out << "m_rw = " << m_rw << std::endl;
-    out << "m_eta = " << m_eta << std::endl;
-    out << "m_cf = " << m_cf << std::endl;
-    out << "m_K_s = " << m_K_s << std::endl;
-    out << "m_dr = " << m_dr << std::endl;
-    out << "m_default_memory = " << m_default_memory << std::endl;
-    out << "m_is_RK4_Q = " << m_is_RK4_Q << std::endl;
-    out << "m_n_state = " << m_n_state << std::endl;
-    out << "m_plastic_integrator = " << m_plastic_integrator << std::endl;
+//    out << "m_n_steps = " << m_n_steps << std::endl;
+//    out << "m_y_0 = " << m_y_0 << std::endl;
+//    out << "m_re = " << m_re << std::endl;
+//    out << "m_rw = " << m_rw << std::endl;
+//    out << "m_eta = " << m_eta << std::endl;
+//    out << "m_cf = " << m_cf << std::endl;
+//    out << "m_K_s = " << m_K_s << std::endl;
+//    out << "m_dr = " << m_dr << std::endl;
+//    out << "m_default_memory = " << m_default_memory << std::endl;
+//    out << "m_is_RK4_Q = " << m_is_RK4_Q << std::endl;
+//    out << "m_n_state = " << m_n_state << std::endl;
+//    out << "m_plastic_integrator = " << m_plastic_integrator << std::endl;
 //    out << "m_memory = " << m_memory << std::endl;
 //    out << "m_r_y = " << m_r_y << std::endl;
 //    out << "m_lambda = " << m_lambda << std::endl;
