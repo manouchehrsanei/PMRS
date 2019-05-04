@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D_h_2.msh" />
+       <MeshFile mesh_file="Wellbore_Cricular_2D_SEST2D_h_2.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
