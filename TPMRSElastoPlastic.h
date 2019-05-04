@@ -59,7 +59,7 @@ public:
     int Dimension() const { return m_dimension; }
     
     /// Number of state variables
-    int NStateVariables() { return m_dimension; }
+    int NStateVariables() const { return m_dimension; }
     
     /// Print function with considering memory
     void Print(std::ostream &out, const int memory);

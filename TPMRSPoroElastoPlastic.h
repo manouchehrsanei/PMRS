@@ -84,7 +84,7 @@ public:
     std::string Name() { return "TPMRSPoroElastoPlastic"; }
     
     /// Returns the number of state variables
-    int NStateVariables();
+    int NStateVariables() const ;
     
     /// Set the required data at each integration point
     void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);

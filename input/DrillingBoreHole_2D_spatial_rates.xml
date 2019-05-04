@@ -49,13 +49,9 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_CG" n_divisions="4" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="0" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_CG_h_0" n_divisions="3" n_outputs_geo="5" n_outputs_res="5" draw_geometry_Q="0" performance_summary_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
-            <Var t_name="s" />
-            <Var t_name="e" />
-            <Var t_name="ep" />
-            <Var t_name="s_t" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />

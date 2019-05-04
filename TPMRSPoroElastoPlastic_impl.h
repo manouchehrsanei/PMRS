@@ -93,7 +93,7 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Print(std::ostream & out){
 }
 
 template <class T, class TMEM>
-int TPMRSPoroElastoPlastic<T,TMEM>::NStateVariables(){
+int TPMRSPoroElastoPlastic<T,TMEM>::NStateVariables() const {
     return 1;
 }
 

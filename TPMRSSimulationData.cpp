@@ -1358,14 +1358,14 @@ void TPMRSSimulationData::PrintGeometry()
     std::ofstream vtkfile(vtk_name.str().c_str());
     TPZVTKGeoMesh::PrintGMeshVTK(m_geometry, vtkfile, true);
 
-#ifdef PZDEBUG
-    TPZCheckGeom checker(m_geometry);
-    checker.CheckUniqueId();
-    if(checker.PerformCheck())
-    {
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    TPZCheckGeom checker(m_geometry);
+//    checker.CheckUniqueId();
+//    if(checker.PerformCheck())
+//    {
+//        DebugStop();
+//    }
+//#endif
     
 }
 
