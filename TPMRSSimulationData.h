@@ -120,6 +120,9 @@ protected:
     /// Number of reservoir outputs
     int m_n_outputs_res;
     
+    /// Directive that states to print the initial data
+    bool m_draw_initial_data_Q;
+    
     /// Directive that states to print geometry or not
     bool m_is_draw_geometry_Q;
     
@@ -257,6 +260,7 @@ public:
         m_vtk_resolution                          = other.m_vtk_resolution;
         m_n_outputs_geo                           = other.m_n_outputs_geo;
         m_n_outputs_res                           = other.m_n_outputs_res;
+        m_draw_initial_data_Q                     = other.m_draw_initial_data_Q;
         m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
         m_performance_summary_Q                   = other.m_performance_summary_Q;
         m_s_names_res                             = other.m_s_names_res;
@@ -309,6 +313,7 @@ public:
             m_vtk_resolution                          = other.m_vtk_resolution;
             m_n_outputs_geo                           = other.m_n_outputs_geo;
             m_n_outputs_res                           = other.m_n_outputs_res;
+            m_draw_initial_data_Q                     = other.m_draw_initial_data_Q;
             m_is_draw_geometry_Q                      = other.m_is_draw_geometry_Q;
             m_performance_summary_Q                   = other.m_performance_summary_Q;
             m_s_names_res                             = other.m_s_names_res;
@@ -464,6 +469,16 @@ public:
     
     /// Get Number of reservoir output
     int num_outputs_res() { return m_n_outputs_res; }
+    
+    
+    /// Set the ask to print the initial data
+    void Set_is_draw_initial_data_Q(bool is_draw_initial_data_Q){
+        m_draw_initial_data_Q = is_draw_initial_data_Q;
+    }
+    
+    /// Get the ask to print the initial data
+    bool Get_is_draw_initial_data_Q() { return m_draw_initial_data_Q; }
+    
     
     /// Set the ask to print the geometry or not
     void Set_is_draw_geometry_Q(bool is_draw_geometry_Q){
