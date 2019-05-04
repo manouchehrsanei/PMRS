@@ -1080,6 +1080,12 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << "TPMRSSegregatedAnalysis:: Opening for initialization process." <<std::endl;
+    
+    int64_t n_dof_geo = m_geomechanic_analysis->Solution().Rows();
+    int64_t n_dof_res = m_reservoir_analysis->X_n().Rows();
+    std::cout << "TPMRSSegregatedAnalysis:: Number of DoF for geomechanics module   = " << n_dof_geo <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Number of DoF for reservoir module      = " << n_dof_res <<std::endl;
+    
     std::string name = m_simulation_data->name_vtk_file();
     std::string file_geo = name + "_geo.vtk";
     std::string file_res = name + "_res.vtk";
@@ -1108,8 +1114,8 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_simulation_data->SetTransferCurrentToLastQ(false);
     
     UpdateInitialSigmaAndPressure();
-    m_reservoir_analysis->PostProcessTimeStep(file_res);
-    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+//    m_reservoir_analysis->PostProcessTimeStep(file_res);
+//    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
     m_simulation_data->Setdt(dt);
 #endif
     
@@ -1151,7 +1157,7 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
         UpdateInitialSigmaAndPressure(false);
-        PostProcessTimeStep(file_geo, file_res);
+//        PostProcessTimeStep(file_geo, file_res);
     }
     std::cout << "TPMRSSegregatedAnalysis:: Ending for undarined response process." <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
