@@ -701,6 +701,11 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::cout << "TPMRSSegregatedAnalysis:: Begining for recurrent simulation process." <<std::endl;
     std::cout << std::endl << std::endl;
     
+    int64_t n_dof_geo = m_geomechanic_analysis->Solution().Rows();
+    int64_t n_dof_res = m_reservoir_analysis->X_n().Rows();
+    std::cout << "TPMRSSegregatedAnalysis:: Number of DoF for geomechanics module   = " << n_dof_geo <<std::endl;
+    std::cout << "TPMRSSegregatedAnalysis:: Number of DoF for reservoir module      = " << n_dof_res <<std::endl;
+    
     m_p_m = m_reservoir_analysis->X_n();
     m_u_m = m_geomechanic_analysis->Solution();
     
