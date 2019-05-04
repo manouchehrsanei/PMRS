@@ -72,7 +72,7 @@ std::vector<REAL> TPMRSInterpolator::f(REAL time){
     }
     if (t_interval==-1) {
         std::string err{"TPMRSInterpolator:: out of time range"};
-        throw std::range_error(err);
+//        throw std::range_error(err);
         DebugStop();
     }
     
@@ -91,7 +91,7 @@ bool TPMRSInterpolator::CheckDataCoherence(std::vector<std::pair<REAL, std::vect
     int n_data = points.size();
     if (n_data==0) {
         std::string err{"TPMRSInterpolator:: there is no points to work on."};
-        throw std::range_error(err);
+//        throw std::range_error(err);
     }
     
     for (int t = 0; t < n_data - 1; t++) {
@@ -99,7 +99,7 @@ bool TPMRSInterpolator::CheckDataCoherence(std::vector<std::pair<REAL, std::vect
         REAL t_e = points[t+1].first;
         if(IsZero(t_i-t_e)){
             std::string err{"TPMRSInterpolator:: two time values are equal."};
-            throw std::range_error(err);
+//            throw std::range_error(err);
             return false;
         }
     }
@@ -107,7 +107,7 @@ bool TPMRSInterpolator::CheckDataCoherence(std::vector<std::pair<REAL, std::vect
     for (int t = 0; t < n_data; t++) {
         if(n_f_data != points[t].second.size()){
             std::string err{"TPMRSInterpolator:: this is not a cartesian array."};
-            throw std::range_error(err);
+//            throw std::range_error(err);
             return false;
         }
     }
