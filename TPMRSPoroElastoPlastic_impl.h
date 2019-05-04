@@ -53,7 +53,7 @@ TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic(const TPMRSPoroElastoPlas
 }
 
 template <class T, class TMEM>
-TPMRSPoroElastoPlastic<T,TMEM> & TPMRSPoroElastoPlastic<T,TMEM>::TPMRSPoroElastoPlastic<T,TMEM>::operator = (const TPMRSPoroElastoPlastic& other){
+TPMRSPoroElastoPlastic<T,TMEM> & TPMRSPoroElastoPlastic<T,TMEM>::operator = (const TPMRSPoroElastoPlastic& other){
     
     // check for self-assignment
     if(&other == this){
