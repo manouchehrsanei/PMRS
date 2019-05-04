@@ -106,10 +106,10 @@ void TPMRSRKSolver<T,TMEM>::Print(std::ostream &out) const{
     out << "m_is_RK4_Q = " << m_is_RK4_Q << std::endl;
     out << "m_n_state = " << m_n_state << std::endl;
     out << "m_plastic_integrator = " << m_plastic_integrator << std::endl;
-    out << "m_memory = " << m_memory << std::endl;
-    out << "m_r_y = " << m_r_y << std::endl;
-    out << "m_lambda = " << m_lambda << std::endl;
-    out << "m_mu = " << m_mu << std::endl;
+//    out << "m_memory = " << m_memory << std::endl;
+//    out << "m_r_y = " << m_r_y << std::endl;
+//    out << "m_lambda = " << m_lambda << std::endl;
+//    out << "m_mu = " << m_mu << std::endl;
     
 }
 
