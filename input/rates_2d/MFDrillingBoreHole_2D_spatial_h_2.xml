@@ -49,12 +49,14 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_h_2" n_divisions="3" n_outputs_geo="1" n_outputs_res="1" draw_geometry_Q="0" performance_summary_Q="0" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_h_2" n_divisions="3" n_outputs_geo="1" n_outputs_res="3" draw_geometry_Q="0" performance_summary_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
         </OutputControlsGeo>
         <OutputControlsRes>
             <Var s_name="p" />
+            <Var s_name="div_q" />
+            <Var v_name="q" />
         </OutputControlsRes> 
         <ReportingTimes>
             <time t="1.0e10" />
