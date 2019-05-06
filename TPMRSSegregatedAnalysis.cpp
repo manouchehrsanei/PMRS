@@ -1114,8 +1114,10 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_simulation_data->SetTransferCurrentToLastQ(false);
     
     UpdateInitialSigmaAndPressure();
-//    m_reservoir_analysis->PostProcessTimeStep(file_res);
-//    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    if (m_simulation_data->Get_is_draw_initial_data_Q()) {
+        m_reservoir_analysis->PostProcessTimeStep(file_res);
+        m_geomechanic_analysis->PostProcessTimeStep(file_geo);
+    }
     m_simulation_data->Setdt(dt);
 #endif
     
@@ -1157,7 +1159,9 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
         UpdateInitialSigmaAndPressure(false);
-//        PostProcessTimeStep(file_geo, file_res);
+        if (m_simulation_data->Get_is_draw_initial_data_Q()) {
+            PostProcessTimeStep(file_geo, file_res);
+        }
     }
     std::cout << "TPMRSSegregatedAnalysis:: Ending for undarined response process." <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;

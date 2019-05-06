@@ -269,7 +269,9 @@ int main(int argc, char *argv[])
         TPZFMatrix<REAL> cpu_time   = SFI_analysis->TimeSummary();
         
         if (sim_data->Get_is_performance_summary_Q()) {
-            std::ofstream summary_file("PMRS_performance_summary.txt");
+            std::string name = sim_data->name_vtk_file();
+            std::string file_performance = name + "_performance_summary.txt";
+            std::ofstream summary_file(file_performance.c_str());
             iterations.Print("iterations = ",summary_file,EMathematicaInput);
             residuals.Print("residuals = ",summary_file,EMathematicaInput);
             cpu_time.Print("time = ",summary_file,EMathematicaInput);
@@ -679,7 +681,7 @@ TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
     }
  
     TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
-    sfi_analysis->ConfigurateAnalysis(ELDLt, ELDLt, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     return sfi_analysis;
 }
 

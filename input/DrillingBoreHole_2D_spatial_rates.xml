@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D_h_1.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D_h_0.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -40,7 +40,7 @@
     <!-- Finite element controls  -->
     <FEM>
         <FullyCoupled useQs="0" />
-        <MixedFormulationQ useQ="1" />
+        <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -49,7 +49,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_CG" n_divisions="3" n_outputs_geo="1" n_outputs_res="3" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="0" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_CG" n_divisions="3" n_outputs_geo="1" n_outputs_res="3" draw_geometry_Q="0" performance_summary_Q="0" />
         <OutputControlsGeo>
             <Var v_name="u" />
         </OutputControlsGeo>

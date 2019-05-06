@@ -243,14 +243,22 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("draw_initial_data_Q");
-    bool is_draw_initial_data_Q = std::atoi(char_container);
-    m_draw_initial_data_Q     = is_draw_initial_data_Q;
-    
+    if (char_container) {
+        bool is_draw_initial_data_Q = std::atoi(char_container);
+        m_draw_initial_data_Q     = is_draw_initial_data_Q;
+    }else{
+        m_draw_initial_data_Q = false;
+    }
+
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("draw_geometry_Q");
-    bool is_draw_geometry_Q = std::atoi(char_container);
-    m_is_draw_geometry_Q     = is_draw_geometry_Q;
-    
+    if (char_container) {
+        bool is_draw_geometry_Q = std::atoi(char_container);
+        m_is_draw_geometry_Q     = is_draw_geometry_Q;
+    }else{
+        m_draw_initial_data_Q = false;
+    }
+
     container = doc_handler.FirstChild("CaseData").FirstChild("OutputControls").FirstChild("PostProcessing").ToElement();
     char_container = container->Attribute("performance_summary_Q");
     bool is_performance_summary_Q = std::atoi(char_container);
