@@ -23,6 +23,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_state                             =   0;
     m_max_theta_value                     = 0.0;
     m_max_plastic_strain                  = 0.0;
+    m_reset_undarined_respose_data_Q      = true;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
     m_is_fully_coupled_Q                  = true;
@@ -164,6 +165,14 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     REAL max_plastic_norm_val = std::atof(char_container);
     m_max_plastic_strain = max_plastic_norm_val;
     /// End:: Substeps controls
+    
+    
+    /// Begin:: Initialization controls
+    container = doc_handler.FirstChild("CaseData").FirstChild("Initialization").FirstChild("ResetUndarinedResposeData").ToElement();
+    char_container = container->Attribute("reset_undrained_response_data");
+    bool is_reset_undarined_respose_data_Q = std::atoi(char_container);
+    m_reset_undarined_respose_data_Q = is_reset_undarined_respose_data_Q;
+    /// End:: Initialization controls
     
     
     /// Begin:: Parallel controls
@@ -1288,6 +1297,7 @@ void TPMRSSimulationData::Print()
     std::cout << " m_n_state = " << m_n_state << std::endl;
     std::cout << " m_max_theta_value = " << m_max_theta_value << std::endl;
     std::cout << " m_max_plastic_strain = " << m_max_plastic_strain << std::endl;
+    std::cout << " m_reset_undarined_respose_data_Q = " << m_reset_undarined_respose_data_Q << std::endl;
     std::cout << " m_n_threads = " << m_n_threads << std::endl;
     std::cout << " m_scale_factor = " << m_scale_factor << std::endl;
     std::cout << " m_is_fully_coupled_Q = " << m_is_fully_coupled_Q << std::endl;

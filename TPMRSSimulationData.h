@@ -67,6 +67,9 @@ protected:
     /// The maximum substeps of plasticity
     REAL m_max_plastic_strain;
     
+    /// Directive that states the reset undarined respose data
+    bool m_reset_undarined_respose_data_Q;
+    
     /// Name of nonlinear acceleration method
     std::string m_n_nonlinear_acceleration;
     
@@ -245,6 +248,7 @@ public:
         m_n_state                                 = other.m_n_state;
         m_max_theta_value                         = other.m_max_theta_value;
         m_max_plastic_strain                      = other.m_max_plastic_strain;
+        m_reset_undarined_respose_data_Q          = other.m_reset_undarined_respose_data_Q;
         m_n_threads                               = other.m_n_threads;
         m_scale_factor                            = other.m_scale_factor;
         m_is_fully_coupled_Q                      = other.m_is_fully_coupled_Q;
@@ -298,6 +302,7 @@ public:
             m_n_state                                 = other.m_n_state;
             m_max_theta_value                         = other.m_max_theta_value;
             m_max_plastic_strain                      = other.m_max_plastic_strain;
+            m_reset_undarined_respose_data_Q          = other.m_reset_undarined_respose_data_Q;
             m_n_threads                               = other.m_n_threads;
             m_scale_factor                            = other.m_scale_factor;
             m_is_fully_coupled_Q                      = other.m_is_fully_coupled_Q;
@@ -451,6 +456,14 @@ public:
     
     /// Get the maximum substeps of plasticity
     REAL Get_max_plastic_strain() { return m_max_plastic_strain; }
+    
+    /// Get the ask to reset undarined respose data
+    bool Get_reset_undarined_respose_data_Q() { return m_reset_undarined_respose_data_Q; }
+    
+    /// Set the ask to reset undarined respose data
+    void Set_reset_undarined_respose_data_Q(bool is_reset_undarined_respose_dataQ){
+        m_reset_undarined_respose_data_Q = is_reset_undarined_respose_dataQ;
+    }
     
     /// Get the number of threads
     int n_threads() { return m_n_threads; }
