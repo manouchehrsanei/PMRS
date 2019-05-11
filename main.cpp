@@ -508,7 +508,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
-//                    RKSolver.PrintRKApproximation();
+                    RKSolver.PrintRKApproximation();
                     RKSolver.PrintSecondaryVariables();
                     
                 }
@@ -611,9 +611,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
-                    RKSolver.ExecuteRKApproximation();
-//                    RKSolver.PrintRKApproximation();
-                    RKSolver.PrintSecondaryVariables();
+
                 
                 }
                     break;
@@ -625,6 +623,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             }
         }
     }
+    
     
 }
 
