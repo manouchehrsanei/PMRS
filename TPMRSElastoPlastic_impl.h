@@ -417,9 +417,9 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
 //    sigma.CopyFrom(sigma_vec);
     
 #else
-
-    //    plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
+    int gp_index = data.intGlobPtIndex;
     T plastic_integrator(m_plastic_integrator);
+    plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
     plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
 #endif
     
@@ -1311,6 +1311,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 TPZTensor<STATE> epsilon,sigma;
                 Epsilon(data,epsilon);
                 T plastic_integrator(m_plastic_integrator);
+                plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
                 plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
                 
                 REAL lambda, G;
@@ -1340,6 +1341,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
         TPZTensor<STATE> epsilon,sigma;
         Epsilon(data,epsilon);
         T plastic_integrator(m_plastic_integrator);
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
         plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
         
         if (m_simulation_data->IsCurrentStateQ()) {
