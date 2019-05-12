@@ -1274,9 +1274,17 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
             if(keep_phi_Q){
                 REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
                 memory_vector.get()->operator [](i).Setphi_n(phi_0);
+                
+                REAL kappa_0 = memory_vector.get()->operator [](i).kappa_0();
+                memory_vector.get()->operator [](i).Setkappa_n(kappa_0);
+                
             }else{
                 REAL phi_0 = memory_vector.get()->operator [](i).phi_n();
                 memory_vector.get()->operator [](i).Setphi_0(phi_0);
+                
+                REAL kappa_0 = memory_vector.get()->operator [](i).kappa_n();
+                memory_vector.get()->operator [](i).Setkappa_0(kappa_0);
+                
             }
         
             
