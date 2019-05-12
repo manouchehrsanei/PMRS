@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="50" />
-        <Residue res_tolerance="0.0001" />
-        <Correction cor_tolerance="0.0001" />
+        <Residue res_tolerance="0.01" />
+        <Correction cor_tolerance="0.01" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -53,7 +53,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="Nonlinear_DrillingBoreHole_2D_M_Reset_du" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="Nonlinear_DrillingBoreHole_2D_MF" n_divisions="1" n_outputs_geo="5" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
@@ -95,7 +95,7 @@
             <InitialPoroMechParameters Eyoung_u="10000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="10000.0" nu="0.2" Ks="22222.222222222" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Petunin" n_parameters="1" a="20.0" />
+            <KappaParameters kappa_model="Constant" n_parameters="0" a="20.0" />
             <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="9.0" friction="30.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
@@ -161,7 +161,7 @@
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
-            <Data t="0" p="30.0" />
+            <Data t="0" p="25.0" />
             <Data t="10.0" p="25.0" />
             <Data t="100.0" p="25.0" />
         </Reservoir>

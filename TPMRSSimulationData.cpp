@@ -23,7 +23,7 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_state                             =   0;
     m_max_theta_value                     = 0.0;
     m_max_plastic_strain                  = 0.0;
-    m_reset_undarined_respose_data_Q      = true;
+    m_reset_undarined_respose_data_Q      = false;
     m_n_threads                           =   0;
     m_scale_factor                        = 0.0;
     m_is_fully_coupled_Q                  = true;

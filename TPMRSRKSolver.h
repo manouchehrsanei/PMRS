@@ -44,6 +44,9 @@ private:
     /// Fluid viscosity
     REAL m_eta;
     
+    /// Fluid density
+    REAL m_rho;
+    
     /// Fluid compressibility
     REAL m_cf;
     
@@ -111,9 +114,10 @@ public:
     }
     
     /// Set the fluid data
-    void SetFluidData(REAL eta, REAL cf){
+    void SetFluidData(REAL eta, REAL cf, REAL rho){
         m_eta = eta;
         m_cf  = cf;
+        m_rho = rho;
     }
 
     

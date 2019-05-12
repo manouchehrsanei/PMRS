@@ -184,11 +184,12 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     REAL l = this->lambda(i);
     REAL mu = this->mu(i);
     REAL alpha = m_memory[i].Alpha();
+    REAL sigmar_0 = m_memory[i].GetSigma_0().XX();
     
-    REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
+    REAL eps_t_rr = (-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu));
     f[0] = eps_t_rr;
-    f[1] = ((-sr+((2*mu*ur)/(r))+l*((ur/r)+((r*sr-(l*ur))/(r*(l+2*mu)))))/(r))-alpha*(m_eta/kappa)*qr;
-    f[2] = -(m_eta/kappa)*qr;
+    f[1] = ((2*mu*(ur/r)) - (2.0*mu*(-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu))))/(r)-alpha*(m_eta/(m_rho*kappa))*qr;
+    f[2] = -(m_eta/(m_rho*kappa))*qr;
     f[3] = -qr/r;
     
 #endif

@@ -1158,7 +1158,8 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_simulation_data->SetTransferCurrentToLastQ(true);
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
-        UpdateInitialSigmaAndPressure(true);
+        bool reset_undrained_data_Q = m_simulation_data->Get_reset_undarined_respose_data_Q();
+        UpdateInitialSigmaAndPressure(reset_undrained_data_Q);
         if (m_simulation_data->Get_is_draw_initial_data_Q()) {
             PostProcessTimeStep(file_geo, file_res);
         }
@@ -1271,11 +1272,11 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q) {
                 memory_vector.get()->operator [](i).Setu_n(u_null);
                 memory_vector.get()->operator [](i).Setu_sub_step(u_null);
                 
-                /// Cleaning elasto-plastic states
-                memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
-                memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
-                memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
-                memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
+//                /// Cleaning elasto-plastic states
+//                memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
+//                memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
+//                memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
+//                memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
                 
             }else{
                 TPZManVector<REAL,3> u_0 = memory_vector.get()->operator [](i).Getu_n();
