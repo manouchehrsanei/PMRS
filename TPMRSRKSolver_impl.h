@@ -347,13 +347,13 @@ void TPMRSRKSolver<T,TMEM>::AppendTo(int i, std::vector<REAL> y){
 }
 
 template <class T, class TMEM>
-void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(){
-    m_r_y.Print("rkdata = ",std::cout,EMathematicaInput);
+void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(std::ostream &out){
+    m_r_y.Print("rkdata = ",out,EMathematicaInput);
 }
 
 /// Print the secondary variables (s_r,s_t,s_z,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
 template <class T, class TMEM>
-void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
+void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(std::ostream &out){
     int n_data = m_memory.size();
     int n_var = 10;
     TPZFMatrix<REAL> s_data(n_data,n_var);
@@ -379,7 +379,7 @@ void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(){
         s_data(i,8) = phi;
         s_data(i,9) = kappa;
     }
-    s_data.Print("rksdata = ",std::cout,EMathematicaInput);
+    s_data.Print("rksdata = ",out,EMathematicaInput);
 }
 
 
@@ -411,8 +411,8 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Epsilon(int i, REAL & r, std::vector<REAL
     
     REAL ur = y[0];
     REAL sr = y[1];
-    
-    REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
+    REAL sigmar_0 = m_memory[i].GetSigma_0().XX();
+    REAL eps_t_rr = (-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu));
     REAL eps_t_tt = ur/r;
     
     TPZTensor<REAL> eps;
@@ -489,34 +489,48 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
 
     REAL last_l = this->lambda(i);
     REAL last_mu = this->mu(i);
-    
-    bool check_Q = false;
-    REAL tol = 1.0e-8;
-    int n_iterations = 50;
     REAL l = last_l;
     REAL mu = last_mu;
-    m_accept_solution_Q = false;
-    for (int k = 0; k < n_iterations; k++) {
+    { /// First data correction
         m_lambda[i] = l;
         m_mu[i] = mu;
         TPZTensor<REAL> epsilon = Epsilon(i,r,y);
         TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-        REAL error_l  = fabs(l - Dep(0,3));
-        REAL error_mu  = fabs(mu - Dep(1,1)/2.0);
-        check_Q = error_l < tol && error_mu < tol;
-        if (check_Q) {
-            break;
-        }
-        l = Dep(0,3);
+        l = Dep(0,5);
         mu = Dep(1,1)/2.0;
     }
-
-    if(!check_Q){
-        m_lambda[i] = last_l;
-        m_mu[i] = last_mu;
-        std::cout << "TPMRSRKSolver<T,TMEM>:: Nonlinear Process does not converge!" << std::endl;
-    }
+    
+//    bool check_Q = false;
+//    REAL tol = 1.0e-4;
+//    int n_iterations = 50;
+//    REAL l = last_l;
+//    REAL mu = last_mu;
+//    m_accept_solution_Q = false;
+//    for (int k = 0; k < n_iterations; k++) {
+//        m_lambda[i] = l;
+//        m_mu[i] = mu;
+//        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+//        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+//        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
+//        REAL error_l  = fabs(l - Dep(0,5));
+//        REAL error_mu  = fabs(mu - Dep(1,1)/2.0);
+//        check_Q = error_l < tol && error_mu < tol;
+//        if (check_Q) {
+//            break;
+//        }
+//        l = Dep(0,5);
+//        mu = Dep(1,1)/2.0;
+//    }
+//
+//    if(!check_Q){
+//        m_lambda[i] = last_l;
+//        m_mu[i] = last_mu;
+//        std::cout << "TPMRSRKSolver<T,TMEM>:: Nonlinear Process does not converge!" << std::endl;
+//    }
+    
+//    REAL l = last_l;
+//    REAL mu = last_mu;
     
     m_accept_solution_Q = true;
     /// update secondary variables
@@ -554,8 +568,11 @@ REAL TPMRSRKSolver<T,TMEM>::Porosity(int i, REAL & r, std::vector<REAL> & y){
     REAL phi = phi_0;
     
     TPZTensor<REAL> epsilon_0 = m_memory[i].GetPlasticState_0().m_eps_t;
+    
     /// Apply geomechanic correction
-    phi += alpha*(epsilon.I1() - epsilon_0.I1());
+    REAL eps_v_0 = epsilon_0.I1();
+    REAL eps_v = epsilon.I1();
+    phi += alpha*(eps_v - eps_v_0);
     
     /// Apply pore correction
     REAL S = (1.0-alpha)*(alpha-phi_0)/Kdr;

@@ -165,7 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
-    bool RK_approximation_Q = true;
+    bool RK_approximation_Q = false;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -297,14 +297,17 @@ int main(int argc, char *argv[])
 
 void RunRKApproximation(TPMRSSimulationData * sim_data){
     
+    std::ofstream rk_file_data("rk_data.txt");
+    
     TPZTensor<REAL> sigma_0;
     sigma_0.Zero();
-    sigma_0.XX() = -37.5;
-    sigma_0.YY() = -37.5;
-    sigma_0.ZZ() = -37.5;
+    sigma_0.XX() = -31.5;
+    sigma_0.YY() = -31.5;
+    sigma_0.ZZ() = -15.75;
+    REAL p_0 = 30.0;
     
     /// Discretization
-    int n_steps = 20;
+    int n_steps = 100;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -312,13 +315,13 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-
-    REAL u_r        = -0.00029612;
-    REAL sigma_r    = -37.4937;
-    REAL sigma_t    = -37.8069;
-    REAL sigma_z    = -37.5601;
+    
+    REAL u_r        = -0.0022224;
+    REAL sigma_r    = -31.187;
+    REAL sigma_t    = -32.581;
+    REAL sigma_z    = -15.942;
     REAL p_r        = 30.0;
-    REAL q_r        = -0.0108574;
+    REAL q_r        = -0.0434294;
 
     y_0.push_back(u_r);
     y_0.push_back(sigma_r);
@@ -371,8 +374,10 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             TPZElasticCriterion Elastic;
             Elastic.SetElasticResponse(ER);
             
-            Elastic.ApplyLoad(sigma, eps);
+            Elastic.ApplyLoad(sigma_0, eps);
             eps.ZZ() = 0.0;
+            eps.Zero();
+            
             default_memory.SetKs(Ks);
             default_memory.SetKdr(Kdr);
             default_memory.Setphi_0(phi_0);
@@ -382,6 +387,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             default_memory.SetSigma_0(sigma_0);
             default_memory.SetSigma(sigma_0);
             default_memory.SetSigma_n(sigma_0);
+            default_memory.Setp_0(p_0);
             default_memory.GetPlasticState_0().m_eps_t = eps;
             default_memory.GetPlasticState().m_eps_t = eps;
             default_memory.GetPlasticState_n().m_eps_t = eps;
@@ -433,8 +439,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.SetFourthOrderApproximation();
             RKSolver.Synchronize();
             RKSolver.ExecuteRKApproximation();
-            RKSolver.PrintRKApproximation();
-//            RKSolver.PrintSecondaryVariables();
+            RKSolver.PrintRKApproximation(rk_file_data);
+            RKSolver.PrintSecondaryVariables(rk_file_data);
             
         }else{
             // Elastoplastic material
@@ -449,7 +455,10 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     LEMC.SetElasticResponse(ER);
                     LEMC.fYC.SetUp(phi, psi, cohesion, ER);
                     
-                    LEMC.ApplyLoad(sigma, eps);
+                    LEMC.ApplyLoad(sigma_0, eps);
+                    eps.ZZ() = 0.0;
+                    eps.Zero();
+                    
                     default_memory.SetKs(Ks);
                     default_memory.SetKdr(Kdr);
                     default_memory.Setphi_0(phi_0);
@@ -459,6 +468,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     default_memory.SetSigma_0(sigma_0);
                     default_memory.SetSigma(sigma_0);
                     default_memory.SetSigma_n(sigma_0);
+                    default_memory.Setp_0(p_0);
                     default_memory.GetPlasticState_0().m_eps_t = eps;
                     default_memory.GetPlasticState().m_eps_t = eps;
                     default_memory.GetPlasticState_n().m_eps_t = eps;
@@ -510,8 +520,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
-                    RKSolver.PrintRKApproximation();
-//                    RKSolver.PrintSecondaryVariables();
+                    RKSolver.PrintRKApproximation(rk_file_data);
+                    RKSolver.PrintSecondaryVariables(rk_file_data);
                     
                 }
                     break;
@@ -613,6 +623,9 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
                     RKSolver.Synchronize();
+                    RKSolver.ExecuteRKApproximation();
+                    RKSolver.PrintRKApproximation(rk_file_data);
+                    RKSolver.PrintSecondaryVariables(rk_file_data);
 
                 
                 }

@@ -168,10 +168,10 @@ public:
     void ExecuteRKApproximation();
     
     /// Print the Runge-Kutta approximation
-    void PrintRKApproximation();
+    void PrintRKApproximation(std::ostream &out = std::cout);
     
     /// Print the secondary variables (s_r,s_t,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
-    void PrintSecondaryVariables();
+    void PrintSecondaryVariables(std::ostream &out = std::cout);
     
 private:
     

@@ -1159,7 +1159,7 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
         bool reset_undrained_data_Q = m_simulation_data->Get_reset_undarined_respose_data_Q();
-        UpdateInitialSigmaAndPressure(reset_undrained_data_Q);
+        UpdateInitialSigmaAndPressure(reset_undrained_data_Q,false);
         if (m_simulation_data->Get_is_draw_initial_data_Q()) {
             PostProcessTimeStep(file_geo, file_res);
         }
@@ -1171,7 +1171,7 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
     std::cout << std::endl << std::endl;
 }
 
-void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q) {
+void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool keep_phi_Q) {
     
     TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
     
@@ -1262,41 +1262,46 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q) {
             REAL geo_delta_phi_0 = 0.0;
             memory_vector.get()->operator [](i).Setdelta_phi(geo_delta_phi_0);
             
-            REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
-            memory_vector.get()->operator [](i).Setphi_n(phi_0);
-            
-            /// Cleaning u and plastic state
-            if (reset_u_Q) {
-                memory_vector.get()->operator [](i).Setu_0(u_null);
-                memory_vector.get()->operator [](i).Setu(u_null);
-                memory_vector.get()->operator [](i).Setu_n(u_null);
-                memory_vector.get()->operator [](i).Setu_sub_step(u_null);
-                
-//                /// Cleaning elasto-plastic states
-//                memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
-//                memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
-//                memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
-//                memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
-                
-            }else{
-                TPZManVector<REAL,3> u_0 = memory_vector.get()->operator [](i).Getu_n();
-                memory_vector.get()->operator [](i).Setu_0(u_0);
-                memory_vector.get()->operator [](i).Setu(u_0);
-                memory_vector.get()->operator [](i).Setu_n(u_0);
-                memory_vector.get()->operator [](i).Setu_sub_step(u_0);
-            }
-            
-
+            TPZPlasticState<REAL> plas_state_0 = memory_vector.get()->operator [](i).GetPlasticState_n();
+            memory_vector.get()->operator [](i).SetPlasticState_0(plas_state_0);
+            memory_vector.get()->operator [](i).SetPlasticState(plas_state_0);
+            memory_vector.get()->operator [](i).SetPlasticStateSubStep(plas_state_0);
             
             TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
             memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
             memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
             
-            TPZPlasticState<REAL> plas_state_0 = memory_vector.get()->operator [](i).GetPlasticState_n();
-            memory_vector.get()->operator [](i).SetPlasticState_0(plas_state_0);
-            memory_vector.get()->operator [](i).SetPlasticState(plas_state_0);
+            if(keep_phi_Q){
+                REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
+                memory_vector.get()->operator [](i).Setphi_n(phi_0);
+            }else{
+                REAL phi_0 = memory_vector.get()->operator [](i).phi_n();
+                memory_vector.get()->operator [](i).Setphi_0(phi_0);
+            }
+        
             
-            memory_vector.get()->operator [](i).SetPlasticStateSubStep(plas_state_0);
+            /// Cleaning u and plastic state
+            if (reset_u_Q) {
+                
+                memory_vector.get()->operator [](i).Setu_0(u_null);
+                memory_vector.get()->operator [](i).Setu(u_null);
+                memory_vector.get()->operator [](i).Setu_n(u_null);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+                
+                memory_vector.get()->operator [](i).GetPlasticState_0().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticState_n().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticState().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticStateSubStep().m_eps_p.Zero();
+                
+            }else{
+                
+                TPZManVector<REAL,3> u_0 = memory_vector.get()->operator [](i).Getu_n();
+                memory_vector.get()->operator [](i).Setu_0(u_0);
+                memory_vector.get()->operator [](i).Setu(u_0);
+                memory_vector.get()->operator [](i).Setu_n(u_0);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_0);
+                
+            }
             
             
 #endif

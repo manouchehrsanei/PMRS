@@ -112,7 +112,7 @@ public:
     void UpdateState();
     
     /// Update the initial solution for sigma and pressure
-    void UpdateInitialSigmaAndPressure(bool reset_u_Q = true);
+    void UpdateInitialSigmaAndPressure(bool reset_u_Q = true, bool keep_phi_Q = true);
     
     /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
     void ConfigureGeomechanicsBC(REAL t, bool IsInitialConditionsQ = false);
