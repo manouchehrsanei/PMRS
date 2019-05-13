@@ -1159,6 +1159,7 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
         bool reset_undrained_data_Q = m_simulation_data->Get_reset_undarined_respose_data_Q();
+        m_reservoir_analysis->LoadMemorySolution();
         UpdateInitialSigmaAndPressure(reset_undrained_data_Q,false);
         if (m_simulation_data->Get_is_draw_initial_data_Q()) {
             PostProcessTimeStep(file_geo, file_res);

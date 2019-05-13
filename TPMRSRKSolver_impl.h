@@ -364,8 +364,8 @@ void TPMRSRKSolver<T,TMEM>::PrintSecondaryVariables(std::ostream &out){
         REAL s_z     = m_memory[i].GetSigma_n().ZZ();
         REAL eps_t_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
         REAL eps_t_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
-        REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_t.XX();
-        REAL eps_p_t = m_memory[i].GetPlasticState_n().m_eps_t.YY();
+        REAL eps_p_r = m_memory[i].GetPlasticState_n().m_eps_p.XX();
+        REAL eps_p_t = m_memory[i].GetPlasticState_n().m_eps_p.YY();
         REAL phi     = m_memory[i].phi_n();
         REAL kappa   = m_memory[i].kappa_n();
         s_data(i,0) = r;
