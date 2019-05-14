@@ -694,7 +694,6 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     m_geomechanic_analysis->Solution().Print("du = ",std::cout,EMathematicaInput);
 #endif
     
-    
     std::cout << std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
     std::cout << "-------------------------------------------------------------" <<std::endl;
@@ -725,12 +724,15 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t1 = boost::posix_time::microsec_clock::local_time();
 #endif
+            
             this->ExecuteOneTimeStep(it,k);
+            
 #ifdef USING_BOOST
             boost::posix_time::ptime fss_t2 = boost::posix_time::microsec_clock::local_time();
 #endif
             
 #ifdef USING_BOOST
+            
             REAL fss_solving_time = boost::numeric_cast<double>((fss_t2-fss_t1).total_milliseconds());
             std::cout << "TPMRSSegregatedAnalysis:: Fixed stress process closed in :" << setw(10) <<  fss_solving_time/1000.0 << setw(5)   << " seconds." << std::endl;
             std::cout << std::endl;
