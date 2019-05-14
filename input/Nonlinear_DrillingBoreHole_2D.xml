@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="100000.0" />
+        <StepSize dt="100000000.0" />
         <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -35,7 +35,7 @@
     </Initialization>      
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="24" />
+        <Numthreads n_threads="0" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -69,7 +69,7 @@
             <Var v_name="q" />            
         </OutputControlsRes> 
         <ReportingTimes>
-            <time t="1000.0" />
+            <time t="100000000.0" />
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -135,11 +135,11 @@
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="2" >
             <Data t="0" tn="40.0" />
-            <Data t="100000.0" tn="0.0" />
+            <Data t="100000000.0" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
             <Data t="0" tn="0.0004" />
-            <Data t="100000.0" tn="0.0" />
+            <Data t="100000000.0" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -151,11 +151,11 @@
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="2" >
             <Data t="0" p="30" />
-            <Data t="100000.0" p="20" />
+            <Data t="100000000.0" p="20" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="2" >
             <Data t="0" p="30.0" />
-            <Data t="100000.0" p="30.0" />
+            <Data t="100000000.0" p="30.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />
