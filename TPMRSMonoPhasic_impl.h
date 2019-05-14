@@ -105,81 +105,6 @@ void TPMRSMonoPhasic<TMEM>::FillBoundaryConditionDataRequirement(int type, TPZVe
 }
 
 template <class TMEM>
-void TPMRSMonoPhasic<TMEM>::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi)
-{
-    int ublock = 0;
-    int dim = this->Dimension();
-    /// Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   /// For H1  test functions Q
-    TPZFMatrix<STATE> dphiuH1       = datavec[ublock].dphi;  /// Derivative For H1  test functions (master)
-    TPZFMatrix<STATE> dphiuH1axes   = datavec[ublock].dphix; /// Derivative For H1  test functions
-    TPZFNMatrix<9,STATE> gradu      = datavec[ublock].dsol[0];
-    TPZFNMatrix<9,STATE> graduMaster;
-    gradu.Transpose();
-    
-    TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
-    
-    int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
-    
-    DivergenceofPhi.Resize(nphiuHdiv,1);
-    
-    REAL JacobianDet = datavec[ublock].detjac;
-    
-    TPZFMatrix<STATE> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<STATE> QaxesT;
-    TPZFMatrix<STATE> Jacobian        = datavec[ublock].jacobian;
-    TPZFMatrix<STATE> JacobianInverse = datavec[ublock].jacinv;
-    
-    TPZFMatrix<STATE> GradOfX;
-    TPZFMatrix<STATE> GradOfXInverse;
-    TPZFMatrix<STATE> VectorOnMaster;
-    TPZFMatrix<STATE> VectorOnXYZ(3,1,0.0);
-    Qaxes.Transpose(&QaxesT);
-    QaxesT.Multiply(Jacobian, GradOfX);
-    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-    
-    int ivectorindex = 0;
-    int ishapeindex  = 0;
-    
-    if (HDivPiola == 1)
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex  = datavec[ublock].fVecShapeIndex[iq].second;
-            
-            for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
-            }
-            
-            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-            VectorOnMaster *= JacobianDet;
-            
-            /// Contravariant Piola mapping preserves the divergence
-            for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
-            }
-        }
-        
-    }
-    else
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex  = datavec[ublock].fVecShapeIndex[iq].second;
-            
-            /// Computing the divergence for constant jacobian elements
-            for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  datavec[ublock].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
-            }
-        }
-    }
-    return;
-}
-
-template <class TMEM>
 void TPMRSMonoPhasic<TMEM>::UndrainedContribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     unsigned int q_b = 0;
@@ -235,11 +160,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     TPZFNMatrix<100,STATE> phi_qs       = datavec[q_b].phi;
     TPZFNMatrix<100,STATE> phi_ps       = datavec[p_b].phi;
     TPZFNMatrix<10,STATE> grad_q_axes   = datavec[q_b].dsol[0];
-    TPZFNMatrix<40,STATE> div_on_master;
+    TPZFNMatrix<40, REAL> div_phi = datavec[q_b].divphi;
     
-    STATE jac_det;
-    this->ComputeDivergenceOnMaster(datavec, div_on_master);
-    jac_det = datavec[q_b].detjac;
     
     /// Get the pressure at the integrations points
     long gp_index = datavec[q_b].intGlobPtIndex;
@@ -326,7 +248,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             dK_invdp_dot_q    += dK_invdp_q(i,0)*phi_q_i(i,0);
         }
         
-        ef(iq + firstq) +=  weight * ( m_scale_factor * Kl_inv_dot_q - (1.0/jac_det) * (p_n) * div_on_master(iq,0) );
+        ef(iq + firstq) +=  weight * ( m_scale_factor * Kl_inv_dot_q - (p_n) * div_phi(iq,0) );
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -348,12 +270,12 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * dK_invdp_dot_q - (1.0/jac_det) * div_on_master(iq,0)) * phi_ps(jp,0);
+            ek(iq + firstq, jp + firstp) += weight * (m_scale_factor * dK_invdp_dot_q - div_phi(iq,0)) * phi_ps(jp,0);
         }
         
     }
     
-    STATE current_div_q = (grad_q_axes(0,0) + grad_q_axes(1,1) + grad_q_axes(2,2));
+    STATE current_div_q = datavec[q_b].divsol[0][0];
     STATE last_div_q = memory.f();
     STATE div_q = m_theta_scheme*current_div_q+(1.0-m_theta_scheme)*last_div_q;
     
@@ -364,7 +286,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
-            ek(ip + firstp, jq + firstq) += -1.0 * weight * m_theta_scheme * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
+            ek(ip + firstp, jq + firstq) += -1.0 * weight * m_theta_scheme * div_phi(jq,0) * phi_ps(ip,0);
         }
         
         for (int jp = 0; jp < nphi_p; jp++)
@@ -389,12 +311,12 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     unsigned int p_b = 1;
     
     if (m_simulation_data->Get_must_accept_solution_Q()) {
-        long gp_index = datavec[0].intGlobPtIndex;
         
+        long gp_index = datavec[0].intGlobPtIndex;
         TPZManVector<STATE,3> q  = datavec[q_b].sol[0];
         STATE p                  = datavec[p_b].sol[0][0];
         TPZFMatrix<STATE> dqdx   = datavec[q_b].dsol[0];
-        STATE div_q              = dqdx(0,0) + dqdx(1,1) + dqdx(2,2);
+        STATE div_q              = datavec[q_b].divsol[0][0];
         
         if (m_simulation_data->IsInitialStateQ()) {
             this->MemItem(gp_index).Setp_0(p);

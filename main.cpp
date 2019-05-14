@@ -974,12 +974,14 @@ TPZCompMesh * CMesh_PorePressure_disc(TPMRSSimulationData * sim_data)
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     cmesh->AutoBuild();
     
+#ifndef USING_MKL
     int ncon = cmesh->NConnects();
     for(int i=0; i<ncon; i++)
     {
         TPZConnect &newnod = cmesh->ConnectVec()[i];
         newnod.SetLagrangeMultiplier(1);
     }
+#endif
     
 #ifdef PZDEBUG
         std::ofstream out("CmeshPorePressure_Disc.txt");

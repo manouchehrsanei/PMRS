@@ -67,9 +67,14 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
 #else
-            TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(Mesh());
+//            TPZParFrontStructMatrix<TPZFrontSym<STATE> > struct_mat(Mesh());
+//            struct_mat.SetNumThreads(number_threads);
+//            this->SetStructuralMatrix(struct_mat);
+            
+            TPZSkylineStructMatrix struct_mat(Mesh());
             struct_mat.SetNumThreads(number_threads);
             this->SetStructuralMatrix(struct_mat);
+            
 #endif
         }
             break;
