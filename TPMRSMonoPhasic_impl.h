@@ -547,12 +547,7 @@ void TPMRSMonoPhasic<TMEM>::Solution(TPZMaterialData &data, int var, TPZVec<REAL
             break;
         case 3:
         {
-            Solout[0] = 0;
-            for (int i = 0; i < m_dimension; i++)
-            {
-                Solout[0] += qb[i];
-            }
-            
+            Solout[0] = memory.div_q_n();            
         }
             break;
         case 4:
