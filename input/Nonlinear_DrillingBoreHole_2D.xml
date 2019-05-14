@@ -35,7 +35,7 @@
     </Initialization>      
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="0" />
+        <Numthreads n_threads="24" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
