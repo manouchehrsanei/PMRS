@@ -165,7 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
-    bool RK_approximation_Q = false;
+    bool RK_approximation_Q = true;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -315,12 +315,11 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-//    {-0.00135609, -31.5168, 30., -0.0217147}
-//    {-31.5168, -32.2288, -15.9364}
-    REAL u_r        = -0.00135609;
-    REAL sigma_r    = -31.5168;
-    REAL sigma_t    = -32.2288;
-    REAL sigma_z    = -15.9364;
+
+    REAL u_r        = -0.001184;
+    REAL sigma_r    = -31.4047;
+    REAL sigma_t    = -32.0997;
+    REAL sigma_z    = -15.8761;
     REAL p_r        = 30.0;
     REAL q_r        = -0.0217147;
 

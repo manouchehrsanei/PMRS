@@ -86,8 +86,8 @@
             <InitialPoroMechParameters Eyoung_u="5000.0" nu_u="0.25" phi_0="0.1" kappa_0="1.0e-13" />            
             <PoroMechParameters Eyoung="5000.0" nu="0.25" Ks="66666.66666666666" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
-            <KappaParameters kappa_model="Petunin" n_parameters="1" a="2.0" />
-            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="10.0" friction="30.0"/>              
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a="6.0" />
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="3.0" friction="18.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>
@@ -134,7 +134,7 @@
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="2" >
-            <Data t="0" tn="23.5609" />
+            <Data t="0" tn="-9.99495" />
             <Data t="100000000.0" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
@@ -151,7 +151,7 @@
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="2" >
             <Data t="0" p="30" />
-            <Data t="100000000.0" p="19.8197" />
+            <Data t="100000000.0" p="19.4449" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="2" >
             <Data t="0" p="30.0" />
