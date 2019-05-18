@@ -412,14 +412,15 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Epsilon(int i, REAL & r, std::vector<REAL
     REAL ur = y[0];
     REAL sr = y[1];
     REAL sigmar_0 = m_memory[i].GetSigma_0().XX();
-    REAL eps_t_rr = (-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu));
-    REAL eps_t_tt = ur/r;
+    REAL d_eps_t_rr = (-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu));
+    REAL d_eps_t_tt = ur/r;
     
+    TPZTensor<REAL> eps_rr = m_memory[i].GetPlasticState_0().m_eps_t;
     TPZTensor<REAL> eps;
     eps.Zero();
-    eps.XX() = eps_t_rr;
-    eps.YY() = eps_t_tt;
-    
+    eps.XX() = d_eps_t_rr;
+    eps.YY() = d_eps_t_tt;
+    eps += eps_rr;
     return eps;
 }
 
@@ -434,7 +435,7 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, T
         m_memory[i].GetPlasticState_n() = plastic_integrator.GetState();
         m_memory[i].SetSigma_n(sigma);
         if (!IsZero(plastic_integrator.GetState().m_eps_p.Norm())) {
-            std::cout << "Plasticity " <<std::endl;
+            std::cout << "Plasticity detected in point = " << i <<std::endl;
         }
     }
     return sigma;

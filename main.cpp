@@ -307,7 +307,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     REAL p_0 = 30.0;
     
     /// Discretization
-    int n_steps = 1000;
+    int n_steps = 5000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -457,7 +457,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     
                     LEMC.ApplyLoad(sigma_0, eps);
                     eps.ZZ() = 0.0;
-                    eps.Zero();
+//                    eps.Zero();
                     
                     default_memory.SetKs(Ks);
                     default_memory.SetKdr(Kdr);
