@@ -165,7 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
-    bool RK_approximation_Q = true;
+    bool RK_approximation_Q = false;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
