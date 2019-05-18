@@ -974,7 +974,7 @@ TPZCompMesh * CMesh_PorePressure_disc(TPMRSSimulationData * sim_data)
     cmesh->ApproxSpace().CreateDisconnectedElements(true);
     cmesh->AutoBuild();
     
-#ifndef USING_MKL
+#ifndef USING_MKL2
     int ncon = cmesh->NConnects();
     for(int i=0; i<ncon; i++)
     {
