@@ -298,31 +298,65 @@ int main(int argc, char *argv[])
 void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     std::ofstream rk_file_data("rk_data.txt");
-    
-    TPZTensor<REAL> sigma_0;
-    sigma_0.Zero();
-    sigma_0.XX() = -31.5;
-    sigma_0.YY() = -31.5;
-    sigma_0.ZZ() = -15.75;
-    REAL p_0 = 30.0;
-    
     /// Discretization
-    int n_steps = 5000;
+    int n_steps = 1000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
+    TPZTensor<REAL> sigma_0;
+    REAL p_0,u_r,sigma_r,sigma_t,sigma_z,p_r,q_r;
+    sigma_0.Zero();
+    
+    
+    sigma_0.XX() = -40.5;
+    sigma_0.YY() = -40.5;
+    sigma_0.ZZ() = -24.3;
+    p_0 = 30.0;
+    
+    int A = 30;
+    switch (A) {
+        case 10:
+        {
+            u_r        = -0.00127055;
+            sigma_r    = -31.3991;
+            sigma_t    = -31.8058;
+            sigma_z    = -15.8115;
+            p_r        = 30.0;
+            q_r        = -0.0217147;
+        }
+            break;
+        case 20:
+        {
+            u_r        = -0.00127055;
+            sigma_r    = -31.3991;
+            sigma_t    = -31.8058;
+            sigma_z    = -15.8115;
+            p_r        = 30.0;
+            q_r        = -0.0217147;
+        }
+            break;
+        case 30:
+        {
+            u_r        = -0.00127055;
+            sigma_r    = -31.3991;
+            sigma_t    = -31.8058;
+            sigma_z    = -15.8115;
+            p_r        = 30.0;
+            q_r        = -0.0217147;
+        }
+        break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+
     /// Initial data at re
     std::vector<REAL> y_0;
     TPZTensor<REAL> sigma,eps;
     sigma.Zero();
-
-    REAL u_r        = -0.001184;
-    REAL sigma_r    = -31.4047;
-    REAL sigma_t    = -32.0997;
-    REAL sigma_z    = -15.8761;
-    REAL p_r        = 30.0;
-    REAL q_r        = -0.0217147;
-
+    
     y_0.push_back(u_r);
     y_0.push_back(sigma_r);
     y_0.push_back(p_r);
@@ -695,7 +729,7 @@ TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
     }
  
     TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
-    sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    sfi_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     return sfi_analysis;
 }
 

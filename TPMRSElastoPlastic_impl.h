@@ -73,6 +73,7 @@ int TPMRSElastoPlastic<T,TMEM>::VariableIndex(const std::string &name){
     if (!strcmp("e"   , name.c_str())) return 23;
     if (!strcmp("ep"  , name.c_str())) return 24;
     if (!strcmp("s_t" , name.c_str())) return 25;
+    if (!strcmp("alpha" , name.c_str())) return 26;
     return TPZMatWithMem<TMEM>::VariableIndex(name);
 }
 
@@ -136,6 +137,8 @@ int TPMRSElastoPlastic<T,TMEM>::NSolutionVariables(int var){
             return 9; // Tensor
         case 25:
             return 9; // Tensor
+        case 26:
+            return 1; // Tensor
     }
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
 }
@@ -301,6 +304,11 @@ void TPMRSElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVec
             Solout[4] = memory.GetSigma_n().YY() - memory.Alpha()*memory.p_n();
             Solout[5] = Solout[7] = memory.GetSigma_n().YZ();
             Solout[8] = memory.GetSigma_n().ZZ() - memory.Alpha()*memory.p_n();
+        }
+            break;
+        case 26:
+        {
+            Solout[0] = memory.Alpha();
         }
             break;
         default:
@@ -1314,12 +1322,13 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
                 plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
                 
-                REAL lambda, G;
-                lambda = Dep(0,5);
-                G = Dep(4,4)/2.0;
-                REAL Kep = lambda + (2.0/3.0)*G;
+                REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+                REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+                REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+                REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
                 REAL Ks = this->MemItem(gp_index).Ks();
                 REAL alpha = 1.0 - (Kep/Ks);
+
                 this->MemItem(gp_index).SetAlpha(alpha);
                 
                 this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
@@ -1329,9 +1338,7 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 
                 this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                 this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
-                
-//                REAL geo_delta_phi_n = 0.0; //  Reset delta phi.
-//                this->MemItem(gp_index).Setdelta_phi(geo_delta_phi_n);
+            
             }
         
             return;

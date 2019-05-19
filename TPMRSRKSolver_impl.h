@@ -498,8 +498,12 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
         TPZTensor<REAL> epsilon = Epsilon(i,r,y);
         TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
+        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
         l = Dep(0,5);
-        mu = Dep(1,1)/2.0;
+        mu = (3.0/2.0)*(Kep - l);
     }
     
 //    bool check_Q = false;
