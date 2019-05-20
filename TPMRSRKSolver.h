@@ -59,8 +59,11 @@ private:
     /// Default memory item
     TMEM m_default_memory;
     
-    /// Directive that stands for fourth Runge-Kutta approximation
+    /// Directive that stands for fourth order Runge-Kutta approximation
     bool m_is_RK4_Q;
+    
+    /// Directive that stands for first order Euler approximation
+    bool m_is_Euler_Q;
     
     /// Number of state variables
     int m_n_state;
@@ -150,6 +153,11 @@ public:
         m_is_RK4_Q = true;
     }
     
+    /// Set the directive that stands for first order Euler approximation
+    void SetFirstOrderApproximation(){
+        m_is_Euler_Q = true;
+    }
+    
     /// Set the Permeability Parameters
     void SetKappaParameters(TPMRSKappaParameters kappa_models){
         m_kappa_models = kappa_models;
@@ -179,7 +187,7 @@ private:
     std::vector<REAL> f(int i, REAL & r, std::vector<REAL> & y);
     
     /// Reconstruc an approximated eps for coherence with mem and accept the point approximation
-    void ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y);
+    void ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y, bool initial_data_Q = false);
     
     /// Euler method with first order accuracy
     std::vector<REAL> EulerApproximation(int i, REAL & r, std::vector<REAL> & y);

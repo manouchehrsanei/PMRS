@@ -319,17 +319,20 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
     int n_points = m_n_steps + 1;
     
     std::vector<REAL> y = m_y_0;
-    ReconstructAndAcceptPoint(0,m_re,y);
+    ReconstructAndAcceptPoint(0,m_re,y,true);
     AppendTo(0,y);
     
     for (int i = 1; i < n_points; i++) {
         
         REAL r = m_dr*(i-1) + m_re;
         if(m_is_RK4_Q){
-//            y = EulerApproximation(i-1,r,y);
             y = RK4Approximation(i-1,r,y);
         }else{
-            y = RK2Approximation(i-1,r,y);
+            if(m_is_Euler_Q){
+                y = EulerApproximation(i-1,r,y);
+            }else{
+                y = RK2Approximation(i-1,r,y);
+            }
         }
         ReconstructAndAcceptPoint(i,r,y);
         AppendTo(i,y);
@@ -428,7 +431,7 @@ template <class T, class TMEM>
 TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, TPZFMatrix<REAL> * Dep){
     TPZTensor<REAL> sigma;
     T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
+    plastic_integrator.SetState(m_memory[i].GetPlasticState());
     plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,Dep);
     
     if(m_accept_solution_Q){
@@ -442,7 +445,7 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, T
 }
 
 template <class T, class TMEM>
-void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y){
+void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y, bool initial_data_Q){
     
 #ifdef new_RK_Q
     
@@ -488,23 +491,32 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
 #else
 
-    REAL last_l = this->lambda(i);
-    REAL last_mu = this->mu(i);
+    REAL last_l,last_mu;
+
+    if(initial_data_Q){
+        last_l = this->lambda(i);
+        last_mu = this->mu(i);
+    }else{
+        last_l = this->lambda(i-1);
+        last_mu = this->mu(i-1);
+    }
     REAL l = last_l;
     REAL mu = last_mu;
-    { /// First data correction
-        m_lambda[i] = l;
-        m_mu[i] = mu;
-        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
-        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
-        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
-        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
-        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
-        l = Dep(0,5);
-        mu = (3.0/2.0)*(Kep - l);
-    }
+    
+//    { /// First data correction
+//        m_lambda[i] = l;
+//        m_mu[i] = mu;
+//        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+//        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+//        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
+//        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+//        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+//        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+//        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
+//        l = Dep(0,5);
+////        mu = Dep(1,1)/2.0;
+//        mu = (3.0/2.0)*(Kep - l);
+//    }
     
 //    bool check_Q = false;
 //    REAL tol = 1.0e-4;
@@ -539,16 +551,37 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
     m_accept_solution_Q = true;
     /// update secondary variables
+//    m_lambda[i] = l;
+//    m_mu[i] = mu;
     TPZTensor<REAL> epsilon = Epsilon(i,r,y);
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
     TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-    REAL Kdr_ep = l + (2.0/3.0)*mu;
+    
+    /// updating
+    REAL error = y[1] - sigma.XX();
+    std::cout << "Error in s_rr = " << error << std::endl;
+//    y[1] = sigma.XX();
+    
+    /// lamé data correction
+    REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+    REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+    REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+    REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
+    l = Dep(0,5);
+    mu = Dep(1,1)/2.0;
+//    mu = (3.0/2.0)*(Kep - l);
+    
+    REAL Kdr_ep = Kep;
     REAL alpha = 1.0 - Kdr_ep/m_K_s;
+    m_memory[i].SetAlpha(alpha);
+
+    
     REAL phi = Porosity(i,r,y);
     REAL kappa = Permeability(i,phi);
     m_memory[i].Setphi_n(phi);
     m_memory[i].Setkappa_n(kappa);
-    m_memory[i].SetAlpha(alpha);
+//    m_lambda[i] = l;
+//    m_mu[i] = mu;
     m_accept_solution_Q = false;
     
 #endif

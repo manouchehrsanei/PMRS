@@ -165,7 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
-    bool RK_approximation_Q = false;
+    bool RK_approximation_Q = true;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -308,13 +308,25 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.Zero();
     
     
-    sigma_0.XX() = -40.5;
-    sigma_0.YY() = -40.5;
-    sigma_0.ZZ() = -24.3;
+    sigma_0.XX() = -10.0;
+    sigma_0.YY() = -10.0;
+    sigma_0.ZZ() = -4.0;
     p_0 = 30.0;
     
-    int A = 30;
+    int A = 0;
     switch (A) {
+        case 0:
+        {
+//            {-0.00156976,-10.,30.,-0.0217147}
+//            {-0.0015697, -10.00001, 30., -0.021574}
+            u_r        = -0.00156976;
+            sigma_r    = -10.0000;
+            sigma_t    = -10.817;
+            sigma_z    = -4.1624;
+            p_r        = 30.0;
+            q_r        = -0.0217147;
+        }
+            break;
         case 10:
         {
             u_r        = -0.00127055;
@@ -552,6 +564,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetDiscretization(rw, re, n_steps);
                     RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
+//                    RKSolver.SetFirstOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
                     RKSolver.PrintRKApproximation(rk_file_data);
