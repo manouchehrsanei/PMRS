@@ -1075,7 +1075,6 @@ void TPMRSSegregatedAnalysis::ConfigureReservoirBC(REAL t, bool IsInitialConditi
     
 }
 
-//#define Old_version_Q
 
 void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::cout << std::endl;
@@ -1092,14 +1091,6 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     std::string file_geo = name + "_geo.vtk";
     std::string file_res = name + "_res.vtk";
     
-#ifdef Old_version_Q
-    m_geomechanic_analysis->ExecuteUndrainedResponseStep();
-    m_geomechanic_analysis->UpdateState();
-    UpdateInitialSigmaAndPressure();
-    m_reservoir_analysis->ExecuteUndrainedResponseStep();
-    m_reservoir_analysis->PostProcessTimeStep(file_res);
-    m_geomechanic_analysis->PostProcessTimeStep(file_geo);
-#else
     REAL dt = m_simulation_data->dt();
     REAL dt_large = 1.0e10;
     m_simulation_data->Setdt(dt_large);
@@ -1122,7 +1113,6 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
         m_geomechanic_analysis->PostProcessTimeStep(file_geo);
     }
     m_simulation_data->Setdt(dt);
-#endif
     
     /// Clean state variables
     m_geomechanic_analysis->Solution().Zero();
@@ -1162,8 +1152,7 @@ void TPMRSSegregatedAnalysis::ExecuteUndrainedStaticSolution()
         m_geomechanic_analysis->UpdateState();
         m_simulation_data->SetTransferCurrentToLastQ(false);
         bool reset_undrained_data_Q = m_simulation_data->Get_reset_undarined_respose_data_Q();
-        m_reservoir_analysis->LoadMemorySolution();
-        UpdateInitialSigmaAndPressure(reset_undrained_data_Q,false);
+        UpdateUndrainedSigmaAndPressureData(reset_undrained_data_Q,false);
         if (m_simulation_data->Get_is_draw_initial_data_Q()) {
             PostProcessTimeStep(file_geo, file_res);
         }
@@ -1212,45 +1201,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
         int ndata = memory_vector->NElements();
         for (int i = 0; i < ndata; i++) {
             
-#ifdef Old_version_Q
-            REAL cf      = poroperm_pars[3];
-            /// Because we reused the same memory items
-            TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
-            REAL alpha = memory_vector.get()->operator [](i).Alpha();
-            REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
-            REAL Kdr = memory_vector.get()->operator [](i).Kdr();
-            REAL Se = ((1.0-alpha)*(alpha - phi_0)/(Kdr)) + phi_0*cf;
-            REAL p_0 = -alpha*(sigma_total_0.I1()/3)/(Se * Kdr+alpha*alpha);
-            
-            memory_vector.get()->operator [](i).Setp_0(p_0);
-            memory_vector.get()->operator [](i).Setp(p_0);
-            memory_vector.get()->operator [](i).Setp_n(p_0);
-            
-            REAL f_0 = 0.0;
-            TPZManVector<REAL,3> f_vec_0(3);
-            f_vec_0[0] = f_0;
-            f_vec_0[1] = f_0;
-            f_vec_0[2] = f_0;
-            memory_vector.get()->operator [](i).Setf(f_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
-            memory_vector.get()->operator [](i).Setf_vec(f_vec_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
-            
-            sigma_total_0.Zero();/// Converted to effecttive because initial deformation is Zero.
-            memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
-            memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
-            memory_vector.get()->operator [](i).SetSigma_n(sigma_total_0);
-            memory_vector.get()->operator [](i).Setdelta_phi(0.0); //  Initial porosity correction is zero.
-            /// Cleaning u
-            memory_vector.get()->operator [](i).Setu_0(u_null);
-            memory_vector.get()->operator [](i).Setu(u_null);
-            memory_vector.get()->operator [](i).Setu_n(u_null);
-            memory_vector.get()->operator [](i).Setu_sub_step(u_null);
-            /// Cleaning elasto-plastic states
-            memory_vector.get()->operator [](i).GetPlasticState_0().CleanUp();
-            memory_vector.get()->operator [](i).GetPlasticState().CleanUp();
-            memory_vector.get()->operator [](i).GetPlasticState_n().CleanUp();
-            memory_vector.get()->operator [](i).GetPlasticStateSubStep().CleanUp();
-            
-#else
+
             REAL p_0 = memory_vector.get()->operator [](i).p_n();
             memory_vector.get()->operator [](i).Setp_0(p_0);
             memory_vector.get()->operator [](i).Setp(p_0);
@@ -1260,8 +1211,8 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
             f_vec_0[0] = f_0;
             f_vec_0[1] = f_0;
             f_vec_0[2] = f_0;
-            memory_vector.get()->operator [](i).Setf(f_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
-            memory_vector.get()->operator [](i).Setf_vec(f_vec_0); //  @TODO:: Just disgusting figure out another way to include Crank-Nicolson
+            memory_vector.get()->operator [](i).Setf(f_0);
+            memory_vector.get()->operator [](i).Setf_vec(f_vec_0);
             
             REAL geo_delta_phi_0 = 0.0;
             memory_vector.get()->operator [](i).Setdelta_phi(geo_delta_phi_0);
@@ -1271,9 +1222,9 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
             memory_vector.get()->operator [](i).SetPlasticState(plas_state_0);
             memory_vector.get()->operator [](i).SetPlasticStateSubStep(plas_state_0);
             
-            TPZTensor<REAL> sigma_total_0 = memory_vector.get()->operator [](i).GetSigma_n();
-            memory_vector.get()->operator [](i).SetSigma_0(sigma_total_0);
-            memory_vector.get()->operator [](i).SetSigma(sigma_total_0);
+            TPZTensor<REAL> sigma_0 = memory_vector.get()->operator [](i).GetSigma_n();
+            memory_vector.get()->operator [](i).SetSigma_0(sigma_0);
+            memory_vector.get()->operator [](i).SetSigma(sigma_0);
             
             if(keep_phi_Q){
                 REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
@@ -1315,8 +1266,129 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
                 
             }
             
+        }
+        
+    }
+    
+}
+
+void TPMRSSegregatedAnalysis::UpdateUndrainedSigmaAndPressureData(bool reset_u_Q, bool keep_plastic_state_Q) {
+    
+    TPZCompMesh * cmesh = m_geomechanic_analysis->Mesh();
+    
+    if (!m_simulation_data || !cmesh) {
+        DebugStop();
+    }
+    
+    TPZManVector<REAL,3> u_null(3,0.0);
+    int n_regions = m_simulation_data->NumberOfRegions();
+    TPZManVector<std::pair<int, std::pair<TPZManVector<int,12>,TPZManVector<int,12>> >,12>  material_ids = m_simulation_data->MaterialIds();
+    TPZManVector<int,10> volumetric_mat_id(n_regions);
+    for (int iregion = 0; iregion < n_regions; iregion++)
+    {
+        int matid = material_ids[iregion].first;
+        volumetric_mat_id[iregion] = matid;
+        
+        TPZMaterial * material = cmesh->FindMaterial(matid);
+        if (!material) {
+            DebugStop();
+        }
+        
+        TPZMatWithMem<TPMRSMemory> * mat_with_memory = dynamic_cast<TPZMatWithMem<TPMRSMemory> * >(material);
+        if (!material) {
+            DebugStop();
+        }
+        
+        std::tuple<TPMRSUndrainedParameters, TPMRSPoroMechParameters, TPMRSPhiParameters,TPMRSKappaParameters,TPMRSPlasticityParameters> chunk =    m_simulation_data->MaterialProps()[iregion];
+        
+        TPMRSPoroMechParameters poro_parameters(std::get<1>(chunk));
+        std::vector<REAL> poroperm_pars = poro_parameters.GetParameters();
+        
+        std::shared_ptr<TPZAdmChunkVector<TPMRSMemory>> & memory_vector = mat_with_memory->GetMemory();
+        
+        int ndata = memory_vector->NElements();
+        for (int i = 0; i < ndata; i++) {
             
-#endif
+            
+            REAL p = memory_vector.get()->operator [](i).p_n();
+            memory_vector.get()->operator [](i).Setp(p);
+            
+            REAL f_0 = 0.0;
+            TPZManVector<REAL,3> f_vec_0(3);
+            f_vec_0[0] = f_0;
+            f_vec_0[1] = f_0;
+            f_vec_0[2] = f_0;
+            memory_vector.get()->operator [](i).Setf(f_0);
+            memory_vector.get()->operator [](i).Setf_vec(f_vec_0);
+            
+            REAL geo_delta_phi_0 = 0.0;
+            memory_vector.get()->operator [](i).Setdelta_phi(geo_delta_phi_0);
+            
+            TPZPlasticState<REAL> plas_state = memory_vector.get()->operator [](i).GetPlasticState_n();
+            memory_vector.get()->operator [](i).SetPlasticState(plas_state);
+            memory_vector.get()->operator [](i).SetPlasticStateSubStep(plas_state);
+            
+            TPZTensor<REAL> sigma = memory_vector.get()->operator [](i).GetSigma_n();
+            memory_vector.get()->operator [](i).SetSigma(sigma);
+            
+            /// porosity update
+            {
+                
+                REAL alpha = memory_vector.get()->operator [](i).Alpha();
+                REAL Kdr   = memory_vector.get()->operator [](i).Kdr();
+                REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
+                
+                REAL p_0   = memory_vector.get()->operator [](i).p_0();
+                REAL p_n   = memory_vector.get()->operator [](i).p_n();
+                
+                REAL S = (1.0-alpha)*(alpha-phi_0)/Kdr;
+                
+                REAL eps_v_t_0   = memory_vector.get()->operator [](i).GetPlasticState_0().m_eps_t.I1();
+                REAL eps_v_t_n   = memory_vector.get()->operator [](i).GetPlasticState_n().m_eps_t.I1();
+                
+                REAL phi_n = phi_0 + (alpha) * (eps_v_t_n-eps_v_t_0) + S * (p_n - p_0);
+                memory_vector.get()->operator [](i).Setphi_n(phi_n);
+            }
+            
+//            if(keep_plastic_state_Q){
+////                REAL phi_0 = memory_vector.get()->operator [](i).phi_0();
+////                memory_vector.get()->operator [](i).Setphi_n(phi_0);
+////
+////                REAL kappa_0 = memory_vector.get()->operator [](i).kappa_0();
+////                memory_vector.get()->operator [](i).Setkappa_n(kappa_0);
+//
+//            }else{
+//                REAL phi_0 = memory_vector.get()->operator [](i).phi_n();
+//                memory_vector.get()->operator [](i).Setphi_0(phi_0);
+//
+//                REAL kappa_0 = memory_vector.get()->operator [](i).kappa_n();
+//                memory_vector.get()->operator [](i).Setkappa_0(kappa_0);
+//
+//            }
+            
+            
+            /// Cleaning u and plastic state
+            if (reset_u_Q) {
+                
+                memory_vector.get()->operator [](i).Setu_0(u_null);
+                memory_vector.get()->operator [](i).Setu(u_null);
+                memory_vector.get()->operator [](i).Setu_n(u_null);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_null);
+                
+                memory_vector.get()->operator [](i).GetPlasticState_0().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticState_n().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticState().m_eps_p.Zero();
+                memory_vector.get()->operator [](i).GetPlasticStateSubStep().m_eps_p.Zero();
+                
+            }else{
+                
+                TPZManVector<REAL,3> u_0 = memory_vector.get()->operator [](i).Getu_n();
+                memory_vector.get()->operator [](i).Setu_0(u_0);
+                memory_vector.get()->operator [](i).Setu(u_0);
+                memory_vector.get()->operator [](i).Setu_n(u_0);
+                memory_vector.get()->operator [](i).Setu_sub_step(u_0);
+                
+            }
             
         }
         

@@ -114,6 +114,9 @@ public:
     /// Update the initial solution for sigma and pressure
     void UpdateInitialSigmaAndPressure(bool reset_u_Q = true, bool keep_phi_Q = true);
     
+    /// Update the undrained solution for sigma and pressure
+    void UpdateUndrainedSigmaAndPressureData(bool reset_u_Q = true, bool keep_plastic_state_Q = true);
+    
     /// Configurate boundary conditions (IsInitialConditionsQ is false set recurrent BC's)
     void ConfigureGeomechanicsBC(REAL t, bool IsInitialConditionsQ = false);
     

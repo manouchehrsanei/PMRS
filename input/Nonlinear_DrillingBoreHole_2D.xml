@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="80" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.00001" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -135,8 +135,8 @@
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="2" >
-            <Data t="0" tn="20.0" />
-            <Data t="100000000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="100000000.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
             <Data t="0" tn="-0.00001" />
@@ -151,7 +151,7 @@
     </BCGeomechanics> 
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="2" >
-            <Data t="0" p="20" />
+            <Data t="0" p="30.0" />
             <Data t="100000000.0" p="20.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="2" >

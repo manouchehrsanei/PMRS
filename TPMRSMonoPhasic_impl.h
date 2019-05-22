@@ -297,7 +297,8 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     }
     
     if (m_simulation_data->GetTransferCurrentToLastQ()) {
-        memory.Setf(current_div_q);
+                
+        this->MemItem(gp_index).Setf(current_div_q);
         this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
         return;
     }
