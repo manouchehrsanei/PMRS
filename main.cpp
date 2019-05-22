@@ -299,7 +299,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     std::ofstream rk_file_data("rk_data.txt");
     /// Discretization
-    int n_steps = 1000;
+    int n_steps = 2000;
     REAL rw = 0.1;
     REAL re = 10.0;
     

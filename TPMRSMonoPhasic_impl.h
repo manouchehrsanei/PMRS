@@ -297,7 +297,26 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     }
     
     if (m_simulation_data->GetTransferCurrentToLastQ()) {
-                
+        
+        /// porosity update
+        {
+            
+            REAL alpha = this->MemItem(gp_index).Alpha();
+            REAL Kdr   = this->MemItem(gp_index).Kdr();
+            REAL phi_0 = this->MemItem(gp_index).phi_0();
+            
+            REAL p_0   = this->MemItem(gp_index).p_0();
+            REAL p_n   = this->MemItem(gp_index).p_n();
+            
+            REAL S = (1.0-alpha)*(alpha-phi_0)/Kdr;
+            
+            REAL eps_v_t_0   = this->MemItem(gp_index).GetPlasticState_0().m_eps_t.I1();
+            REAL eps_v_t_n   = this->MemItem(gp_index).GetPlasticState_n().m_eps_t.I1();
+            
+            REAL phi_n = phi_0 + (alpha) * (eps_v_t_n-eps_v_t_0) + S * (p_n - p_0);
+            this->MemItem(gp_index).Setphi_n(phi_n);
+        }
+        
         this->MemItem(gp_index).Setf(current_div_q);
         this->MemItem(gp_index).Setp(this->MemItem(gp_index).p_n());
         return;

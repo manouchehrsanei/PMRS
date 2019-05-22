@@ -560,7 +560,7 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     /// updating
     REAL error = y[1] - sigma.XX();
     std::cout << "Error in s_rr = " << error << std::endl;
-//    y[1] = sigma.XX();
+    y[1] = sigma.XX();
     
     /// lamé data correction
     REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
@@ -580,8 +580,8 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL kappa = Permeability(i,phi);
     m_memory[i].Setphi_n(phi);
     m_memory[i].Setkappa_n(kappa);
-//    m_lambda[i] = l;
-//    m_mu[i] = mu;
+    m_lambda[i] = l;
+    m_mu[i] = mu;
     m_accept_solution_Q = false;
     
 #endif
