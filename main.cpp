@@ -317,8 +317,6 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     switch (A) {
         case 0:
         {
-//            {-0.00156976,-10.,30.,-0.0217147}
-//            {-0.0015697, -10.00001, 30., -0.021574}
             u_r        = -0.00156976;
             sigma_r    = -10.0000;
             sigma_t    = -10.817;
@@ -329,13 +327,12 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             break;
         case 10:
         {
-            REAL shift = 0.0*7.5e-6;
-            u_r        = -0.001462980057+shift;
-            sigma_r    = -10.0;
+            u_r        = -0.000494629;
+            sigma_r    = 0.0;
             sigma_t    = -10.817;
             sigma_z    = -4.1624;
-            p_r        = 30.0;
-            q_r        = -0.01956140064;
+            p_r        = 20.0;
+            q_r        = -1.96382;
         }
             break;
         case 20:
@@ -564,8 +561,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetFluidData(eta, c_f, rho);
                     RKSolver.SetDiscretization(rw, re, n_steps);
                     RKSolver.SetGrainBulkModulus(Ks);
-//                    RKSolver.SetFourthOrderApproximation();
-                    RKSolver.SetFirstOrderApproximation();
+                    RKSolver.SetFourthOrderApproximation();
+//                    RKSolver.SetFirstOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
                     RKSolver.PrintRKApproximation(rk_file_data);

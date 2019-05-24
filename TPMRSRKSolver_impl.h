@@ -320,7 +320,12 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
     int n_points = m_n_steps + 1;
     
     std::vector<REAL> y = m_y_0;
-    ReconstructAndAcceptPoint(0,m_re,y,true);
+    if(m_is_Re_Q){
+        ReconstructAndAcceptPoint(0,m_re,y,true);
+    }else{
+        ReconstructAndAcceptPoint(0,m_rw,y,true);
+    }
+    
     AppendTo(0,y);
     
     for (int i = 1; i < n_points; i++) {
@@ -351,7 +356,12 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
 
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::AppendTo(int i, std::vector<REAL> y){
-    REAL r = m_dr*(i) + m_re;
+    REAL r;
+    if(m_is_Re_Q){
+        r = m_dr*(i) + m_re;
+    }else{
+        r = m_dr*(i) + m_rw;
+    }
     for (int k = 0; k < m_n_state; k++) {
         m_r_y(i,0) = r;
         m_r_y(i,k+1) = y[k];
@@ -361,6 +371,7 @@ void TPMRSRKSolver<T,TMEM>::AppendTo(int i, std::vector<REAL> y){
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(std::ostream &out){
     m_r_y.Print("rkdata = ",out,EMathematicaInput);
+//    m_r_y.Print("rkdata = ",std::cout,EMathematicaInput);
 }
 
 /// Print the secondary variables (s_r,s_t,s_z,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
