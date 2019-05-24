@@ -127,51 +127,8 @@ void TPMRSRKSolver<T,TMEM>::Synchronize(){
     }
 }
 
-//#define new_RK_Q
-
 template <class T, class TMEM>
 std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & y){
-
-#ifdef new_RK_Q
-
-    REAL ur = y[0];
-    REAL sr = y[1];
-    REAL qr = y[3];
-    
-    REAL phi   = Porosity(i,r,y);
-    REAL kappa = Permeability(i,phi);
-    
-    std::vector<REAL> f(4);
-    
-    REAL l = this->lambda(i);
-    REAL mu = this->mu(i);
-    REAL alpha = m_memory[i].Alpha();
-    
-    REAL eps_t_rr = (r*sr-l*ur)/(r*(l+2.0*mu));
-    f[0] = eps_t_rr;
-    f[1] = ((-sr+((2*mu*ur)/(r))+l*((ur/r)+((r*sr-(l*ur))/(r*(l+2*mu)))))/(r))-alpha*(m_eta/kappa)*qr;
-    f[2] = -(m_eta/kappa)*qr;
-    f[3] = -qr/r;
-    
-    
-//    REAL qr = y[3];
-//    REAL sr_0 = m_memory[i].GetSigma_0().XX();
-//    REAL st_0 = m_memory[i].GetSigma_0().YY();
-//    
-//    REAL phi   = Porosity(i,r,y);
-//    REAL kappa = Permeability(i,phi);
-//    
-//    std::vector<REAL> f(4);
-//    REAL alpha = m_memory[i].Alpha();
-//    TPZTensor<REAL> eps_t = m_memory[i].GetPlasticState_n().m_eps_t;
-//    TPZTensor<REAL> sigma = m_memory[i].GetSigma_n();
-//    
-//    f[0] = eps_t.XX();
-//    f[1] = -alpha*(m_eta/kappa)*qr + (sr_0-st_0)/(r) + (sigma.YY()-sigma.XX())/(r);
-//    f[2] = -(m_eta/kappa)*qr;
-//    f[3] = -qr/r;
-    
-#else
     
     REAL ur = y[0];
     REAL sr = y[1];
@@ -192,8 +149,6 @@ std::vector<REAL> TPMRSRKSolver<T,TMEM>::f(int i, REAL & r, std::vector<REAL> & 
     f[1] = ((2*mu*(ur/r)) - (2.0*mu*(-r*sigmar_0+r*sr-l*ur)/(r*(l+2.0*mu))))/(r)-alpha*(m_eta/(m_rho*kappa))*qr;
     f[2] = -(m_eta/(m_rho*kappa))*qr;
     f[3] = -qr/r;
-    
-#endif
 
     return f;
 }
@@ -371,7 +326,6 @@ void TPMRSRKSolver<T,TMEM>::AppendTo(int i, std::vector<REAL> y){
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::PrintRKApproximation(std::ostream &out){
     m_r_y.Print("rkdata = ",out,EMathematicaInput);
-//    m_r_y.Print("rkdata = ",std::cout,EMathematicaInput);
 }
 
 /// Print the secondary variables (s_r,s_t,s_z,eps_t_r,eps_t_t,eps_p_r,eps_p_t,phi,kappa)
@@ -467,50 +421,6 @@ TPZTensor<REAL> TPMRSRKSolver<T,TMEM>::Sigma(int i, TPZTensor<REAL> & epsilon, T
 template <class T, class TMEM>
 void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vector<REAL> & y, bool initial_data_Q){
     
-#ifdef new_RK_Q
-    
-    m_accept_solution_Q = true;
-    /// update secondary variables
-    REAL l = this->lambda(i);
-    REAL mu = this->mu(i);
-    TPZTensor<REAL> epsilon = Epsilon(i,r,y); /// Resconstructed eps
-    TPZTensor<REAL> sigma;
-    
-    sigma.Zero();
-    REAL u_r = y[0];
-    REAL s_r = y[1];
-    REAL eps_r = epsilon.XX();
-    REAL s_t = 2.0*mu*eps_r+l*(eps_r+((r*s_r-l*u_r)/(r*(l+2*mu))));
-    REAL s_z = -(l*(l*(-s_r-s_t)-2*mu*(s_r+s_t)))/(2*(l+mu)*(l+2*mu));
-    
-    sigma.XX() = s_r;
-    sigma.YY() = s_t;
-    sigma.ZZ() = s_z;
-    
-    TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-    
-//    T plastic_integrator(m_plastic_integrator);
-//    plastic_integrator.SetState(m_memory[i].GetPlasticState_n());
-//    plastic_integrator.ApplyLoad(sigma,epsilon);
-    
-    /// now update all the variables
-    
-    sigma = Sigma(i,epsilon,&Dep);
-    l = Dep(0,3);
-    mu = Dep(1,1)/2.0;
-    REAL Kdr_ep = l + (2.0/3.0)*mu;
-    REAL alpha = 1.0 - Kdr_ep/m_K_s;
-    REAL phi = Porosity(i,r,y);
-    REAL kappa = Permeability(i,phi);
-    m_lambda[i] = l;
-    m_mu[i] = mu;
-    m_memory[i].Setphi_n(phi);
-    m_memory[i].Setkappa_n(kappa);
-    m_memory[i].SetAlpha(alpha);
-    m_accept_solution_Q = false;
-    
-#else
-
     REAL last_l,last_mu;
 
     if(initial_data_Q){
@@ -559,15 +469,6 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
         l   = l_n;
         
     }
-
-//    if(!check_Q){
-//        m_lambda[i] = last_l;
-//        m_mu[i] = last_mu;
-//        std::cout << "TPMRSRKSolver<T,TMEM>:: Nonlinear Process does not converge!" << std::endl;
-//    }
-    
-//    REAL l = last_l;
-//    REAL mu = last_mu;
     
     m_accept_solution_Q = true;
     /// update secondary variables
@@ -603,7 +504,6 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     m_mu[i] = mu;
     m_accept_solution_Q = false;
     
-#endif
 }
 
 template <class T, class TMEM>
