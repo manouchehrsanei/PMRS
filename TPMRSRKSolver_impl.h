@@ -503,43 +503,43 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL l = last_l;
     REAL mu = last_mu;
     
-//    { /// First data correction
-//        m_lambda[i] = l;
-//        m_mu[i] = mu;
-//        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
-//        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-//        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-//        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
-//        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
-//        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
-//        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
-//        l = Dep(0,5);
-////        mu = Dep(1,1)/2.0;
-//        mu = (3.0/2.0)*(Kep - l);
-//    }
     
-//    bool check_Q = false;
-//    REAL tol = 1.0e-4;
-//    int n_iterations = 50;
-//    REAL l = last_l;
-//    REAL mu = last_mu;
-//    m_accept_solution_Q = false;
-//    for (int k = 0; k < n_iterations; k++) {
-//        m_lambda[i] = l;
-//        m_mu[i] = mu;
-//        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
-//        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-//        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-//        REAL error_l  = fabs(l - Dep(0,5));
-//        REAL error_mu  = fabs(mu - Dep(1,1)/2.0);
-//        check_Q = error_l < tol && error_mu < tol;
-//        if (check_Q) {
-//            break;
-//        }
-//        l = Dep(0,5);
-//        mu = Dep(1,1)/2.0;
-//    }
-//
+    bool check_Q = false;
+    REAL tol = 1.0e-4;
+    int n_iterations = 1;
+    m_accept_solution_Q = false;
+    REAL l_n = last_l;
+    REAL mu_n = last_mu;
+    
+    for (int k = 0; k < n_iterations; k++) {
+        
+        m_lambda[i] = l;
+        m_mu[i] = mu;
+        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
+        TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
+        y[1] = sigma.XX();
+
+        /// lamé data correction
+        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
+        mu_n = 0.5*(Dep(1,1)+Dep(2,2)+Dep(4,4))/3.0;
+        l_n = Kep - (2.0/3.0)*mu;
+        
+        REAL error_l  = fabs(l - l_n);
+        REAL error_mu  = fabs(mu - mu_n);
+        check_Q = error_l < tol && error_mu < tol;
+        if (check_Q) {
+            break;
+        }
+        
+        mu  = mu_n;
+        l   = l_n;
+        
+    }
+
 //    if(!check_Q){
 //        m_lambda[i] = last_l;
 //        m_mu[i] = last_mu;
@@ -559,7 +559,7 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
     /// updating
     REAL error = y[1] - sigma.XX();
-    std::cout << "Error in s_rr = " << error << std::endl;
+    std::cout << "Difference in s_rr = " << error << std::endl;
     y[1] = sigma.XX();
     
     /// lamé data correction
@@ -567,9 +567,8 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
     REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
     REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
-    l = Dep(0,5);
-    mu = Dep(1,1)/2.0;
-//    mu = (3.0/2.0)*(Kep - l);
+    mu = 0.5*(Dep(1,1)+Dep(2,2)+Dep(4,4))/3.0;
+    l = Kep - (2.0/3.0)*mu;
     
     REAL Kdr_ep = Kep;
     REAL alpha = 1.0 - Kdr_ep/m_K_s;

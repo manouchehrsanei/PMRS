@@ -165,7 +165,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data);
 int main(int argc, char *argv[])
 {
     
-    bool RK_approximation_Q = false;
+    bool RK_approximation_Q = true;
 
 #ifdef LOG4CXX
     if(log_data->isInfoEnabled())
@@ -299,7 +299,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     std::ofstream rk_file_data("rk_data.txt");
     /// Discretization
-    int n_steps = 2000;
+    int n_steps = 1000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -313,7 +313,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma_0.ZZ() = -4.0;
     p_0 = 30.0;
     
-    int A = 0;
+    int A = 10;
     switch (A) {
         case 0:
         {
@@ -329,12 +329,13 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             break;
         case 10:
         {
-            u_r        = -0.00127055;
-            sigma_r    = -31.3991;
-            sigma_t    = -31.8058;
-            sigma_z    = -15.8115;
+            REAL shift = 0.0*7.5e-6;
+            u_r        = -0.001462980057+shift;
+            sigma_r    = -10.0;
+            sigma_t    = -10.817;
+            sigma_z    = -4.1624;
             p_r        = 30.0;
-            q_r        = -0.0217147;
+            q_r        = -0.01956140064;
         }
             break;
         case 20:
@@ -563,8 +564,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetFluidData(eta, c_f, rho);
                     RKSolver.SetDiscretization(rw, re, n_steps);
                     RKSolver.SetGrainBulkModulus(Ks);
-                    RKSolver.SetFourthOrderApproximation();
-//                    RKSolver.SetFirstOrderApproximation();
+//                    RKSolver.SetFourthOrderApproximation();
+                    RKSolver.SetFirstOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
                     RKSolver.PrintRKApproximation(rk_file_data);
@@ -742,7 +743,7 @@ TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
     }
  
     TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
-    sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+    sfi_analysis->ConfigurateAnalysis(ECholesky, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     return sfi_analysis;
 }
 
