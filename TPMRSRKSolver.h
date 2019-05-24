@@ -65,6 +65,9 @@ private:
     /// Directive that stands for first order Euler approximation
     bool m_is_Euler_Q;
     
+    /// Directive that stands for where y_0 is defined
+    bool m_is_Re_Q;
+    
     /// Number of state variables
     int m_n_state;
     
@@ -134,7 +137,11 @@ public:
         m_rw = rw;
         m_re = re;
         m_n_steps = n_steps;
-        m_dr = (m_rw - m_re)/REAL(n_steps);
+        if(m_is_Re_Q){
+            m_dr = (m_rw - m_re)/REAL(n_steps);
+        }else{
+            m_dr = (m_re - m_rw)/REAL(n_steps);
+        }
     }
     
     /// Set the initial data parameters
@@ -156,6 +163,11 @@ public:
     /// Set the directive that stands for first order Euler approximation
     void SetFirstOrderApproximation(){
         m_is_Euler_Q = true;
+    }
+    
+    /// Set the directive that stands for first order Euler approximation
+    void SetDefineDataAtRe(){
+        m_is_Re_Q = true;
     }
     
     /// Set the Permeability Parameters

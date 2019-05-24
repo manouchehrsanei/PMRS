@@ -20,6 +20,7 @@ TPMRSRKSolver<T,TMEM>::TPMRSRKSolver(){
     m_K_s       = 0.0;
     m_dr        = 0.0;
     m_is_RK4_Q  = false;
+    m_is_Euler_Q = false;
     m_n_state   = 4;
     m_memory.resize(0);
     m_r_y.Resize(0, 0);
@@ -324,7 +325,15 @@ void TPMRSRKSolver<T,TMEM>::ExecuteRKApproximation(){
     
     for (int i = 1; i < n_points; i++) {
         
-        REAL r = m_dr*(i-1) + m_re;
+        REAL r_ref;
+        if(m_is_Re_Q){
+            r_ref =  m_re;
+        }else{
+            r_ref =  m_rw;
+        }
+        
+        REAL r = m_dr*(i-1) + r_ref;
+        
         if(m_is_RK4_Q){
             y = RK4Approximation(i-1,r,y);
         }else{
