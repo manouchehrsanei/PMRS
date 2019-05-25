@@ -86,6 +86,15 @@ private:
     /// Vector of second Lame parameter
     std::vector<REAL> m_mu;
     
+    /// Effecttive stress tensor associated to the initial data
+    TPZTensor<REAL> m_sigma;
+    
+    /// Elastic strain tensor associated to the initial data
+    TPZTensor<REAL> m_eps_e;
+    
+    /// Plastic strain tensor associated to the initial data
+    TPZTensor<REAL> m_eps_p;
+    
     /// Directive to load memory vector entry
     bool m_accept_solution_Q;
     
@@ -149,6 +158,12 @@ public:
         m_y_0 = y_0;
     }
 
+    /// Set the initial data parameters
+    void SetElastoPlasticInitialData(TPZTensor<REAL> & eps_e, TPZTensor<REAL> & eps_p, TPZTensor<REAL> & sigma){
+        m_eps_e = eps_e;
+        m_eps_p = eps_p;
+        m_sigma = sigma;
+    }
     
     /// Set the Default memory item
     void SetDefaultMemory(TMEM & default_memory){

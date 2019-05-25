@@ -27,6 +27,9 @@ TPMRSRKSolver<T,TMEM>::TPMRSRKSolver(){
     m_lambda.resize(0);
     m_mu.resize(0);
     m_accept_solution_Q = false;
+    m_sigma.Zero();
+    m_eps_e.Zero();
+    m_eps_p.Zero();
 }
 
 template <class T, class TMEM>
@@ -423,10 +426,20 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
     REAL last_l,last_mu;
 
+    TPZTensor<REAL> last_eps_p;
     if(initial_data_Q){
+        
+//        m_memory[i].GetPlasticState().m_eps_t = m_eps_p;
+//        m_memory[i].GetPlasticState().m_eps_t += m_eps_e;
+//        m_memory[i].GetPlasticState().m_eps_p = m_eps_p;
+        last_eps_p = m_eps_p;
+        
         last_l = this->lambda(i);
         last_mu = this->mu(i);
     }else{
+//        m_memory[i].GetPlasticState().m_eps_p = m_memory[i-1].GetPlasticState().m_eps_p;
+        last_eps_p = m_memory[i-1].GetPlasticState_n().m_eps_p;
+        
         last_l = this->lambda(i-1);
         last_mu = this->mu(i-1);
     }
@@ -436,7 +449,7 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
     bool check_Q = false;
     REAL tol = 1.0e-4;
-    int n_iterations = 1;
+    int n_iterations = 0;
     m_accept_solution_Q = false;
     REAL l_n = last_l;
     REAL mu_n = last_mu;
@@ -445,10 +458,10 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
         
         m_lambda[i] = l;
         m_mu[i] = mu;
-        TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+        TPZTensor<REAL> epsilon = Epsilon(i,r,y) ;
         TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
-        y[1] = sigma.XX();
+//        y[1] = sigma.XX();
 
         /// lamé data correction
         REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
@@ -474,14 +487,14 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     /// update secondary variables
 //    m_lambda[i] = l;
 //    m_mu[i] = mu;
-    TPZTensor<REAL> epsilon = Epsilon(i,r,y);
+    TPZTensor<REAL> epsilon = Epsilon(i,r,y) + last_eps_p;
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
     TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
     
     /// updating
     REAL error = y[1] - sigma.XX();
     std::cout << "Difference in s_rr = " << error << std::endl;
-    y[1] = sigma.XX();
+//    y[1] = sigma.XX();
     
     /// lamé data correction
     REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
@@ -500,8 +513,8 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL kappa = Permeability(i,phi);
     m_memory[i].Setphi_n(phi);
     m_memory[i].Setkappa_n(kappa);
-    m_lambda[i] = l;
-    m_mu[i] = mu;
+//    m_lambda[i] = l;
+//    m_mu[i] = mu;
     m_accept_solution_Q = false;
     
 }

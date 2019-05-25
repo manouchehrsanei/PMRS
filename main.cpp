@@ -299,12 +299,13 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     std::ofstream rk_file_data("rk_data.txt");
     /// Discretization
-    int n_steps = 1000;
+    int n_steps = 2000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
     TPZTensor<REAL> sigma_0;
     REAL p_0,u_r,sigma_r,sigma_t,sigma_z,p_r,q_r;
+    REAL eps_p_r,eps_p_t,eps_p_z;
     sigma_0.Zero();
     
     
@@ -327,12 +328,17 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             break;
         case 10:
         {
-            u_r        = -0.000494629;
-            sigma_r    = 0.0;
-            sigma_t    = -10.817;
-            sigma_z    = -4.1624;
+            u_r        = -0.000499874;
+            sigma_r    = -0.84682*1.0;
+            sigma_t    = -31.1651;
+            sigma_z    = -6.40238;
             p_r        = 20.0;
-            q_r        = -1.96382;
+            q_r        = -1.96457;
+            
+            eps_p_r    = 0.00148633;
+            eps_p_t    = -0.00049545;
+            eps_p_z    = 0.0;
+            
         }
             break;
         case 20:
@@ -364,7 +370,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
 
     /// Initial data at re
     std::vector<REAL> y_0;
-    TPZTensor<REAL> sigma,eps;
+    TPZTensor<REAL> sigma,eps, eps_p;
     sigma.Zero();
     
     y_0.push_back(u_r);
@@ -375,6 +381,10 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     sigma.XX() = sigma_r;
     sigma.YY() = sigma_t;
     sigma.ZZ() = sigma_z;
+    
+    eps_p.XX() = eps_p_r;
+    eps_p.YY() = eps_p_t;
+    eps_p.ZZ() = eps_p_z;
     
     /// Configuring the elastoplastic integrator
     TPMRSMemory default_memory;
@@ -421,6 +431,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             Elastic.ApplyLoad(sigma_0, eps);
             eps.ZZ() = 0.0;
             eps.Zero();
+
             
             default_memory.SetKs(Ks);
             default_memory.SetKdr(Kdr);
@@ -477,6 +488,8 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             RKSolver.SetPlasticIntegrator(Elastic);
             RKSolver.SetDefaultMemory(default_memory);
             RKSolver.SetInitialData(y_0);
+            DebugStop();
+            RKSolver.SetElastoPlasticInitialData(sigma,sigma,sigma);
             RKSolver.SetFluidData(eta, c_f, rho);
             RKSolver.SetDiscretization(rw, re, n_steps);
             RKSolver.SetGrainBulkModulus(Ks);
@@ -502,6 +515,11 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     LEMC.ApplyLoad(sigma_0, eps);
                     eps.ZZ() = 0.0;
 //                    eps.Zero();
+                    
+                    
+                    /// computing elastoplastic state at initial point
+                    TPZTensor<REAL> eps_e;
+                    ER.ComputeStrain(sigma, eps_e);
                     
                     default_memory.SetKs(Ks);
                     default_memory.SetKdr(Kdr);
@@ -558,6 +576,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetPlasticIntegrator(LEMC);
                     RKSolver.SetDefaultMemory(default_memory);
                     RKSolver.SetInitialData(y_0);
+                    RKSolver.SetElastoPlasticInitialData(eps_e, eps_p, sigma);
                     RKSolver.SetFluidData(eta, c_f, rho);
                     RKSolver.SetDiscretization(rw, re, n_steps);
                     RKSolver.SetGrainBulkModulus(Ks);
