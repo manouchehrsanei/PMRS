@@ -458,7 +458,7 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
         
         m_lambda[i] = l;
         m_mu[i] = mu;
-        TPZTensor<REAL> epsilon = Epsilon(i,r,y) ;
+        TPZTensor<REAL> epsilon = Epsilon(i,r,y)  + last_eps_p;
         TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
 //        y[1] = sigma.XX();
@@ -485,8 +485,8 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     
     m_accept_solution_Q = true;
     /// update secondary variables
-//    m_lambda[i] = l;
-//    m_mu[i] = mu;
+    m_lambda[i] = l;
+    m_mu[i] = mu;
     TPZTensor<REAL> epsilon = Epsilon(i,r,y) + last_eps_p;
     TPZFNMatrix<36,REAL> Dep(6,6,0.0);
     TPZTensor<REAL> sigma   = Sigma(i,epsilon,&Dep);
@@ -513,8 +513,8 @@ void TPMRSRKSolver<T,TMEM>::ReconstructAndAcceptPoint(int i, REAL & r, std::vect
     REAL kappa = Permeability(i,phi);
     m_memory[i].Setphi_n(phi);
     m_memory[i].Setkappa_n(kappa);
-//    m_lambda[i] = l;
-//    m_mu[i] = mu;
+    m_lambda[i] = l;
+    m_mu[i] = mu;
     m_accept_solution_Q = false;
     
 }

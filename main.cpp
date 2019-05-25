@@ -299,7 +299,7 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
     
     std::ofstream rk_file_data("rk_data.txt");
     /// Discretization
-    int n_steps = 2000;
+    int n_steps = 1000;
     REAL rw = 0.1;
     REAL re = 10.0;
     
@@ -328,16 +328,32 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
             break;
         case 10:
         {
-            u_r        = -0.000499874;
-            sigma_r    = -0.84682*1.0;
-            sigma_t    = -31.1651;
-            sigma_z    = -6.40238;
-            p_r        = 20.0;
-            q_r        = -1.96457;
             
-            eps_p_r    = 0.00148633;
-            eps_p_t    = -0.00049545;
+//            -0.000496121007, 20.00079918, -1.964040041, -1.070979953, \
+//            -32.47359848, -6.708909988, 0.0006524149794, -0.000217474997
+            
+            u_r        = -0.000495121007;
+            sigma_r    = 0.0;
+            sigma_t    = -32.47359848;
+            sigma_z    = -6.708909988;
+            p_r        = 20.0;
+            q_r        = -1.964040041;
+            eps_p_r    = 0.0006524149794;
+            eps_p_t    = 0.000217474997;
             eps_p_z    = 0.0;
+            
+//            -0.001462929999, 30.00309944, -0.01959929988, -9.998459816, \
+//            -10.76159954, -4.152019978
+            
+//            u_r        = -0.001462929999;
+//            sigma_r    = -10.0;
+//            sigma_t    = -10.0;
+//            sigma_z    = -4.0;
+//            p_r        = 30.0;
+//            q_r        = -0.01959929988;
+//            eps_p_r    = 0.0;
+//            eps_p_t    = 0.0;
+//            eps_p_z    = 0.0;
             
         }
             break;
@@ -578,10 +594,10 @@ void RunRKApproximation(TPMRSSimulationData * sim_data){
                     RKSolver.SetInitialData(y_0);
                     RKSolver.SetElastoPlasticInitialData(eps_e, eps_p, sigma);
                     RKSolver.SetFluidData(eta, c_f, rho);
+//                    RKSolver.SetDefineDataAtRe();
                     RKSolver.SetDiscretization(rw, re, n_steps);
                     RKSolver.SetGrainBulkModulus(Ks);
                     RKSolver.SetFourthOrderApproximation();
-//                    RKSolver.SetFirstOrderApproximation();
                     RKSolver.Synchronize();
                     RKSolver.ExecuteRKApproximation();
                     RKSolver.PrintRKApproximation(rk_file_data);
