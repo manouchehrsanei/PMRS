@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="80" />
-        <Residue res_tolerance="0.0000001" />
-        <Correction cor_tolerance="0.0000001" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
