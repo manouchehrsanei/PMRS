@@ -7,15 +7,15 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="10.0" />
-        <StepNumber n_time_steps="100" />
+        <StepSize dt="100000000.0" />
+        <StepNumber n_time_steps="1" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="80" />
-        <Residue res_tolerance="0.0000001" />
-        <Correction cor_tolerance="0.0000001" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -53,7 +53,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_steady_state_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
@@ -70,7 +70,7 @@
             <Var v_name="q" />            
         </OutputControlsRes> 
         <ReportingTimes>
-            <time t="1000.0" />
+            <time t="100000000.0" />
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -134,15 +134,13 @@
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+        <Geomechanic bc_id="2" type="Ntn" n_data="2" >
             <Data t="0" tn="0.0" />
-            <Data t="10.0" tn="20.0" />
-            <Data t="1000.0" tn="20.0" />
+            <Data t="100000000.0" tn="20.0" />
         </Geomechanic>
-        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
+        <Geomechanic bc_id="3" type="Ntn" n_data="2" >
             <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="100000000.0" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -152,15 +150,13 @@
         </Geomechanic>
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Dp" n_data="3" >
+        <Reservoir bc_id="2" type="Dp" n_data="2" >
             <Data t="0" p="30.0" />
-            <Data t="10.0" p="20.0" />
-            <Data t="1000.0" p="20.0" />
+            <Data t="100000000.0" p="20.0" />
         </Reservoir>
-        <Reservoir bc_id="3" type="Dp" n_data="3" >
+        <Reservoir bc_id="3" type="Dp" n_data="2" >
             <Data t="0" p="30.0" />
-            <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />
+            <Data t="100000000.0" p="30.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />

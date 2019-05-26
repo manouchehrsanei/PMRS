@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D.msh" />
+       <MeshFile mesh_file="Wellbore_Cricular_2D_SEST2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -21,7 +21,7 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="FDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
         <NState n_state="2" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
@@ -53,7 +53,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="NDrilling_FDM_1_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
