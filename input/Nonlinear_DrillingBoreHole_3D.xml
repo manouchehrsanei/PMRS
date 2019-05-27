@@ -199,23 +199,35 @@
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>            
-        <Geomechanic bc_id="3" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="4" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="4" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>            
-        <Geomechanic bc_id="5" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="5" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="6" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="6" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>            
-        <Geomechanic bc_id="7" type="Dun" n_data="1" >
-            <Data t="0" un="0.0" />
+        <Geomechanic bc_id="7" type="Ntn" n_data="3" >
+            <Data t="0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="1000.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="8" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
@@ -236,23 +248,35 @@
         </Geomechanic>          
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />              
+        <Reservoir bc_id="2" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="10.0" p="30.0" />
+            <Data t="1000.0" p="30.0" />              
         </Reservoir>
-        <Reservoir bc_id="3" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />             
+        <Reservoir bc_id="3" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="10.0" p="30.0" />
+            <Data t="1000.0" p="30.0" />            
         </Reservoir>
-        <Reservoir bc_id="4" type="Nq" n_data="1" >
-            <Data t="0" qn="0.0" />             
+        <Reservoir bc_id="4" type="Nq" n_data="3" >
+            <Data t="0" qn="0.0" />
+            <Data t="10.0" qn="0.0" />
+            <Data t="1000.0" qn="0.0" />             
         </Reservoir>            
-        <Reservoir bc_id="5" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />             
+        <Reservoir bc_id="5" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="10.0" p="30.0" />
+            <Data t="1000.0" p="30.0" />            
         </Reservoir> 
-        <Reservoir bc_id="6" type="Nq" n_data="1" >
-            <Data t="0" qn="0.0" />             
+        <Reservoir bc_id="6" type="Nq" n_data="3" >
+            <Data t="0" qn="0.0" />
+            <Data t="10.0" qn="0.0" />
+            <Data t="1000.0" qn="0.0" />              
         </Reservoir> 
-        <Reservoir bc_id="7" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />             
+        <Reservoir bc_id="7" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="10.0" p="30.0" />
+            <Data t="1000.0" p="30.0" />             
         </Reservoir> 
         <Reservoir bc_id="8" type="Dp" n_data="3" >
            <Data t="0" p="30.0" />
