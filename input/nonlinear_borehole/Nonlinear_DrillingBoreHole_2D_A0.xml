@@ -139,8 +139,8 @@
             <Data t="100000000.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="2" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="100000000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="100000000.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
