@@ -595,7 +595,7 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
         if (!IsZero(den)) {
             theta_ratio = num / den;
         }
-        apply_transformation_Q = fabs(1.0-theta_ratio) < max_theta;
+        apply_transformation_Q = fabs(theta_ratio-1.0) < max_theta;
     }
     
     if (apply_transformation_Q) {
