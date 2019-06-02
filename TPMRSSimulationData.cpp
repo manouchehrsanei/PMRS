@@ -1530,8 +1530,9 @@ void TPMRSSimulationData::PrintGeometry()
 {
     std::stringstream text_name;
     std::stringstream vtk_name;
-    text_name  << "geometry" << ".txt";
-    vtk_name   << "geometry"  << ".vtk";
+    std::string name = this->name_vtk_file();
+    text_name  << name << "_geometry" << ".txt";
+    vtk_name   << name << "_geometry"  << ".vtk";
     std::ofstream textfile(text_name.str().c_str());
     m_geometry->Print(textfile);
     std::ofstream vtkfile(vtk_name.str().c_str());

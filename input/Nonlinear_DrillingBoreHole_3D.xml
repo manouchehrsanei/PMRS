@@ -7,7 +7,7 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="100.0" />
+        <StepSize dt="10.0" />
         <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
@@ -46,8 +46,8 @@
         <FullyCoupled useQs="0" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="2" />
-        <Diffusion p_order="1" />
+        <Elasticity p_order="3" />
+        <Diffusion p_order="2" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
@@ -70,16 +70,16 @@
             <Var v_name="q" />            
         </OutputControlsRes> 
         <ReportingTimes>
+            <time t="10.0" />
+            <time t="20.0" />
+            <time t="30.0" />
+            <time t="40.0" />
+            <time t="50.0" />
+            <time t="60.0" />
+            <time t="70.0" />
+            <time t="80.0" />
+            <time t="90.0" />
             <time t="100.0" />
-            <time t="200.0" />
-            <time t="300.0" />
-            <time t="400.0" />
-            <time t="500.0" />
-            <time t="600.0" />
-            <time t="700.0" />
-            <time t="800.0" />
-            <time t="900.0" />
-            <time t="1000.0" />
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -134,14 +134,14 @@
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
-        <InitialGeomechanic bc_id="4" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+        <InitialGeomechanic bc_id="4" type="Duz" n_data="1" >
+            <Data t="0" uz="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="5" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
-        <InitialGeomechanic bc_id="6" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+        <InitialGeomechanic bc_id="6" type="Duz" n_data="1" >
+            <Data t="0" uz="0.0" />
         </InitialGeomechanic>            
         <InitialGeomechanic bc_id="7" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
@@ -200,39 +200,39 @@
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>            
         <Geomechanic bc_id="3" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="4" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+        <Geomechanic bc_id="4" type="Duz" n_data="3" >
+            <Data t="0" uz="0.0" />
+            <Data t="10" uz="0.0" />
+            <Data t="100" uz="0.0" />
         </Geomechanic>            
         <Geomechanic bc_id="5" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="6" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+        <Geomechanic bc_id="6" type="Duz" n_data="3" >
+            <Data t="0" uz="0.0" />
+            <Data t="10" uz="0.0" />
+            <Data t="100" uz="0.0" />
         </Geomechanic>            
         <Geomechanic bc_id="7" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="8" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="100" tn="20.0" />
-            <Data t="1000" tn="20.0" />
+            <Data t="10" tn="20.0" />
+            <Data t="100.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="9" type="Duyz" n_data="1" >
             <Data t="0" uy="0.0" uz="0.0" />
@@ -251,37 +251,37 @@
         <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />              
+            <Data t="100.0" p="30.0" />              
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />            
+            <Data t="100.0" p="30.0" />            
         </Reservoir>
         <Reservoir bc_id="4" type="Nq" n_data="3" >
             <Data t="0" qn="0.0" />
             <Data t="10.0" qn="0.0" />
-            <Data t="1000.0" qn="0.0" />             
+            <Data t="100.0" qn="0.0" />             
         </Reservoir>            
         <Reservoir bc_id="5" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />            
+            <Data t="100.0" p="30.0" />            
         </Reservoir> 
         <Reservoir bc_id="6" type="Nq" n_data="3" >
             <Data t="0" qn="0.0" />
             <Data t="10.0" qn="0.0" />
-            <Data t="1000.0" qn="0.0" />              
+            <Data t="100.0" qn="0.0" />              
         </Reservoir> 
         <Reservoir bc_id="7" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />             
+            <Data t="100.0" p="30.0" />             
         </Reservoir> 
         <Reservoir bc_id="8" type="Dp" n_data="3" >
            <Data t="0" p="30.0" />
             <Data t="10.0" p="20.0" />
-            <Data t="1000.0" p="20.0" />            
+            <Data t="100.0" p="20.0" />            
         </Reservoir>
         <Reservoir bc_id="9" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />             

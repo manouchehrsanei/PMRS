@@ -8,7 +8,7 @@
     <!-- Time step controls  -->
     <TimeControls>
         <StepSize dt="10.0" />
-        <StepNumber n_time_steps="100" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -22,7 +22,7 @@
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
         <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
-        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
+        <NState n_state="2" /> <!-- NState = {2,4,6} -> {3,5,7} -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
@@ -53,7 +53,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="NDrilling_SFI_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="NDrilling_SFI_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
@@ -70,7 +70,16 @@
             <Var v_name="q" />            
         </OutputControlsRes> 
         <ReportingTimes>
-            <time t="1000.0" />
+           <time t="10.0" />
+            <time t="20.0" />
+            <time t="30.0" />
+            <time t="40.0" />
+            <time t="50.0" />
+            <time t="60.0" />
+            <time t="70.0" />
+            <time t="80.0" />
+            <time t="90.0" />
+            <time t="100.0" />
         </ReportingTimes>         
     </OutputControls>
     <Physics>
@@ -137,12 +146,12 @@
         <Geomechanic bc_id="2" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
             <Data t="10.0" tn="20.0" />
-            <Data t="1000.0" tn="20.0" />
+            <Data t="100.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="3" >
-            <Data t="0" tn="-0.00001" />
-            <Data t="10.0" tn="0.0" />
-            <Data t="1000.0" tn="0.0" />
+            <Data t="0" tn="0.0" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -155,12 +164,12 @@
         <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="20.0" />
-            <Data t="1000.0" p="20.0" />
+            <Data t="100.0" p="20.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
             <Data t="10.0" p="30.0" />
-            <Data t="1000.0" p="30.0" />
+            <Data t="100.0" p="30.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />
