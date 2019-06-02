@@ -568,7 +568,7 @@ void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
 }
 
-#define Adaptive_Acceleration_Q
+//#define Adaptive_Acceleration_Q
 
 TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
@@ -595,12 +595,13 @@ TPZFMatrix<REAL> TPMRSSegregatedAnalysis::ApplyTransformation(TPZFMatrix<REAL> &
         if (!IsZero(den)) {
             theta_ratio = num / den;
         }
-        apply_transformation_Q = fabs(theta_ratio-1.0) < max_theta;
+        apply_transformation_Q = fabs(1.0-theta_ratio) < max_theta;
     }
     
     if (apply_transformation_Q) {
         return S;
     }else{
+        std::cout << " TPMRSSegregatedAnalysis:: Transformation is avoided swithcing to SFI." << std::endl;
         return An_p_1;
     }
 #else
