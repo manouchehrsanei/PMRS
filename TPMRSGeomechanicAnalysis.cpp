@@ -284,7 +284,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         m_k_iterations = i;
         m_error   = norm_res;
         m_dx_norm = norm_dx;
-        
+        std::cout << "TPMRSGeomechanicAnalysis:: residue norm = " << norm_res << std::endl;
         if (residual_stop_criterion_Q /*&&  correction_stop_criterion_Q*/) {
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
