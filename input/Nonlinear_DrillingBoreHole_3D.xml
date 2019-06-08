@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/vertical_wellbore_3D_5_inches_geo.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/vertical_wellbore_3D_5_inches_50k_geo.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="80" />
-        <Residue res_tolerance="0.01" />
-        <Correction cor_tolerance="0.01" />
+        <Residue res_tolerance="0.0001" />
+        <Correction cor_tolerance="0.0001" />
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -46,8 +46,8 @@
         <FullyCoupled useQs="0" />
         <MixedFormulationQ useQ="0" />
         <HRefine h_level="0" />
-        <Elasticity p_order="3" />
-        <Diffusion p_order="2" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
     </FEM>
     <!-- Settings for OutPut -->
     <OutputControls>
