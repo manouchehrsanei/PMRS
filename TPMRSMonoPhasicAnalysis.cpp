@@ -154,15 +154,20 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
-//    if ((m_k_iterations-1)%m_n_update_jac) {
-//        AssembleResidual();
-//    }else{
+    if ((m_k_iterations-1)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
         Assemble();
-//        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-//        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
-//    }
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
 
+#ifndef    CheapNONM_Q
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
+#else
+    TPZAutoPointer<TPZMatrix<REAL>> j_x = Solver().Matrix();
+#endif
+    
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
@@ -189,7 +194,10 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     Rhs() = r_x;
     Solve();
     dyx = Solution();
+    
+#ifndef    CheapNONM_Q
     TPZAutoPointer<TPZMatrix<REAL>> inv_j_y = Solver().Matrix()->Clone();
+#endif
     
     z = x_k + 0.5*(dyx + dx);
     m_X_n = z;
@@ -264,7 +272,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 7) {
+        if (i <= 1) {
             this->ExecuteNewtonInteration();
             dx = Solution();
             norm_dx  = Norm(dx);
@@ -284,8 +292,6 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         
         LoadMemorySolution();
         norm_res = Norm(Rhs());
-//        m_X_n.Print("pcorr = ",std::cout,EMathematicaInput);
-//        Rhs().Print("rconv = ",std::cout, EMathematicaInput);
         
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
@@ -293,7 +299,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
-
+        std::cout << "TPMRSMonoPhasicAnalysis:: residue norm = " << norm_res << std::endl;
         if (residual_stop_criterion_Q /*&& correction_stop_criterion_Q */) {
             std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;

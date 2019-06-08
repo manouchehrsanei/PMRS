@@ -152,15 +152,20 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
     x_k = Solution();
     
-//    if ((m_k_iterations-1)%m_n_update_jac) {
-//        AssembleResidual();
-//    }else{
+    if ((m_k_iterations-1)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
         Assemble();
         Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
         std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
-//    }
-    
+    }
+
+#ifndef    CheapNONM_Q
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
+#else
+    TPZAutoPointer<TPZMatrix<REAL>> j_x = Solver().Matrix();
+#endif
+    
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
@@ -189,7 +194,7 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     
 #ifndef    CheapNONM_Q
     TPZAutoPointer<TPZMatrix<REAL>> inv_j_y = Solver().Matrix()->Clone();
- #endif
+#endif
     
     z = x_k + 0.5*(dyx + dx);
     m_X_n = z;
@@ -266,7 +271,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         m_k_iterations = i;
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 7) {
+        if (i <= 1) {
             this->ExecuteNewtonInteration();
             dx += Solution();
             norm_dx  = Norm(Solution());
