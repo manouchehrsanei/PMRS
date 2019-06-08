@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/vertical_wellbore_3D_5_inches_50k_geo.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/vertical_wellbore_3D_5_inches_geo.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -21,8 +21,8 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
-        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="4" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
@@ -35,7 +35,7 @@
     </Initialization>      
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="24" />
+        <Numthreads n_threads="64" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -44,7 +44,7 @@
     <!-- Finite element controls  -->
     <FEM>
         <FullyCoupled useQs="0" />
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -53,7 +53,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="NDrilling_SFI_3D_MF_A_20" n_divisions="0" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
+        <PostProcessing vtk_file="NDrilling_SDM_2_3D_MF_V_Stress_A_20" n_divisions="0" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
@@ -134,15 +134,15 @@
         <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
-        <InitialGeomechanic bc_id="4" type="Duz" n_data="1" >
-            <Data t="0" uz="0.0" />
-        </InitialGeomechanic>            
+        <InitialGeomechanic bc_id="4" type="Ntn" n_data="1" >
+            <Data t="0" tn="-40.0" />
+        </InitialGeomechanic>           
         <InitialGeomechanic bc_id="5" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
-        <InitialGeomechanic bc_id="6" type="Duz" n_data="1" >
-            <Data t="0" uz="0.0" />
-        </InitialGeomechanic>            
+        <InitialGeomechanic bc_id="6" type="Ntn" n_data="1" >
+            <Data t="0" tn="-40.0" />
+        </InitialGeomechanic>          
         <InitialGeomechanic bc_id="7" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
@@ -209,21 +209,21 @@
             <Data t="2.0" tn="-0.00001" />
             <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="4" type="Duz" n_data="3" >
-            <Data t="0" uz="0.0" />
-            <Data t="10" uz="0.0" />
-            <Data t="100" uz="0.0" />
-        </Geomechanic>            
+        <Geomechanic bc_id="4" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="2.0" tn="0.0" />
+            <Data t="100.0" tn="0.0" />
+        </Geomechanic>           
         <Geomechanic bc_id="5" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
             <Data t="2.0" tn="-0.00001" />
             <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
-        <Geomechanic bc_id="6" type="Duz" n_data="3" >
-            <Data t="0" uz="0.0" />
-            <Data t="10" uz="0.0" />
-            <Data t="100" uz="0.0" />
-        </Geomechanic>            
+        <Geomechanic bc_id="6" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="2.0" tn="0.0" />
+            <Data t="100.0" tn="0.0" />
+        </Geomechanic>           
         <Geomechanic bc_id="7" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
             <Data t="2.0" tn="-0.00001" />

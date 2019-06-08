@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="10.0" />
-        <StepNumber n_time_steps="10" />
+        <StepSize dt="2.0" />
+        <StepNumber n_time_steps="50" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -145,12 +145,12 @@
     <BCGeomechanics>
         <Geomechanic bc_id="2" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="10.0" tn="20.0" />
+            <Data t="2.0" tn="20.0" />
             <Data t="100.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="3" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="10.0" tn="-0.00001" />
+            <Data t="2.0" tn="-0.00001" />
             <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
@@ -163,12 +163,12 @@
     <BCReservoirs>
         <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
-            <Data t="10.0" p="20.0" />
+            <Data t="2.0" p="20.0" />
             <Data t="100.0" p="20.0" />
         </Reservoir>
         <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
-            <Data t="10.0" p="30.0" />
+            <Data t="2.0" p="30.0" />
             <Data t="100.0" p="30.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
