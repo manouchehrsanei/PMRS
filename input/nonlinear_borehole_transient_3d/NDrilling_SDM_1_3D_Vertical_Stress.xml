@@ -169,14 +169,14 @@
         <InitialReservoir bc_id="3" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />             
         </InitialReservoir>
-        <InitialReservoir bc_id="4" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />             
+        <InitialReservoir bc_id="4" type="Nq" n_data="1" >
+            <Data t="0" qn="0.0" />             
         </InitialReservoir>            
         <InitialReservoir bc_id="5" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />             
         </InitialReservoir> 
-        <InitialReservoir bc_id="6" type="Dp" n_data="1" >
-            <Data t="0" p="30.0" />             
+        <InitialReservoir bc_id="6" type="Nq" n_data="1" >
+            <Data t="0" qn="0.0" />             
         </InitialReservoir> 
         <InitialReservoir bc_id="7" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />             
@@ -231,7 +231,7 @@
         </Geomechanic>
         <Geomechanic bc_id="8" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="10" tn="20.0" />
+            <Data t="2.0" tn="20.0" />
             <Data t="100.0" tn="20.0" />
         </Geomechanic>
         <Geomechanic bc_id="9" type="Duyz" n_data="1" >
