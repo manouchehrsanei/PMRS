@@ -836,8 +836,6 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
 }
 
 void TPMRSSegregatedAnalysis::CreateGeomechanicOperator(){
-    
-    m_geomechanic_analysis->Assemble();
     m_geomechanic_analysis->LoadMemorySolution();
     m_geomechanic_analysis->Assemble();
     m_geomechanic_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
@@ -845,7 +843,6 @@ void TPMRSSegregatedAnalysis::CreateGeomechanicOperator(){
 }
 
 void TPMRSSegregatedAnalysis::CreateReservoirOperator(){
-    m_reservoir_analysis->Assemble();
     m_reservoir_analysis->LoadMemorySolution();
     m_reservoir_analysis->Assemble();
     m_reservoir_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization

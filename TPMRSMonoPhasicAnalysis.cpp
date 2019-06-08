@@ -140,7 +140,13 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
     
     if ((m_k_iterations)%m_n_update_jac) {
-        AssembleResidual();
+        if (m_k_iterations == 2) {
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+        }else{
+            AssembleResidual();
+        }
     }else{
         Assemble();
         Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
@@ -272,7 +278,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 1) {
+        if (i <= 2) {
             this->ExecuteNewtonInteration();
             dx = Solution();
             norm_dx  = Norm(dx);
