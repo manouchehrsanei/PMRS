@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/vertical_wellbore_3D_5_inches_50k_geo.msh" />
+       <MeshFile mesh_file="vertical_wellbore_3D_5_inches_50k_geo.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
