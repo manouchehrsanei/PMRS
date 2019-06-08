@@ -45,6 +45,9 @@ private:
     /// number of Newton iterations
     int m_k_iterations;
     
+    /// number of Quase-Newton iterations for the next Jacobian update
+    int m_n_update_jac;
+    
     /// Post-processor object
     TPZPostProcAnalysis * m_post_processor;
     
@@ -100,42 +103,54 @@ public:
     /// Update solution state x = x_n
     void UpdateState();
     
-    /// Brief Set Residue error
+    /// Set Residue error
     void Set_error(STATE error)
     {
         m_error = error;
     }
     
-    /// Brief Get Residue error
+    /// Get Residue error
     STATE Get_error()
     {
         return m_error;
     }
     
     
-    /// Brief Set Correction variation
+    /// Set Correction variation
     void Set_dx_norm(STATE dxnorm)
     {
         m_dx_norm = dxnorm;
     }
     
-    /// Brief Get Correction variation
+    /// Get Correction variation
     STATE Get_dx_norm()
     {
         return m_dx_norm;
     }
     
     
-    /// Brief Set number of Newton iterations
+    /// Set number of Newton iterations
     void Set_k_iterations(int kiterations)
     {
         m_k_iterations = kiterations;
     }
     
-    /// Brief Get number of Newton iterations
+    /// Get number of Newton iterations
     int Get_k_iterations()
     {
         return m_k_iterations;
+    }
+    
+    /// Set number of Quase-Newton iterations for jacobian update
+    void Set_n_update_jac(int n_update_jac)
+    {
+        m_n_update_jac = n_update_jac;
+    }
+    
+    /// Get number of Quase-Newton iterations for jacobian update
+    int Get_n_update_jac()
+    {
+        return m_n_update_jac;
     }
     
     /// Set Solution at n state

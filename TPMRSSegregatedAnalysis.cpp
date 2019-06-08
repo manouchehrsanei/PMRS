@@ -92,11 +92,13 @@ void TPMRSSegregatedAnalysis::ConfigurateAnalysis(DecomposeType decompose_geo, D
     m_geomechanic_analysis = new TPMRSGeomechanicAnalysis;
     m_geomechanic_analysis->SetCompMesh(cmesh_geomechanics,mustOptimizeBandwidth);
     m_geomechanic_analysis->ConfigurateAnalysis(decompose_geo, m_simulation_data);
+    m_geomechanic_analysis->Set_n_update_jac(50);
     
     /// The Reservoir Simulator
     m_reservoir_analysis = new TPMRSMonoPhasicAnalysis;
     m_reservoir_analysis->SetCompMesh(cmesh_reservoir,mustOptimizeBandwidth);
     m_reservoir_analysis->ConfigurateAnalysis(decompose_res, mesh_vec, m_simulation_data);
+    m_reservoir_analysis->Set_n_update_jac(50);
     
     /// Loading spatial properties
     FillMemory(m_reservoir_analysis->Mesh());

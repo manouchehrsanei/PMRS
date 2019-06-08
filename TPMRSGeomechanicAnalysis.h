@@ -42,6 +42,9 @@ private:
     /// number of Newton iterations
     int m_k_iterations;
     
+    /// number of Quase-Newton iterations for the next Jacobian update
+    int m_n_update_jac;
+    
     /// Post-processor object
     TPZPostProcAnalysis * m_post_processor;
     
@@ -128,6 +131,18 @@ public:
     int Get_k_iterations()
     {
         return m_k_iterations;
+    }
+    
+    /// Set number of Quase-Newton iterations for jacobian update
+    void Set_n_update_jac(int n_update_jac)
+    {
+        m_n_update_jac = n_update_jac;
+    }
+    
+    /// Get number of Quase-Newton iterations for jacobian update
+    int Get_n_update_jac()
+    {
+        return m_n_update_jac;
     }
     
     /// Set Solution at n+1 state

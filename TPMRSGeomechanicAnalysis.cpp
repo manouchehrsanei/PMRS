@@ -15,6 +15,7 @@ TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis() : TPZAnalysis(){
     m_error = 0;
     m_dx_norm = 0;
     m_k_iterations = 0;
+    m_n_update_jac = 1;
     m_post_processor = NULL;
     m_var_names.resize(0);
     
@@ -32,6 +33,7 @@ TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis(const TPMRSGeomechanicAnalysi
     m_error             = other.m_error;
     m_dx_norm           = other.m_dx_norm;
     m_k_iterations      = other.m_k_iterations;
+    m_n_update_jac      = other.m_n_update_jac;
     m_post_processor    = other.m_post_processor;
     m_var_names         = other.m_var_names;
     
@@ -131,8 +133,14 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
 }
 
 void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
-    Assemble();
-    Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+    
+    if ((m_k_iterations-1)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
     Rhs() *= -1.0;
     Solve();
 }
@@ -144,7 +152,14 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
     TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
     x_k = Solution();
     
-    Assemble();
+//    if ((m_k_iterations-1)%m_n_update_jac) {
+//        AssembleResidual();
+//    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+//    }
+    
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
@@ -248,10 +263,10 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     int n_it     = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
-        
+        m_k_iterations = i;
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 5) {
+        if (i <= 7) {
             this->ExecuteNewtonInteration();
             dx += Solution();
             norm_dx  = Norm(Solution());
@@ -281,7 +296,6 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
         
-        m_k_iterations = i;
         m_error   = norm_res;
         m_dx_norm = norm_dx;
         std::cout << "TPMRSGeomechanicAnalysis:: residue norm = " << norm_res << std::endl;

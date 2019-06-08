@@ -16,6 +16,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis() : TPZAnalysis(){
     m_error          = 0;
     m_dx_norm        = 0;
     m_k_iterations   = 0;
+    m_n_update_jac   = 1;
     m_post_processor = NULL;
     m_var_names.resize(0);
     m_vec_var_names.resize(0);
@@ -35,6 +36,7 @@ TPMRSMonoPhasicAnalysis::TPMRSMonoPhasicAnalysis(const TPMRSMonoPhasicAnalysis &
     m_error             = other.m_error;
     m_dx_norm           = other.m_dx_norm;
     m_k_iterations      = other.m_k_iterations;
+    m_n_update_jac      = other.m_n_update_jac;
     m_post_processor    = other.m_post_processor;
     m_var_names         = other.m_var_names;
     m_vec_var_names     = other.m_vec_var_names;
@@ -136,22 +138,30 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 }
 
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
-
-    Assemble();
-    Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-//    Solver().Matrix()->Print("j = ",std::cout, EMathematicaInput);
+    
+    if ((m_k_iterations-1)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
     Rhs() *= -1.0;
-//    Rhs().Print("r = ",std::cout, EMathematicaInput);
     Solve();
-//    Solution().Print("dp = ",std::cout,EMathematicaInput);
-//    m_X_n.Print("p = ",std::cout,EMathematicaInput);
 }
 
 #define CheapNONM_Q
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
-    Assemble();
+//    if ((m_k_iterations-1)%m_n_update_jac) {
+//        AssembleResidual();
+//    }else{
+        Assemble();
+//        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+//    }
+
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
@@ -250,10 +260,11 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
-
+        m_k_iterations = i;
+        
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 5) {
+        if (i <= 7) {
             this->ExecuteNewtonInteration();
             dx = Solution();
             norm_dx  = Norm(dx);
@@ -278,8 +289,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
-        
-        m_k_iterations = i;
+    
         m_error = norm_res;
         m_dx_norm = norm_dx;
         
