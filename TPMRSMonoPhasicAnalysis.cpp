@@ -139,7 +139,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 
 void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
     
-    if ((m_k_iterations-1)%m_n_update_jac) {
+    if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
         Assemble();
@@ -154,7 +154,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
-    if ((m_k_iterations-1)%m_n_update_jac) {
+    if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
         Assemble();

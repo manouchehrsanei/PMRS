@@ -713,11 +713,20 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     
     bool error_stop_criterion_Q = false;
     bool dx_stop_criterion_Q = false;
+    
+
+    CreateGeomechanicOperator(); /// Assuming BC data does not change during the entire simulation.
+    
     for (int it = 0; it < n_time_steps; it++) {
+        
         /// Interpolate BC data
         time_value = dt * (it+1);
+        
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
+        
+        CreateReservoirOperator();
+//        CreateGeomechanicOperator();
         
         /// Reseting initial du == 0
         m_geomechanic_analysis->Solution().Zero();
@@ -824,6 +833,22 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::cout << std::endl;
     std::cout << std::endl << std::endl;
     
+}
+
+void TPMRSSegregatedAnalysis::CreateGeomechanicOperator(){
+    
+    m_geomechanic_analysis->Assemble();
+    m_geomechanic_analysis->LoadMemorySolution();
+    m_geomechanic_analysis->Assemble();
+    m_geomechanic_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+    
+}
+
+void TPMRSSegregatedAnalysis::CreateReservoirOperator(){
+    m_reservoir_analysis->Assemble();
+    m_reservoir_analysis->LoadMemorySolution();
+    m_reservoir_analysis->Assemble();
+    m_reservoir_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
 }
 
 void TPMRSSegregatedAnalysis::UpdateState(){
@@ -1099,10 +1124,17 @@ void TPMRSSegregatedAnalysis::ExecuteStaticSolution(){
     m_simulation_data->Setdt(dt_large);
     
     /// Initial reservoir state
+    m_simulation_data->SetCurrentStateQ(true);
+    m_reservoir_analysis->LoadMemorySolution();
+    m_reservoir_analysis->Assemble();
+    m_reservoir_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
     m_reservoir_analysis->ExecuteOneTimeStep();
     m_reservoir_analysis->UpdateState();
     
     /// Compute stress state corresponding to reservoir state
+    m_geomechanic_analysis->LoadMemorySolution();
+    m_geomechanic_analysis->Assemble();
+    m_geomechanic_analysis->Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
     m_geomechanic_analysis->ExecuteOneTimeStep(true);
     m_geomechanic_analysis->UpdateState();
     m_simulation_data->SetTransferCurrentToLastQ(true);

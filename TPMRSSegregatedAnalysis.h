@@ -159,6 +159,12 @@ public:
     /// Perform a geomechanical solution with substepping
     void ExecuteTheGeomechanicalApproximation(int i_time_step);
     
+    /// Creates the geomechanic matrix and force decomposition one time
+    void CreateGeomechanicOperator();
+    
+    /// Creates the reservoir matrix and force decomposition one time
+    void CreateReservoirOperator();
+    
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)
     {

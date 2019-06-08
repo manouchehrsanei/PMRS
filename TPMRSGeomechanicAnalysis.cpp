@@ -134,7 +134,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
 
 void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     
-    if ((m_k_iterations-1)%m_n_update_jac) {
+    if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
         Assemble();
