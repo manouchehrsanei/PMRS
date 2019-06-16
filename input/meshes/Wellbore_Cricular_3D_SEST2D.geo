@@ -18,7 +18,7 @@ fr = 10.0;
 nt = 8;
 nr = 16;
 h  = 5.0;
-nh = 1;
+nh = 2;
 
 radial_progression = 1.41875;
 
@@ -105,9 +105,6 @@ SW_bc[] = {35,51};
 Bottom_bc[] = {41,45,49,52};
 Top_bc[] = {25,29,33,36};
 Wellbore_bc[] = {21,26,30,34,37,42,46,50};
-
-
-
 
 
 Physical Volume("Omega") = {the_volume[]};
