@@ -1282,7 +1282,7 @@ void TPMRSSegregatedAnalysis::UpdateInitialSigmaAndPressure(bool reset_u_Q, bool
                 memory_vector.get()->operator [](i).Setu(u_null);
                 memory_vector.get()->operator [](i).Setu_n(u_null);
                 memory_vector.get()->operator [](i).Setu_sub_step(u_null);
-                
+
                 memory_vector.get()->operator [](i).GetPlasticState_0().m_eps_p.Zero();
                 memory_vector.get()->operator [](i).GetPlasticState_n().m_eps_p.Zero();
                 memory_vector.get()->operator [](i).GetPlasticState().m_eps_p.Zero();
