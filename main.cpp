@@ -32,8 +32,10 @@
 
 /// Materials
 #include "pzl2projection.h"
+
+/// Boundary materials
 #include "pzbndcond.h"
-#include "TPZBndCondWithMem.h"
+#include "TPZBndCondWithMem_impl.h"
 
 /// Monophasic
 #include "TPMRSMonoPhasic_impl.h"
