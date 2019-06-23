@@ -254,6 +254,8 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
 
 #define NMO9_Q
 
+#define InnerLoopPerformance_Q
+
 bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
 
     
@@ -270,8 +272,10 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     REAL dx_norm = m_simulation_data->epsilon_cor();
     int n_it     = m_simulation_data->n_iterations();
     
+#ifdef InnerLoopPerformance_Q
     TPZFMatrix<REAL> residuals(n_it,2);
     residuals.Zero();
+#endif
     
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
@@ -303,9 +307,10 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {
             break;
         }
+#ifdef InnerLoopPerformance_Q
         residuals(i-1,0) = norm_dx;
         residuals(i-1,1) = norm_res;
-        
+#endif
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
         
@@ -316,7 +321,9 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Correction norm = " << norm_dx << std::endl;
             std::cout << "TPMRSGeomechanicAnalysis:: Number of iterations = " << i << std::endl;
+#ifdef InnerLoopPerformance_Q
             residuals.Print("rgeo = ",std::cout,EMathematicaInput);
+#endif
             break;
         }
     }

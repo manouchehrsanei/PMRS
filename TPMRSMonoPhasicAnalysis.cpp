@@ -273,6 +273,11 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     REAL dx_norm = m_simulation_data->epsilon_cor();
     int n_it = m_simulation_data->n_iterations();
     
+#ifdef InnerLoopPerformance_Q
+    TPZFMatrix<REAL> residuals(n_it,2);
+    residuals.Zero();
+#endif
+    
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
         
@@ -299,6 +304,11 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         LoadMemorySolution();
         norm_res = Norm(Rhs());
         
+#ifdef InnerLoopPerformance_Q
+        residuals(i-1,0) = norm_dx;
+        residuals(i-1,1) = norm_res;
+#endif
+        
         residual_stop_criterion_Q   = norm_res < r_norm;
         correction_stop_criterion_Q = norm_dx  < dx_norm;
     
@@ -310,6 +320,9 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
             std::cout << "TPMRSMonoPhasicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Correction norm = " << norm_dx << std::endl;
             std::cout << "TPMRSMonoPhasicAnalysis:: Number of iterations = " << i << std::endl;
+#ifdef InnerLoopPerformance_Q
+            residuals.Print("rres = ",std::cout,EMathematicaInput);
+#endif
             break;
         }
     }
