@@ -137,7 +137,7 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
     m_post_processor->SetStructuralMatrix(structmatrix);
 }
 
-void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
+void TPMRSMonoPhasicAnalysis::ExecuteM1Interation(){
     
     if ((m_k_iterations)%m_n_update_jac) {
         if (m_k_iterations == 2) {
@@ -156,7 +156,47 @@ void TPMRSMonoPhasicAnalysis::ExecuteNewtonInteration(){
     Solve();
 }
 
+void TPMRSMonoPhasicAnalysis::ExecuteM3Interation(){
+    
+    if ((m_k_iterations)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
+    
+}
+
+void TPMRSMonoPhasicAnalysis::ExecuteM6Interation(){
+    DebugStop();
+}
+
 #define CheapNONM_Q
+
+void TPMRSMonoPhasicAnalysis::ExecuteInteration(){
+    
+    std::string method = m_simulation_data->name_nonlinear_Newton_method();
+    
+    if (method.compare("M1") == 0) {
+        ExecuteM1Interation();
+        return;
+    }
+
+    if (method.compare("M3") == 0) {
+        ExecuteM3Interation();
+        return;
+    }
+    
+    if (method.compare("M6") == 0) {
+        ExecuteM6Interation();
+        return;
+    }
+    
+    std::cout << "Nonlinear method not implemented = " << method.c_str() << std::endl;
+    DebugStop();
+    return;
+}
 
 void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
     
@@ -167,6 +207,25 @@ void TPMRSMonoPhasicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx){
         Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
         std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
     }
+    
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
+    
+    
+    TPZFMatrix<STATE> dx,x_k;
+    x_k = m_X_n;
+    dx = Solution();
+    
+    TPZFMatrix<STATE> y = x_k + dx;
+    
+    TPZFMatrix<STATE> x_k,x,y,z,x_k_new;
+    TPZAutoPointer<TPZMatrix<REAL>> j_x = Solver().Matrix();
+    if (SecantQ) {
+        <#statements#>
+    }
+    
+    
 
 #ifndef    CheapNONM_Q
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
@@ -281,26 +340,10 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
         
-#ifdef NMO9_Q
-        /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 2) {
-            this->ExecuteNewtonInteration();
-            dx = Solution();
-            norm_dx  = Norm(dx);
-            m_X_n += dx;
-        }
-        else{
-            this->ExecuteNinthOrderNewtonInteration(norm_dx);
-        }
-#else
-        this->ExecuteNewtonInteration();
+        ExecuteInteration();
         dx = Solution();
         norm_dx  = Norm(dx);
-        m_X_n += dx;
-
-#endif
-
-        
+        m_X_n += dx; // update.
         LoadMemorySolution();
         norm_res = Norm(Rhs());
         
@@ -376,7 +419,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteUndrainedResponseStep(){
     
     m_X_n.Zero();
     m_simulation_data->SetInitialStateQ(true);
-    ExecuteNewtonInteration();
+    ExecuteInteration();
     m_X_n += Solution();
     LoadCurrentState();
     AssembleResidual();

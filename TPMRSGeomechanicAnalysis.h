@@ -70,8 +70,17 @@ public:
     /// Configurate the solver being used to compute the approximation
     void ConfigurateAnalysis(DecomposeType decomposition, TPMRSSimulationData * simulation_data);
     
-    /// Execute a single newton iteration
-    void ExecuteNewtonInteration();
+    /// Execute a single iteration
+    void ExecuteInteration();
+    
+    /// Execute a single M1 iteration
+    void ExecuteM1Interation();
+    
+    /// Execute a single M3 iteration
+    void ExecuteM3Interation();
+    
+    /// Execute a single M6 iteration
+    void ExecuteM6Interation();
     
     /// Execute a single ninth order newton iteration
     void ExecuteNinthOrderNewtonInteration(REAL & norm_dx);

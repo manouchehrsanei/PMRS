@@ -132,7 +132,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
     m_post_processor->SetStructuralMatrix(structmatrix);
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
+void TPMRSGeomechanicAnalysis::ExecuteM1Interation(){
     
     if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
@@ -143,6 +143,38 @@ void TPMRSGeomechanicAnalysis::ExecuteNewtonInteration(){
     }
     Rhs() *= -1.0;
     Solve();
+}
+
+void TPMRSGeomechanicAnalysis::ExecuteM3Interation(){
+    DebugStop();
+}
+
+void TPMRSGeomechanicAnalysis::ExecuteM6Interation(){
+    DebugStop();
+}
+
+void TPMRSGeomechanicAnalysis::ExecuteInteration(){
+    
+    std::string method = m_simulation_data->name_nonlinear_Newton_method();
+    
+    if (method.compare("M1") == 0) {
+        ExecuteM1Interation();
+        return;
+    }
+    
+    if (method.compare("M3") == 0) {
+        ExecuteM3Interation();
+        return;
+    }
+    
+    if (method.compare("M6") == 0) {
+        ExecuteM6Interation();
+        return;
+    }
+    
+    std::cout << "Nonlinear method not implemented = " << method.c_str() << std::endl;
+    DebugStop();
+    return;
 }
 
 #define CheapNONM_Q
@@ -279,28 +311,12 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
-#ifdef NMO9_Q
-        /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 1) {
-            this->ExecuteNewtonInteration();
-            dx += Solution();
-            norm_dx  = Norm(Solution());
-            LoadSolution(dx);
-            m_X_n = dx;
-            
-        }
-        else{
-            this->ExecuteNinthOrderNewtonInteration(norm_dx);
-        }
-#else
         
-        this->ExecuteNewtonInteration();
+        ExecuteInteration();
         dx += Solution();
         norm_dx  = Norm(Solution());
         LoadSolution(dx);
         m_X_n = dx;
-        
-#endif
         
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
@@ -353,7 +369,7 @@ void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
-        this->ExecuteNewtonInteration();
+        this->ExecuteInteration();
         dx += Solution();
         norm_dx  = Norm(Solution());
         LoadSolution(dx);

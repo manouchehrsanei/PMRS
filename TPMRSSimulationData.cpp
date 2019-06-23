@@ -17,12 +17,11 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_iteraions                               = 0;
     m_epsilon_res                               = 1.0;
     m_epsilon_cor                               = 1.0;
-    m_nonlinear_Newton_method                   = "";
+    m_nonlinear_Newton_method                   = "M1";
     m_is_secant_reservoir_Q                     = true;
     m_is_secant_geomechanics_Q                  = true;
-    m_n_update_jac_res                          = 0;
-    m_n_update_jac_geo                          = 0;
-    
+    m_n_update_jac_res                          = 1;
+    m_n_update_jac_geo                          = 1;
     m_n_fss_iterations                          = 0;
     m_n_enf_fss_iterations                      = 0;
     m_max_plastic_strain                        = 0.0;

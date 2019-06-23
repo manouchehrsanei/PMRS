@@ -426,48 +426,51 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
 //    sigma.CopyFrom(sigma_vec);
     
 #else
-#ifdef Secant_Q
+    
+    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
     int gp_index = data.intGlobPtIndex;
     T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
-    plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma);
     
-    /// Linear elastic tangent.
+    if(SecantQ)
     {
-        const REAL lambda = plastic_integrator.fER.Lambda();
-        const REAL mu = plastic_integrator.fER.G();
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
+        plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma);
         
-        // Linha 0
-        Dep->PutVal(_XX_,_XX_, lambda + 2. * mu);
-        Dep->PutVal(_XX_,_YY_, lambda);
-        Dep->PutVal(_XX_,_ZZ_, lambda);
-        
-        // Linha 1
-        Dep->PutVal(_XY_,_XY_, 2. * mu);
-        
-        // Linha 2
-        Dep->PutVal(_XZ_,_XZ_, 2. * mu);
-        
-        // Linha 3
-        Dep->PutVal(_YY_,_XX_, lambda);
-        Dep->PutVal(_YY_,_YY_, lambda + 2. * mu);
-        Dep->PutVal(_YY_,_ZZ_, lambda);
-        
-        // Linha 4
-        Dep->PutVal(_YZ_,_YZ_, 2. * mu);
-        
-        // Linha 5
-        Dep->PutVal(_ZZ_,_XX_, lambda);
-        Dep->PutVal(_ZZ_,_YY_, lambda);
-        Dep->PutVal(_ZZ_,_ZZ_, lambda + 2. * mu);
+        /// Linear elastic tangent.
+        {
+            const REAL lambda = plastic_integrator.fER.Lambda();
+            const REAL mu = plastic_integrator.fER.G();
+            
+            // Linha 0
+            Dep->PutVal(_XX_,_XX_, lambda + 2. * mu);
+            Dep->PutVal(_XX_,_YY_, lambda);
+            Dep->PutVal(_XX_,_ZZ_, lambda);
+            
+            // Linha 1
+            Dep->PutVal(_XY_,_XY_, 2. * mu);
+            
+            // Linha 2
+            Dep->PutVal(_XZ_,_XZ_, 2. * mu);
+            
+            // Linha 3
+            Dep->PutVal(_YY_,_XX_, lambda);
+            Dep->PutVal(_YY_,_YY_, lambda + 2. * mu);
+            Dep->PutVal(_YY_,_ZZ_, lambda);
+            
+            // Linha 4
+            Dep->PutVal(_YZ_,_YZ_, 2. * mu);
+            
+            // Linha 5
+            Dep->PutVal(_ZZ_,_XX_, lambda);
+            Dep->PutVal(_ZZ_,_YY_, lambda);
+            Dep->PutVal(_ZZ_,_ZZ_, lambda + 2. * mu);
+        }
+    }
+    else{
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
+        plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
     }
     
-#else
-    int gp_index = data.intGlobPtIndex;
-    T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
-    plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
-#endif
 #endif
     
 }
