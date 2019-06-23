@@ -378,7 +378,7 @@ public:
     
     
     /// Setup for update Jacobian numerical method controls
-    void SetUpdateJacobianMethod(int num_update_jac_res,int num_update_jac_geo);
+    void SetUpdateJacobianMethod(int n_update_jac_res,int n_update_jac_geo);
     
     
     /// Get the maximum number of fixed stress split scheme
