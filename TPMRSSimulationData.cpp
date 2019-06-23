@@ -17,6 +17,12 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_n_iteraions                               = 0;
     m_epsilon_res                               = 1.0;
     m_epsilon_cor                               = 1.0;
+    m_nonlinear_Newton_method                   = "";
+    m_is_secant_reservoir_Q                     = true;
+    m_is_secant_geomechanics_Q                  = true;
+    m_n_update_jac_res                          = 0;
+    m_n_update_jac_geo                          = 0;
+    
     m_n_fss_iterations                          = 0;
     m_n_enf_fss_iterations                      = 0;
     m_max_plastic_strain                        = 0.0;
@@ -84,6 +90,13 @@ TPMRSSimulationData::TPMRSSimulationData(const TPMRSSimulationData & other)
     m_n_iteraions                               = other.m_n_iteraions;
     m_epsilon_res                               = other.m_epsilon_res;
     m_epsilon_cor                               = other.m_epsilon_cor;
+    m_nonlinear_Newton_method                   = other.m_nonlinear_Newton_method;
+    m_is_secant_reservoir_Q                     = other.m_is_secant_reservoir_Q;
+    m_is_secant_geomechanics_Q                  = other.m_is_secant_geomechanics_Q;
+    m_n_update_jac_res                          = other.m_n_update_jac_res;
+    m_n_update_jac_geo                          = other.m_n_update_jac_geo;
+    
+    
     m_n_fss_iterations                          = other.m_n_fss_iterations;
     m_n_enf_fss_iterations                      = other.m_n_enf_fss_iterations;
     m_max_plastic_strain                        = other.m_max_plastic_strain;
@@ -153,6 +166,11 @@ TPMRSSimulationData & TPMRSSimulationData::operator=(const TPMRSSimulationData &
         m_n_iteraions                               = other.m_n_iteraions;
         m_epsilon_res                               = other.m_epsilon_res;
         m_epsilon_cor                               = other.m_epsilon_cor;
+        m_nonlinear_Newton_method                   = other.m_nonlinear_Newton_method;
+        m_is_secant_reservoir_Q                     = other.m_is_secant_reservoir_Q;
+        m_is_secant_geomechanics_Q                  = other.m_is_secant_geomechanics_Q;
+        
+        
         m_n_fss_iterations                          = other.m_n_fss_iterations;
         m_n_enf_fss_iterations                      = other.m_n_enf_fss_iterations;
         m_max_plastic_strain                        = other.m_max_plastic_strain;
@@ -282,6 +300,30 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     REAL epsilon_cor = std::atof(char_container);
     
     SetNumericControls(n_iterations,epsilon_res,epsilon_cor);
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("OrderMetodQ").ToElement();
+    const char * nonlinearMethod = container->Attribute("nonlinear_method");
+    m_nonlinear_Newton_method = nonlinearMethod;
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("SecantResQ").ToElement();
+    char_container = container->Attribute("useSecantResQ");
+    bool is_secant_reservoir_Q = std::atoi(char_container);
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("SecantGeoQ").ToElement();
+    char_container = container->Attribute("useSecantGeoQ");
+    bool is_secant_geomechanics_Q = std::atoi(char_container);
+    
+    SetSecantMethod(is_secant_reservoir_Q,is_secant_geomechanics_Q);
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("UpdateJacobianRes").ToElement();
+    char_container = container->Attribute("n_update_jac_res");
+    int num_update_jac_res = std::atoi(char_container);
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("UpdateJacobianGeo").ToElement();
+    char_container = container->Attribute("n_update_jac_geo");
+    int num_update_jac_geo = std::atoi(char_container);
+    
+    SetUpdateJacobianMethod(num_update_jac_res,num_update_jac_geo);
     /// End:: Newton method controls
     
     
@@ -1424,6 +1466,23 @@ void TPMRSSimulationData::SetNumericControls(int n_iterations, REAL epsilon_res,
     
 }
 
+/// Brief Setup numerical Secant method
+void TPMRSSimulationData::SetSecantMethod(bool is_secant_reservoir_Q,bool is_secant_geomechanics_Q){
+    
+    m_is_secant_reservoir_Q     =   is_secant_reservoir_Q;
+    m_is_secant_geomechanics_Q  =   is_secant_geomechanics_Q;
+
+}
+
+
+void TPMRSSimulationData::SetUpdateJacobianMethod(int num_update_jac_res,int num_update_jac_geo){
+    
+    m_n_update_jac_res     =   num_update_jac_res;
+    m_n_update_jac_res  =   num_update_jac_geo;
+}
+
+
+
 /// Brief Setup fixed stress split schemes
 void TPMRSSimulationData::SetFixedStressSplitSchemes(int n_fss_iterations, int n_enf_fss_iterations)
 {
@@ -1445,6 +1504,12 @@ void TPMRSSimulationData::Print()
     std::cout << " m_n_iteraions = " << m_n_iteraions << std::endl;
     std::cout << " m_epsilon_res = " << m_epsilon_res << std::endl;
     std::cout << " m_epsilon_cor = " << m_epsilon_cor << std::endl;
+    
+    std::cout << " m_nonlinear_Newton_method = " << m_nonlinear_Newton_method << std::endl;
+    std::cout << " m_n_update_jac_res = " << m_n_update_jac_res << std::endl;
+    std::cout << " m_n_update_jac_geo = " << m_n_update_jac_geo << std::endl;
+    
+    
     std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;
     std::cout << " m_n_nonlinear_acceleration = " << m_n_nonlinear_acceleration << std::endl;

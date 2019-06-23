@@ -58,6 +58,23 @@ protected:
     /// Correction overal tolerance
     REAL m_epsilon_cor;
     
+    /// Name of nonlinear Newton methods
+    std::string m_nonlinear_Newton_method;
+    
+    /// Use Secant method for reservoir
+    bool m_is_secant_reservoir_Q;
+    
+    /// Use Secant method for geomechanics
+    bool m_is_secant_geomechanics_Q;
+    
+    /// Number of update jacobian reservoir
+    int m_n_update_jac_res;
+    
+    /// Number of update jacobian geomechanics
+    int m_n_update_jac_geo;
+    
+    
+    
     /// Number of iteration for fss scheme
     int m_n_fss_iterations;
     
@@ -330,6 +347,39 @@ public:
     
     /// Get the correction overal tolerance
     REAL epsilon_cor() { return m_epsilon_cor; }
+    
+    /// Get Name for the nonlinear Newton method
+    std::string name_nonlinear_Newton_method() {return m_nonlinear_Newton_method;}
+    
+    //// Get Secant method for reservoir
+    bool Get_is_secant_reservoir_Q() { return m_is_secant_reservoir_Q; }
+    
+    //// Set Secant method for reservoir
+    void Set_is_secant_reservoir_Q(bool is_secant_reservoir_Q){
+        m_is_secant_reservoir_Q = is_secant_reservoir_Q;
+    }
+    
+    //// Get Secant method for geomechanics
+    bool Get_is_secant_geomechanics_Q() { return m_is_secant_geomechanics_Q; }
+    
+    //// Set Secant method for geomechanics
+    void Set_is_secant_geomechanics_Q(bool is_secant_geomechanics_Q){
+        m_is_secant_geomechanics_Q = is_secant_geomechanics_Q;
+    }
+    
+    /// Setup for Secant numerical method controls
+    void SetSecantMethod(bool is_secant_reservoir_Q, bool is_secant_geomechanics_Q);
+    
+    /// Get the number of update jacobian reservoir
+    int Get_n_update_jac_res() { return m_n_update_jac_res; }
+    
+    /// Get the number of update jacobian geomechanics
+    int Get_n_update_jac_geo() { return m_n_update_jac_geo; }
+    
+    
+    /// Setup for update Jacobian numerical method controls
+    void SetUpdateJacobianMethod(int num_update_jac_res,int num_update_jac_geo);
+    
     
     /// Get the maximum number of fixed stress split scheme
     int n_fss_iterations() { return m_n_fss_iterations; }
