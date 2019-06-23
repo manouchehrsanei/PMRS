@@ -316,13 +316,13 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     
     container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("UpdateJacobianRes").ToElement();
     char_container = container->Attribute("n_update_jac_res");
-    int num_update_jac_res = std::atoi(char_container);
+    int n_update_jac_res = std::atoi(char_container);
     
     container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("UpdateJacobianGeo").ToElement();
     char_container = container->Attribute("n_update_jac_geo");
-    int num_update_jac_geo = std::atoi(char_container);
+    int n_update_jac_geo = std::atoi(char_container);
     
-    SetUpdateJacobianMethod(num_update_jac_res,num_update_jac_geo);
+    SetUpdateJacobianMethod(n_update_jac_res,n_update_jac_geo);
     /// End:: Newton method controls
     
     
@@ -1474,10 +1474,10 @@ void TPMRSSimulationData::SetSecantMethod(bool is_secant_reservoir_Q,bool is_sec
 }
 
 
-void TPMRSSimulationData::SetUpdateJacobianMethod(int num_update_jac_res,int num_update_jac_geo){
+void TPMRSSimulationData::SetUpdateJacobianMethod(int n_update_jac_res,int n_update_jac_geo){
     
-    m_n_update_jac_res     =   num_update_jac_res;
-    m_n_update_jac_res  =   num_update_jac_geo;
+    m_n_update_jac_res    =   n_update_jac_res;
+    m_n_update_jac_geo    =   n_update_jac_geo;
 }
 
 
