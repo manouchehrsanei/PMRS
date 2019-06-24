@@ -132,8 +132,10 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
     m_post_processor->SetStructuralMatrix(structmatrix);
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteM1Interation(){
+void TPMRSGeomechanicAnalysis::ExecuteM1Interation(REAL & norm_dx){
     
+    TPZFMatrix<STATE> x_k;
+    x_k = Solution();
     if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
@@ -143,32 +145,174 @@ void TPMRSGeomechanicAnalysis::ExecuteM1Interation(){
     }
     Rhs() *= -1.0;
     Solve();
+    
+    m_X_n = x_k + Solution();
+    norm_dx = Norm(m_X_n - x_k);
+    LoadSolution(m_X_n);
+    
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteM3Interation(){
-    DebugStop();
+void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
+    
+    TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x ,x_k, y, dx;
+    x_k = Solution();
+    
+    if ((m_k_iterations)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
+    
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_x = Rhs();
+    Solve();
+    
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
+    
+    d_eps_x_x = Solution();
+    y = x_k + d_eps_x_x;
+    
+    
+    m_X_n = y;
+    LoadSolution(y);
+    LoadMemorySolution();
+    
+    if (SecantQ) {
+        DebugStop();
+        AssembleResidual();
+    }else{
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
+    }
+    
+    Rhs() = r_x;
+    Solve();
+    d_eps_y_x = Solution();
+    dx = 0.5*(d_eps_y_x + d_eps_x_x);
+    
+    m_X_n = x_k + dx;
+    norm_dx = Norm(m_X_n - x_k);
+    LoadSolution(m_X_n);
+    
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteM6Interation(){
-    DebugStop();
+void TPMRSGeomechanicAnalysis::ExecuteM6Interation(REAL & norm_dx){
+    
+    TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x, d_eps_y_z ,x_k, y, dx, z;
+    x_k = Solution();
+    
+    if ((m_k_iterations)%m_n_update_jac) {
+        AssembleResidual();
+    }else{
+        Assemble();
+        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+    }
+    
+    TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
+    
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_x = Rhs();
+    Solve();
+    
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
+    
+    d_eps_x_x = Solution();
+    y = x_k + d_eps_x_x;
+    
+    m_X_n = y;
+    LoadSolution(y);
+    LoadMemorySolution();
+    if (SecantQ) {
+        DebugStop();
+        AssembleResidual();
+    }else{
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "Second Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
+    }
+    
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_y = Rhs();
+    
+    Rhs() = r_x;
+    Solve();
+    
+    d_eps_y_x = Solution();
+    dx = 0.5*(d_eps_y_x + d_eps_x_x);
+    z = x_k + dx;
+    
+    m_X_n = z;
+    LoadSolution(z);
+    LoadMemorySolution();
+    
+    Rhs() *= -1.0;
+    TPZFMatrix<REAL> r_z = Rhs();
+    Solve();
+    d_eps_y_z = Solution();
+    
+    TPZFMatrix<REAL> j_x_d_eps_y_z;
+    j_x->Multiply(d_eps_y_z, j_x_d_eps_y_z);
+    Rhs() = j_x_d_eps_y_z;
+    Solve();
+    TPZFMatrix<REAL> dz_1 = Solution();
+    
+//    m_X_n = x_k;
+//    LoadSolution(x_k);
+//    LoadMemorySolution();
+//    if (SecantQ) {
+//        DebugStop();
+//        AssembleResidual();
+//    }else{
+//        if ((m_k_iterations)%m_n_update_jac) {
+//            AssembleResidual();
+//        }else{
+//            Assemble();
+//            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//            std::cout << "Third Jacobian updated at iteration = " << m_k_iterations << endl;
+//        }
+//    }
+    
+    Rhs() = r_z;
+    Solve();
+    TPZFMatrix<REAL> dz_2 = Solution();
+    
+    m_X_n = z + 0.5*(dz_1 + dz_2);
+    norm_dx = Norm(m_X_n - x_k);
+    LoadSolution(m_X_n);
 }
 
-void TPMRSGeomechanicAnalysis::ExecuteInteration(){
+void TPMRSGeomechanicAnalysis::ExecuteInteration(REAL & norm_dx){
     
     std::string method = m_simulation_data->name_nonlinear_Newton_method();
     
     if (method.compare("M1") == 0) {
-        ExecuteM1Interation();
+        ExecuteM1Interation(norm_dx);
         return;
     }
     
     if (method.compare("M3") == 0) {
-        ExecuteM3Interation();
+        ExecuteM3Interation(norm_dx);
         return;
     }
     
     if (method.compare("M6") == 0) {
-        ExecuteM6Interation();
+        ExecuteM6Interation(norm_dx);
         return;
     }
     
@@ -286,7 +430,7 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
 
 #define NMO9_Q
 
-#define InnerLoopPerformance_Q
+//#define InnerLoopPerformance_Q
 
 bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
 
@@ -312,11 +456,12 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
         
-        ExecuteInteration();
-        dx += Solution();
-        norm_dx  = Norm(Solution());
-        LoadSolution(dx);
-        m_X_n = dx;
+        ExecuteInteration(dx_norm);
+//        norm_dx  = Norm(Solution());
+//        dx += Solution();
+//
+//        LoadSolution(dx);
+//        m_X_n = dx;
         
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
@@ -369,10 +514,10 @@ void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
-        this->ExecuteInteration();
-        dx += Solution();
-        norm_dx  = Norm(Solution());
-        LoadSolution(dx);
+        this->ExecuteInteration(dx_norm);
+//        dx += Solution();
+//        norm_dx  = Norm(Solution());
+//        LoadSolution(dx);
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
         residual_stop_criterion_Q   = norm_res < r_norm;

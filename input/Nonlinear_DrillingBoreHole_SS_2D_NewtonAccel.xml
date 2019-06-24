@@ -16,11 +16,11 @@
         <Iterations n_iterations="80" />
         <Residue res_tolerance="0.000001" />
         <Correction cor_tolerance="0.000001" />
-        <OrderMetodQ nonlinear_method = "M3" /> <!-- nonlinear_method = {M1,M6,M9}  -->
+        <OrderMetodQ nonlinear_method = "M6" /> <!-- nonlinear_method = {M1,M6,M9}  -->
         <SecantResQ useSecantResQ="0" />
         <SecantGeoQ useSecantGeoQ="0" />
-        <UpdateJacobianRes n_update_jac_res="5" /> <!--n_update_jac_res >= 1  -->
-        <UpdateJacobianGeo n_update_jac_geo="5" /> <!--n_update_jac_geo >= 1  -->
+        <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
+        <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -58,7 +58,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_NClassical_MF_steady_state_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_NClassical_MF_steady_state_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
@@ -93,7 +93,7 @@
             <PoroMechParameters Eyoung="5000.0" nu="0.2" Ks="1.0e20" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="20.0" />
-            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="4.75" friction="30.0"/>              
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="6.75" friction="30.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

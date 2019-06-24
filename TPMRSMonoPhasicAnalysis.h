@@ -77,16 +77,16 @@ public:
     void ConfigurateAnalysis(DecomposeType decomposition, TPZManVector<TPZCompMesh * , 2> & mesh_vec,TPMRSSimulationData * simulation_data);
     
     /// Execute a single iteration
-    void ExecuteInteration();
+    void ExecuteInteration(REAL & norm_dx);
     
     /// Execute a single M1 iteration
-    void ExecuteM1Interation();
+    void ExecuteM1Interation(REAL & norm_dx);
 
     /// Execute a single M3 iteration
-    void ExecuteM3Interation();
+    void ExecuteM3Interation(REAL & norm_dx);
 
     /// Execute a single M6 iteration
-    void ExecuteM6Interation();
+    void ExecuteM6Interation(REAL & norm_dx);
     
     /// Execute a ninth order newton iteration
     void ExecuteNinthOrderNewtonInteration(REAL & norm_dx);
