@@ -310,12 +310,20 @@ void TPMRSMonoPhasicAnalysis::ExecuteInteration(REAL & norm_dx){
     }
 
     if (method.compare("M3") == 0) {
-        ExecuteM3Interation(norm_dx);
+        if (m_k_iterations == 1) {
+            ExecuteM1Interation(norm_dx);
+        }else{
+            ExecuteM3Interation(norm_dx);
+        }
         return;
     }
     
     if (method.compare("M6") == 0) {
-        ExecuteM6Interation(norm_dx);
+        if (m_k_iterations == 1) {
+            ExecuteM1Interation(norm_dx);
+        }else{
+            ExecuteM6Interation(norm_dx);
+        }
         return;
     }
     

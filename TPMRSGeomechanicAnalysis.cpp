@@ -162,7 +162,7 @@ void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     }else{
         Assemble();
         Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
     }
     
     Rhs() *= -1.0;
@@ -190,7 +190,7 @@ void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
         }else{
             Assemble();
             Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-            std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+            std::cout << "Second Jacobian updated at iteration = " << m_k_iterations << endl;
         }
     }
     
@@ -307,12 +307,20 @@ void TPMRSGeomechanicAnalysis::ExecuteInteration(REAL & norm_dx){
     }
     
     if (method.compare("M3") == 0) {
-        ExecuteM3Interation(norm_dx);
+        if (m_k_iterations == 1) {
+            ExecuteM1Interation(norm_dx);
+        }else{
+            ExecuteM3Interation(norm_dx);
+        }
         return;
     }
     
     if (method.compare("M6") == 0) {
-        ExecuteM6Interation(norm_dx);
+        if (m_k_iterations == 1) {
+            ExecuteM1Interation(norm_dx);
+        }else{
+            ExecuteM6Interation(norm_dx);
+        }
         return;
     }
     
