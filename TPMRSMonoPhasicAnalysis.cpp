@@ -139,14 +139,22 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 
 void TPMRSMonoPhasicAnalysis::ExecuteM1Interation(REAL & norm_dx){
     
+//    if ((m_k_iterations)%m_n_update_jac) {
+//        if (m_k_iterations == 2) {
+//            Assemble();
+//            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+//        }else{
+//            AssembleResidual();
+//        }
+//    }else{
+//        Assemble();
+//        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+//    }
+    
     if ((m_k_iterations)%m_n_update_jac) {
-        if (m_k_iterations == 2) {
-            Assemble();
-            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
-        }else{
-            AssembleResidual();
-        }
+        AssembleResidual();
     }else{
         Assemble();
         Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization

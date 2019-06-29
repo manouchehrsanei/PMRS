@@ -16,7 +16,7 @@
         <Iterations n_iterations="80" />
         <Residue res_tolerance="0.000001" />
         <Correction cor_tolerance="0.000001" />
-        <OrderMetodQ nonlinear_method = "M6" /> <!-- nonlinear_method = {M1,M6,M9}  -->
+        <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,M6,M9}  -->
         <SecantResQ useSecantResQ="0" />
         <SecantGeoQ useSecantGeoQ="0" />
         <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
