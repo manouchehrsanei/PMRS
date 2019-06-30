@@ -463,7 +463,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     m_simulation_data->SetCurrentStateQ(true);
     m_X_n = Solution();
     m_k_iterations = 0;
-//    ApplyAcceleration();
+    ApplyAcceleration();
     LoadSolution(); /// Load the current analysis solution on the cmesh
     bool residual_stop_criterion_Q   = false;
     bool correction_stop_criterion_Q = false;
@@ -481,7 +481,7 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
         m_k_iterations = i;
         
         ExecuteInteration(norm_dx);
-//        ApplyAcceleration();
+        ApplyAcceleration();
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
         if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {

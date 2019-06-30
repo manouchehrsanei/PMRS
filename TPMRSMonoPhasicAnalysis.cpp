@@ -489,7 +489,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
     m_k_iterations = 0;
-//    ApplyAcceleration();
+    ApplyAcceleration();
     LoadMemorySolution();
     
     TPZFMatrix<STATE> dx;
@@ -509,7 +509,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_k_iterations = i;
         
         ExecuteInteration(norm_dx);
-//        ApplyAcceleration();
+        ApplyAcceleration();
         LoadMemorySolution();
         norm_res = Norm(Rhs());
         
