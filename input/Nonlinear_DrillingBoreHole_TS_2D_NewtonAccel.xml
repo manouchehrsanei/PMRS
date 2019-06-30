@@ -7,8 +7,8 @@
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
-        <StepSize dt="100000000.0" />
-        <StepNumber n_time_steps="1" />
+        <StepSize dt="10.0" />
+        <StepNumber n_time_steps="10" />
         <CrankNicolsonQ useQ="0" />
     </TimeControls>
     <!-- Newton method controls  -->
@@ -49,7 +49,7 @@
     <!-- Finite element controls  -->
     <FEM>
         <FullyCoupled useQs="0" />
-        <MixedFormulationQ useQ="0" />
+        <MixedFormulationQ useQ="1" />
         <HRefine h_level="0" />
         <Elasticity p_order="2" />
         <Diffusion p_order="1" />
@@ -139,13 +139,15 @@
     </BCInitialReservoir>  
     <!-- Recurrent boundary contidions -->    
     <BCGeomechanics>
-        <Geomechanic bc_id="2" type="Ntn" n_data="2" >
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="100000000.0" tn="20.0" />
+            <Data t="10.0" tn="20.0" />
+            <Data t="100.0" tn="20.0" />
         </Geomechanic>
-        <Geomechanic bc_id="3" type="Ntn" n_data="2" >
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
-            <Data t="100000000.0" tn="-0.00001" />
+            <Data t="10.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dux" n_data="1" >
             <Data t="0" ux="0.0" />
@@ -155,13 +157,15 @@
         </Geomechanic>
     </BCGeomechanics> 
     <BCReservoirs>
-        <Reservoir bc_id="2" type="Dp" n_data="2" >
+        <Reservoir bc_id="2" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
-            <Data t="100000000.0" p="20.0" />
+            <Data t="10.0" p="20.0" />
+            <Data t="100.0" p="20.0" />
         </Reservoir>
-        <Reservoir bc_id="3" type="Dp" n_data="2" >
+        <Reservoir bc_id="3" type="Dp" n_data="3" >
             <Data t="0" p="30.0" />
-            <Data t="100000000.0" p="30.0" />
+            <Data t="10.0" p="30.0" />
+            <Data t="100.0" p="30.0" />
         </Reservoir>            
         <Reservoir bc_id="4" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />

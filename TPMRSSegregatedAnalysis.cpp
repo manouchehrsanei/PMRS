@@ -735,8 +735,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
         
-//        CreateReservoirOperator();
-//        CreateGeomechanicOperator();
+        CreateReservoirOperator();
+        CreateGeomechanicOperator();
         
         /// Reseting initial du == 0
         m_geomechanic_analysis->Solution().Zero();
