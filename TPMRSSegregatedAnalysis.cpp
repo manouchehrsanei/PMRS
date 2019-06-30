@@ -279,12 +279,10 @@ void TPMRSSegregatedAnalysis::ApplyAcceleration(int k){
     if (non_linear_acceleration_Q) {
         
         int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
-        /// Acceleration for the whole thing geo + res
-        AccelerationRes(k,n_terms);
-        AccelerationGeo(k,n_terms);
+
         
         int n_vec = m_x_u.size();
-        if (k - 1 >= n_terms) {
+        if (k > n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_p[i] = m_x_p[i+1];
                 m_x_u[i] = m_x_u[i+1];
@@ -294,6 +292,10 @@ void TPMRSSegregatedAnalysis::ApplyAcceleration(int k){
                 m_x_u[n_vec-1] = m_geomechanic_analysis->Solution();
             }
         }
+        
+        /// Acceleration for the whole thing geo + res
+        AccelerationRes(k,n_terms);
+        AccelerationGeo(k,n_terms);
         
     }
 }

@@ -816,10 +816,9 @@ void TPMRSGeomechanicAnalysis::ApplyAcceleration(){
     if (non_linear_acceleration_Q) {
         
         int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
-        AccelerationGeo(m_k_iterations,n_terms);
-        
+    
         int n_vec = m_x_u.size();
-        if (m_k_iterations >= n_terms) {
+        if (m_k_iterations > n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_u[i] = m_x_u[i+1];
             }
@@ -827,6 +826,8 @@ void TPMRSGeomechanicAnalysis::ApplyAcceleration(){
                 m_x_u[n_vec-1] = Solution();
             }
         }
+        
+        AccelerationGeo(m_k_iterations,n_terms);
         
     }
     
