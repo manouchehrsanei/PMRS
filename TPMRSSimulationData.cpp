@@ -22,6 +22,9 @@ TPMRSSimulationData::TPMRSSimulationData()
     m_is_secant_geomechanics_Q                  = true;
     m_n_update_jac_res                          = 1;
     m_n_update_jac_geo                          = 1;
+    m_use_internal_accel_ResQ                   = true;
+    m_use_internal_accel_GeoQ                   = true;
+    
     m_n_fss_iterations                          = 0;
     m_n_enf_fss_iterations                      = 0;
     m_max_plastic_strain                        = 0.0;
@@ -94,7 +97,8 @@ TPMRSSimulationData::TPMRSSimulationData(const TPMRSSimulationData & other)
     m_is_secant_geomechanics_Q                  = other.m_is_secant_geomechanics_Q;
     m_n_update_jac_res                          = other.m_n_update_jac_res;
     m_n_update_jac_geo                          = other.m_n_update_jac_geo;
-    
+    m_use_internal_accel_ResQ                   = other.m_use_internal_accel_ResQ;
+    m_use_internal_accel_GeoQ                   = other.m_use_internal_accel_GeoQ;
     
     m_n_fss_iterations                          = other.m_n_fss_iterations;
     m_n_enf_fss_iterations                      = other.m_n_enf_fss_iterations;
@@ -323,6 +327,19 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     int n_update_jac_geo = std::atoi(char_container);
     
     SetUpdateJacobianMethod(n_update_jac_res,n_update_jac_geo);
+    
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationRes").ToElement();
+    char_container = container->Attribute("useInternalAccelResQ");
+    bool is_use_internal_accel_ResQ = std::atoi(char_container);
+    
+    
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationGeo").ToElement();
+    char_container = container->Attribute("useInternalAccelGeoQ");
+    bool is_use_internal_accel_GeoQ = std::atoi(char_container);
+    
+    Set_use_internal_accel_Method(is_use_internal_accel_ResQ, is_use_internal_accel_GeoQ);
+    
     /// End:: Newton method controls
     
     
@@ -1473,13 +1490,20 @@ void TPMRSSimulationData::SetSecantMethod(bool is_secant_reservoir_Q,bool is_sec
 
 }
 
-
+/// Setup for update Jacobian numerical method controls
 void TPMRSSimulationData::SetUpdateJacobianMethod(int n_update_jac_res,int n_update_jac_geo){
     
     m_n_update_jac_res    =   n_update_jac_res;
     m_n_update_jac_geo    =   n_update_jac_geo;
 }
 
+
+/// Setup for use internal acceleration methods for reservoir and geomechanics
+void TPMRSSimulationData::Set_use_internal_accel_Method(bool is_use_internal_accel_ResQ, bool is_use_internal_accel_GeoQ){
+    
+    m_use_internal_accel_ResQ    =   is_use_internal_accel_ResQ;
+    m_use_internal_accel_GeoQ    =   is_use_internal_accel_GeoQ;
+}
 
 
 /// Brief Setup fixed stress split schemes
@@ -1507,7 +1531,8 @@ void TPMRSSimulationData::Print()
     std::cout << " m_nonlinear_Newton_method = " << m_nonlinear_Newton_method << std::endl;
     std::cout << " m_n_update_jac_res = " << m_n_update_jac_res << std::endl;
     std::cout << " m_n_update_jac_geo = " << m_n_update_jac_geo << std::endl;
-    
+    std::cout << " m_use_internal_accel_ResQ = " << m_use_internal_accel_ResQ << std::endl;
+    std::cout << " m_use_internal_accel_GeoQ = " << m_use_internal_accel_GeoQ << std::endl;
     
     std::cout << " m_n_fss_iterations = " << m_n_fss_iterations << std::endl;
     std::cout << " m_n_enf_fss_iterations = " << m_n_enf_fss_iterations << std::endl;

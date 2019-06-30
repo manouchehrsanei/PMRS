@@ -73,6 +73,11 @@ protected:
     /// Number of update jacobian geomechanics
     int m_n_update_jac_geo;
     
+    /// Use Internal acceleration for reservoir
+    bool m_use_internal_accel_ResQ;
+    
+    /// Use Internal acceleration for geomechanics
+    bool m_use_internal_accel_GeoQ;
     
     
     /// Number of iteration for fss scheme
@@ -376,9 +381,17 @@ public:
     /// Get the number of update jacobian geomechanics
     int Get_n_update_jac_geo() { return m_n_update_jac_geo; }
     
-    
     /// Setup for update Jacobian numerical method controls
     void SetUpdateJacobianMethod(int n_update_jac_res,int n_update_jac_geo);
+    
+    /// Get the method to use internal acceleration for reservoir
+    bool Get_use_internal_accel_ResQ() {return m_use_internal_accel_ResQ;}
+    
+    /// Get the method to use internal acceleration for geomechanics
+    bool Get_use_internal_accel_GeoQ() {return m_use_internal_accel_GeoQ;}
+    
+    /// Setup for use internal acceleration methods for reservoir and geomechanics
+    void Set_use_internal_accel_Method(bool is_use_internal_accel_ResQ, bool is_use_internal_accel_GeoQ);
     
     
     /// Get the maximum number of fixed stress split scheme
