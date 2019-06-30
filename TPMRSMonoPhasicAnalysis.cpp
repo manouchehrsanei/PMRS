@@ -825,8 +825,10 @@ void TPMRSMonoPhasicAnalysis::ApplyAcceleration(){
         
         int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
         
+        AccelerationRes(m_k_iterations,n_terms);
+        
         int n_vec = m_x_p.size();
-        if (m_k_iterations > n_terms) {
+        if (m_k_iterations - 1 > n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_p[i] = m_x_p[i+1];
             }
@@ -834,8 +836,6 @@ void TPMRSMonoPhasicAnalysis::ApplyAcceleration(){
                 m_x_p[n_vec-1] = m_X_n;
             }
         }
-        
-        AccelerationRes(m_k_iterations,n_terms);
         
     }
     

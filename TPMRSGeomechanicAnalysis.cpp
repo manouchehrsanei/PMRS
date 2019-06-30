@@ -662,7 +662,7 @@ void TPMRSGeomechanicAnalysis::AccelerationGeo(int k, int n){
         {
             
             m_x_u.Resize(4);
-            m_x_u[3] = m_X_n;
+            m_x_u[3] = Solution();
             Solution() = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
             
         }
