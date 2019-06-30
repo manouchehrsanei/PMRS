@@ -48,7 +48,7 @@ private:
     /// Object that store the residuals of segregated and internal process
     TPZFMatrix<REAL> m_residuals_summary;
     
-    /// Reserveoir states for nonlinear acceleration
+    /// Reservoir states for nonlinear acceleration
     TPZManVector<TPZFMatrix<REAL>,10> m_x_p;
     
     /// Geomechanics states for nonlinear acceleration
@@ -164,6 +164,9 @@ public:
     
     /// Creates the reservoir matrix and force decomposition one time
     void CreateReservoirOperator();
+    
+    // Applying the selected nonlinear acceleration
+    void ApplyAcceleration(int k);
     
     /// Auxiliary function for compute power of integers
     int power(int base, int exp)

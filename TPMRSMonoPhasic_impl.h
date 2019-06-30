@@ -172,6 +172,7 @@ void TPMRSMonoPhasic<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
     TPZManVector<STATE,3> q   = datavec[q_b].sol[0];
     STATE p_n                 = datavec[p_b].sol[0][0];
     
+    STATE p_c      = memory.p_n();
     STATE p_0      = memory.p_0();
     STATE p        = memory.p();
     

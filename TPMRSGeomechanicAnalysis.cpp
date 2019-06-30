@@ -135,18 +135,27 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
 void TPMRSGeomechanicAnalysis::ExecuteM1Interation(REAL & norm_dx){
     
     TPZFMatrix<STATE> x_k;
-    x_k = Solution();
-    if ((m_k_iterations)%m_n_update_jac) {
+    x_k = m_X_n;
+    
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
+    
+    if (SecantQ) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "Jacobian updated at iteration = " << m_k_iterations << endl;
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
+    
     Rhs() *= -1.0;
     Solve();
-    
-    m_X_n = x_k + Solution();
+    m_X_n += Solution();
     norm_dx = Norm(m_X_n - x_k);
     LoadSolution(m_X_n);
     
@@ -155,24 +164,28 @@ void TPMRSGeomechanicAnalysis::ExecuteM1Interation(REAL & norm_dx){
 void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     
     TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x ,x_k, y, dx;
-    x_k = Solution();
+    x_k = m_X_n;
     
-    if ((m_k_iterations)%m_n_update_jac) {
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
+    
+    if (SecantQ) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
     
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
-    
-    // Newton method (SecantQ = false)
-    // Quase-Newton method (SecantQ = true)
-    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
-    
+
     d_eps_x_x = Solution();
     y = x_k + d_eps_x_x;
     
@@ -182,7 +195,6 @@ void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     LoadMemorySolution();
     
     if (SecantQ) {
-        DebugStop();
         AssembleResidual();
     }else{
         if ((m_k_iterations)%m_n_update_jac) {
@@ -208,14 +220,22 @@ void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
 void TPMRSGeomechanicAnalysis::ExecuteM6Interation(REAL & norm_dx){
     
     TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x, d_eps_y_z ,x_k, y, dx, z;
-    x_k = Solution();
+    x_k = m_X_n;
     
-    if ((m_k_iterations)%m_n_update_jac) {
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
+    
+    if (SecantQ) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
     
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
@@ -224,18 +244,14 @@ void TPMRSGeomechanicAnalysis::ExecuteM6Interation(REAL & norm_dx){
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
     
-    // Newton method (SecantQ = false)
-    // Quase-Newton method (SecantQ = true)
-    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
-    
     d_eps_x_x = Solution();
     y = x_k + d_eps_x_x;
     
     m_X_n = y;
     LoadSolution(y);
     LoadMemorySolution();
+    
     if (SecantQ) {
-        DebugStop();
         AssembleResidual();
     }else{
         if ((m_k_iterations)%m_n_update_jac) {
@@ -275,6 +291,7 @@ void TPMRSGeomechanicAnalysis::ExecuteM6Interation(REAL & norm_dx){
 //    m_X_n = x_k;
 //    LoadSolution(x_k);
 //    LoadMemorySolution();
+    
 //    if (SecantQ) {
 //        DebugStop();
 //        AssembleResidual();
@@ -307,16 +324,16 @@ void TPMRSGeomechanicAnalysis::ExecuteInteration(REAL & norm_dx){
     }
     
     if (method.compare("M3") == 0) {
-        if (m_k_iterations == 1) {
+        if (m_k_iterations <= 2) {
             ExecuteM1Interation(norm_dx);
-        }else{
+        }else {
             ExecuteM3Interation(norm_dx);
         }
         return;
     }
     
     if (method.compare("M6") == 0) {
-        if (m_k_iterations == 1) {
+        if (m_k_iterations <= 2) {
             ExecuteM1Interation(norm_dx);
         }else{
             ExecuteM6Interation(norm_dx);
@@ -442,19 +459,18 @@ void TPMRSGeomechanicAnalysis::ExecuteNinthOrderNewtonInteration(REAL & norm_dx)
 
 bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
 
-    
-    
-    
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
-    TPZFMatrix<STATE> dx(Solution());
+    m_X_n = Solution();
+    m_k_iterations = 0;
+//    ApplyAcceleration();
     LoadSolution(); /// Load the current analysis solution on the cmesh
     bool residual_stop_criterion_Q   = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
-    REAL r_norm  = m_simulation_data->epsilon_res();
-    REAL dx_norm = m_simulation_data->epsilon_cor();
-    int n_it     = m_simulation_data->n_iterations();
+    REAL error_tol  = m_simulation_data->epsilon_res();
+    REAL dx_tol     = m_simulation_data->epsilon_cor();
+    int n_it        = m_simulation_data->n_iterations();
     
 #ifdef InnerLoopPerformance_Q
     TPZFMatrix<REAL> residuals(n_it,2);
@@ -464,27 +480,24 @@ bool TPMRSGeomechanicAnalysis::ExecuteOneTimeStep(bool enforced_execution_Q){
     for (int i = 1; i <= n_it; i++) {
         m_k_iterations = i;
         
-        ExecuteInteration(dx_norm);
-//        norm_dx  = Norm(Solution());
-//        dx += Solution();
-//
-//        LoadSolution(dx);
-//        m_X_n = dx;
-        
+        ExecuteInteration(norm_dx);
+//        ApplyAcceleration();
         LoadMemorySolution();
         norm_res = Norm(this->Rhs());
         if (m_simulation_data->Get_must_use_sub_stepping_Q() && !enforced_execution_Q) {
             break;
         }
+        
 #ifdef InnerLoopPerformance_Q
         residuals(i-1,0) = norm_dx;
         residuals(i-1,1) = norm_res;
 #endif
-        residual_stop_criterion_Q   = norm_res < r_norm;
-        correction_stop_criterion_Q = norm_dx  < dx_norm;
+        residual_stop_criterion_Q   = norm_res < error_tol;
+        correction_stop_criterion_Q = norm_dx  < dx_tol;
         
         m_error   = norm_res;
         m_dx_norm = norm_dx;
+        
         std::cout << "TPMRSGeomechanicAnalysis:: residue norm = " << norm_res << std::endl;
         if (residual_stop_criterion_Q /*&&  correction_stop_criterion_Q*/) {
             std::cout << "TPMRSGeomechanicAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
@@ -522,7 +535,7 @@ void TPMRSGeomechanicAnalysis::ExecuteUndrainedResponseStep(){
     int n_it = m_simulation_data->n_iterations();
     
     for (int i = 1; i <= n_it; i++) {
-        this->ExecuteInteration(dx_norm);
+        this->ExecuteInteration(norm_dx);
 //        dx += Solution();
 //        norm_dx  = Norm(Solution());
 //        LoadSolution(dx);
@@ -600,3 +613,221 @@ void TPMRSGeomechanicAnalysis::LoadLastState(){
 }
 
 
+void TPMRSGeomechanicAnalysis::AccelerationGeo(int k, int n){
+
+//    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_u.Resize(1);
+            m_x_u[0] = Solution();
+        }
+            break;
+        case 1:
+        {
+            m_x_u.Resize(2);
+            m_x_u[1] = Solution();
+            Solution() = ApplyTransformation(m_x_u[1], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_u.Resize(3);
+            m_x_u[2] = Solution();
+            Solution() = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            
+        }
+            break;
+        case 3:  /// S(A_n)
+        {
+            
+            m_x_u.Resize(4);
+            m_x_u[3] = m_X_n;
+            Solution() = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_u.Resize(5);
+            m_x_u[4] = Solution();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            
+            m_x_u.Resize(6);
+            m_x_u[5] = Solution();
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            Solution() = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_u.Resize(7);
+            m_x_u[6] = Solution();
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_u[2], m_x_u[1], m_x_u[0]);
+            Sk2 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk3 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_u[3], m_x_u[2], m_x_u[1]);
+            Sk2 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk3 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_u[4], m_x_u[3], m_x_u[2]);
+            Sk2 = ApplyTransformation(m_x_u[5], m_x_u[4], m_x_u[3]);
+            Sk3 = ApplyTransformation(m_x_u[6], m_x_u[5], m_x_u[4]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Solution() = ApplyTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        default:
+            break;
+    }
+    
+}
+
+TPZFMatrix<REAL> TPMRSGeomechanicAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    TPZFMatrix<REAL> S(An_p_1);
+    if (nonlinear_acceleration == "FDM"){
+        S = FDMTransformation(An_p_1, An, An_m_1);
+    }
+    else if (nonlinear_acceleration == "SDM"){
+        S = SDMTransformation(An_p_1, An, An_m_1);
+    }
+    
+#ifdef Adaptive_Acceleration_Q
+    REAL theta_ratio = 1.0;
+    REAL max_theta   = m_simulation_data->Get_max_theta_value();
+    bool apply_transformation_Q = true;
+    {
+        int n_dof = S.Rows();
+        REAL num = 0.0;
+        REAL den = 0.0;
+        for (int i = 0; i < n_dof ; i++) {
+            num += (S(i,0)-An_p_1(i,0))*(An(i,0)-An_m_1(i,0));
+            den += (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0));
+        }
+        if (!IsZero(den)) {
+            theta_ratio = num / den;
+        }
+        apply_transformation_Q = fabs(theta_ratio-1.0) < max_theta;
+    }
+    
+    if (apply_transformation_Q) {
+        return S;
+    }else{
+        std::cout << " TPMRSSegregatedAnalysis:: Transformation is avoided swithcing to SFI." << std::endl;
+        return An_p_1;
+    }
+#else
+    return S;
+#endif
+    
+    
+}
+
+TPZFMatrix<REAL> TPMRSGeomechanicAnalysis::FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    REAL w;
+    for (int i = 0; i < n_dof ; i++) {
+        w    = An_m_1(i,0)-An(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*(An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0));
+    }
+    REAL s;
+    if (IsZero(den)) {
+        s = num / den;
+    }else{
+        s = num / den;
+    }
+    S = An_p_1-An;
+    S *= s;
+    S += An_p_1;
+    return S;
+}
+
+TPZFMatrix<REAL> TPMRSGeomechanicAnalysis::SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    REAL w;
+    for (int i = 0; i < n_dof ; i++) {
+        w    = An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*w;
+    }
+    REAL s;
+    if (IsZero(den)) {
+        s = num / den;
+    }else{
+        s = num / den;
+    }
+    S = An_p_1-An;
+    S *= s;
+    S += An_p_1;
+    return S;
+}
+
+
+void TPMRSGeomechanicAnalysis::ApplyAcceleration(){
+
+    // Applying the selected nonlinear acceleration
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    bool non_linear_acceleration_Q = (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
+    if (non_linear_acceleration_Q) {
+        
+        int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
+        AccelerationGeo(m_k_iterations,n_terms);
+        
+        int n_vec = m_x_u.size();
+        if (m_k_iterations >= n_terms) {
+            for (int i = 0; i < n_vec - 1; i++) {
+                m_x_u[i] = m_x_u[i+1];
+            }
+            if(n_vec!=0){
+                m_x_u[n_vec-1] = Solution();
+            }
+        }
+        
+    }
+    
+}

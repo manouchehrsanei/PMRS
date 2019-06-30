@@ -139,26 +139,26 @@ void TPMRSMonoPhasicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, T
 
 void TPMRSMonoPhasicAnalysis::ExecuteM1Interation(REAL & norm_dx){
     
-//    if ((m_k_iterations)%m_n_update_jac) {
-//        if (m_k_iterations == 2) {
-//            Assemble();
-//            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-//            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
-//        }else{
-//            AssembleResidual();
-//        }
-//    }else{
-//        Assemble();
-//        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-//        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
-//    }
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
     
     if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        if (SecantQ) {
+            if (m_k_iterations <= 2) {
+                Assemble();
+                Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+                std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+            }else{
+                AssembleResidual();
+            }
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
     
     Rhs() *= -1.0;
@@ -174,39 +174,49 @@ void TPMRSMonoPhasicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x ,x_k, y;
     x_k = m_X_n;
     
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
+    
     if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        if (SecantQ) {
+            if (m_k_iterations <= 2) {
+                Assemble();
+                Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+                std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+            }else{
+                AssembleResidual();
+            }
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
     
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
-    
-    // Newton method (SecantQ = false)
-    // Quase-Newton method (SecantQ = true)
-    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
 
     d_eps_x_x = Solution();
     y = x_k + d_eps_x_x;
     
     m_X_n = y;
     LoadMemorySolution();
-    if (SecantQ) {
-        DebugStop();
-        AssembleResidual();
-    }else{
-        if ((m_k_iterations)%m_n_update_jac) {
-            AssembleResidual();
-        }else{
-            Assemble();
-            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-            std::cout << "Second Jacobian updated at iteration = " << m_k_iterations << endl;
-        }
-    }
+    
+//    if (SecantQ) {
+//        AssembleResidual();
+//    }else{
+//        if ((m_k_iterations)%m_n_update_jac) {
+//            AssembleResidual();
+//        }else{
+//            Assemble();
+//            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//            std::cout << "Second Jacobian updated at iteration = " << m_k_iterations << endl;
+//        }
+//    }
     
     Rhs() = r_x;
     Solve();
@@ -222,12 +232,26 @@ void TPMRSMonoPhasicAnalysis::ExecuteM6Interation(REAL & norm_dx){
     TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x, d_eps_y_z ,x_k, y, dzx, z;
     x_k = m_X_n;
     
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
+    
     if ((m_k_iterations)%m_n_update_jac) {
         AssembleResidual();
     }else{
-        Assemble();
-        Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-        std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        if (SecantQ) {
+            if (m_k_iterations <= 2) {
+                Assemble();
+                Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+                std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+            }else{
+                AssembleResidual();
+            }
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
     }
     
     TPZMatrix<REAL> * j_x = Solver().Matrix()->Clone();
@@ -236,17 +260,14 @@ void TPMRSMonoPhasicAnalysis::ExecuteM6Interation(REAL & norm_dx){
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
     
-    // Newton method (SecantQ = false)
-    // Quase-Newton method (SecantQ = true)
-    bool SecantQ = m_simulation_data->Get_is_secant_reservoir_Q();
     
     d_eps_x_x = Solution();
     y = x_k + d_eps_x_x;
     
     m_X_n = y;
     LoadMemorySolution();
+    
     if (SecantQ) {
-        DebugStop();
         AssembleResidual();
     }else{
         if ((m_k_iterations)%m_n_update_jac) {
@@ -284,18 +305,18 @@ void TPMRSMonoPhasicAnalysis::ExecuteM6Interation(REAL & norm_dx){
     
     m_X_n = x_k;
     LoadMemorySolution();
-    if (SecantQ) {
-        DebugStop();
-        AssembleResidual();
-    }else{
-        if ((m_k_iterations)%m_n_update_jac) {
-            AssembleResidual();
-        }else{
-            Assemble();
-            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
-            std::cout << "Third Jacobian updated at iteration = " << m_k_iterations << endl;
-        }
-    }
+    
+//    if (SecantQ) {
+//        AssembleResidual();
+//    }else{
+//        if ((m_k_iterations)%m_n_update_jac) {
+//            AssembleResidual();
+//        }else{
+//            Assemble();
+//            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+//            std::cout << "Third Jacobian updated at iteration = " << m_k_iterations << endl;
+//        }
+//    }
     
     Rhs() = r_z;
     Solve();
@@ -318,7 +339,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteInteration(REAL & norm_dx){
     }
 
     if (method.compare("M3") == 0) {
-        if (m_k_iterations == 1) {
+        if (m_k_iterations <= 2) {
             ExecuteM1Interation(norm_dx);
         }else{
             ExecuteM3Interation(norm_dx);
@@ -327,7 +348,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteInteration(REAL & norm_dx){
     }
     
     if (method.compare("M6") == 0) {
-        if (m_k_iterations == 1) {
+        if (m_k_iterations <= 2) {
             ExecuteM1Interation(norm_dx);
         }else{
             ExecuteM6Interation(norm_dx);
@@ -467,15 +488,17 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
     
     /// The nonlinear process will update just the current state
     m_simulation_data->SetCurrentStateQ(true);
+    m_k_iterations = 0;
+//    ApplyAcceleration();
     LoadMemorySolution();
     
     TPZFMatrix<STATE> dx;
     bool residual_stop_criterion_Q = false;
     bool correction_stop_criterion_Q = false;
     REAL norm_res, norm_dx;
-    REAL r_norm = m_simulation_data->epsilon_res();
-    REAL dx_norm = m_simulation_data->epsilon_cor();
-    int n_it = m_simulation_data->n_iterations();
+    REAL error_tol  = m_simulation_data->epsilon_res();
+    REAL dx_tol     = m_simulation_data->epsilon_cor();
+    int n_it        = m_simulation_data->n_iterations();
     
 #ifdef InnerLoopPerformance_Q
     TPZFMatrix<REAL> residuals(n_it,2);
@@ -486,6 +509,7 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         m_k_iterations = i;
         
         ExecuteInteration(norm_dx);
+//        ApplyAcceleration();
         LoadMemorySolution();
         norm_res = Norm(Rhs());
         
@@ -494,8 +518,8 @@ void TPMRSMonoPhasicAnalysis::ExecuteOneTimeStep(){
         residuals(i-1,1) = norm_res;
 #endif
         
-        residual_stop_criterion_Q   = norm_res < r_norm;
-        correction_stop_criterion_Q = norm_dx  < dx_norm;
+        residual_stop_criterion_Q   = norm_res < error_tol;
+        correction_stop_criterion_Q = norm_dx  < dx_tol;
     
         m_error = norm_res;
         m_dx_norm = norm_dx;
@@ -588,3 +612,223 @@ void TPMRSMonoPhasicAnalysis::LoadLastState(){
 }
 
 
+
+/// Define an acceleration method for the internal loop k iteration for reservoir module
+void TPMRSMonoPhasicAnalysis::AccelerationRes(int k, int n){
+    
+//    k--;
+    int n_terms;
+    {
+        if (k < n) {
+            n_terms = k;
+        }
+        
+        if (k >= n) {
+            n_terms = n;
+        }
+    }
+    
+    switch (n_terms) {
+        case 0:
+        {
+            m_x_p.Resize(1);
+            m_x_p[0] = m_X_n;
+        }
+            break;
+        case 1:
+        {
+            m_x_p.Resize(2);
+            m_x_p[1] = m_X_n;
+            m_X_n = ApplyTransformation(m_x_p[1], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 2:  /// S(A_n)
+        {
+            m_x_p.Resize(3);
+            m_x_p[2] = m_X_n;
+            m_X_n = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            
+        }
+            break;
+        case 3:  /// S(A_n)
+        {
+            
+            m_x_p.Resize(4);
+            m_x_p[3] = m_X_n;
+            m_X_n = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            
+        }
+            break;
+        case 4:  /// S2(A_n)
+        {
+            m_x_p.Resize(5);
+            m_x_p[4] = m_X_n;
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            m_X_n = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 5:  /// S2andhalf(A_n)
+        {
+            
+            m_x_p.Resize(6);
+            m_x_p[5] = m_X_n;
+            
+            TPZFMatrix<REAL> Sk1,Sk2,Sk3;
+            Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            m_X_n = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+        }
+            break;
+        case 6:  /// S3(A_n)
+        {
+            m_x_p.Resize(7);
+            m_x_p[6] = m_X_n;
+            
+            TPZFMatrix<REAL>Sk1,Sk2,Sk3,S2k1,S2k2,S2k3;
+            Sk1 = ApplyTransformation(m_x_p[2], m_x_p[1], m_x_p[0]);
+            Sk2 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk3 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            S2k1 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_p[3], m_x_p[2], m_x_p[1]);
+            Sk2 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk3 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            S2k2 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            Sk1 = ApplyTransformation(m_x_p[4], m_x_p[3], m_x_p[2]);
+            Sk2 = ApplyTransformation(m_x_p[5], m_x_p[4], m_x_p[3]);
+            Sk3 = ApplyTransformation(m_x_p[6], m_x_p[5], m_x_p[4]);
+            S2k3 = ApplyTransformation(Sk3,Sk2,Sk1);
+            
+            m_X_n = ApplyTransformation(S2k3,S2k2,S2k1);
+            
+        }
+            break;
+        default:
+            break;
+    }
+    
+}
+
+TPZFMatrix<REAL> TPMRSMonoPhasicAnalysis::ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    TPZFMatrix<REAL> S(An_p_1);
+    if (nonlinear_acceleration == "FDM"){
+        S = FDMTransformation(An_p_1, An, An_m_1);
+    }
+    else if (nonlinear_acceleration == "SDM"){
+        S = SDMTransformation(An_p_1, An, An_m_1);
+    }
+    
+#ifdef Adaptive_Acceleration_Q
+    REAL theta_ratio = 1.0;
+    REAL max_theta   = m_simulation_data->Get_max_theta_value();
+    bool apply_transformation_Q = true;
+    {
+        int n_dof = S.Rows();
+        REAL num = 0.0;
+        REAL den = 0.0;
+        for (int i = 0; i < n_dof ; i++) {
+            num += (S(i,0)-An_p_1(i,0))*(An(i,0)-An_m_1(i,0));
+            den += (An_p_1(i,0)-An(i,0))*(An_p_1(i,0)-An(i,0));
+        }
+        if (!IsZero(den)) {
+            theta_ratio = num / den;
+        }
+        apply_transformation_Q = fabs(theta_ratio-1.0) < max_theta;
+    }
+    
+    if (apply_transformation_Q) {
+        return S;
+    }else{
+        std::cout << " TPMRSSegregatedAnalysis:: Transformation is avoided swithcing to SFI." << std::endl;
+        return An_p_1;
+    }
+#else
+    return S;
+#endif
+    
+    
+}
+
+TPZFMatrix<REAL> TPMRSMonoPhasicAnalysis::FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    REAL w;
+    for (int i = 0; i < n_dof ; i++) {
+        w    = An_m_1(i,0)-An(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*(An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0));
+    }
+    REAL s;
+    if (IsZero(den)) {
+        s = num / den;
+    }else{
+        s = num / den;
+    }
+    S = An_p_1-An;
+    S *= s;
+    S += An_p_1;
+    return S;
+}
+
+TPZFMatrix<REAL> TPMRSMonoPhasicAnalysis::SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1){
+    
+    TPZFMatrix<REAL> S(An_p_1);
+    int n_dof = S.Rows();
+    
+    REAL num = 0.0;
+    REAL den = 0.0;
+    REAL w;
+    for (int i = 0; i < n_dof ; i++) {
+        w    = An_m_1(i,0) - 2*An(i,0) + An_p_1(i,0);
+        num += w*(An(i,0)-An_p_1(i,0));
+        den += w*w;
+    }
+    REAL s;
+    if (IsZero(den)) {
+        s = num / den;
+    }else{
+        s = num / den;
+    }
+    S = An_p_1-An;
+    S *= s;
+    S += An_p_1;
+    return S;
+}
+
+void TPMRSMonoPhasicAnalysis::ApplyAcceleration(){
+    
+    // Applying the selected nonlinear acceleration
+    std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
+    bool non_linear_acceleration_Q = (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
+    if (non_linear_acceleration_Q) {
+        
+        int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
+        
+        AccelerationRes(m_k_iterations,n_terms);
+        
+        int n_vec = m_x_p.size();
+        if (m_k_iterations - 1 >= n_terms) {
+            for (int i = 0; i < n_vec - 1; i++) {
+                m_x_p[i] = m_x_p[i+1];
+            }
+            if(n_vec!=0){
+                m_x_p[n_vec-1] = m_X_n;
+            }
+        }
+        
+    }
+    
+}

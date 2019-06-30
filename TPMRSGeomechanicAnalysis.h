@@ -51,6 +51,9 @@ private:
     /// Variables being postprocessed
     TPZStack<std::string> m_var_names;
     
+    /// Geomechanics states for nonlinear acceleration
+    TPZManVector<TPZFMatrix<REAL>,10> m_x_u;
+    
 public:
     
     /// Default constructor
@@ -165,6 +168,21 @@ public:
     {
         return m_X_n;
     }
+    
+    // Applying the selected nonlinear acceleration
+    void ApplyAcceleration();
+    
+    /// Define an acceleration method for the outer loop k iteration for geomechanics module
+    void AccelerationGeo(int k, int n);
+    
+    /// Apply a tranformation formula based on three states
+    TPZFMatrix<REAL> ApplyTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
+    
+    /// Apply a Atiken Delta-2 tranformation formula based on three states
+    TPZFMatrix<REAL> FDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
+    
+    /// Apply a Anderson tranformation formula based on three states
+    TPZFMatrix<REAL> SDMTransformation(TPZFMatrix<REAL> & An_p_1, TPZFMatrix<REAL> & An, TPZFMatrix<REAL> & An_m_1);
     
 };
 

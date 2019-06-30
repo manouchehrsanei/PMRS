@@ -427,7 +427,7 @@ void TPMRSElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & 
     
 #else
     
-    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
+    bool SecantQ =  m_simulation_data->Get_is_secant_geomechanics_Q();
     int gp_index = data.intGlobPtIndex;
     T plastic_integrator(m_plastic_integrator);
     

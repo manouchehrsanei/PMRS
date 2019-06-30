@@ -268,17 +268,23 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
     
 
     // Applying the selected nonlinear acceleration
+    ApplyAcceleration(k);
+    
+}
+
+void TPMRSSegregatedAnalysis::ApplyAcceleration(int k){
+    
     std::string nonlinear_acceleration = m_simulation_data->name_nonlinear_acceleration();
-    bool non_linear_acceleration_Q = (nonlinear_acceleration == "Shank") || (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
+    bool non_linear_acceleration_Q = (nonlinear_acceleration == "FDM") || (nonlinear_acceleration == "SDM");
     if (non_linear_acceleration_Q) {
         
         int n_terms = m_simulation_data->n_state_acceleration(); /// n=2->S, n=4->S2, and n=6->S3
         /// Acceleration for the whole thing geo + res
         AccelerationRes(k,n_terms);
         AccelerationGeo(k,n_terms);
-
-        int n_vec = m_x_p.size();
-        if (k-1 >= n_terms) {
+        
+        int n_vec = m_x_u.size();
+        if (k - 1 >= n_terms) {
             for (int i = 0; i < n_vec - 1; i++) {
                 m_x_p[i] = m_x_p[i+1];
                 m_x_u[i] = m_x_u[i+1];
@@ -290,7 +296,6 @@ void TPMRSSegregatedAnalysis::ExecuteOneTimeStep(int i_time_step, int k){
         }
         
     }
-    
 }
 
 void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(int i_time_step){
@@ -359,7 +364,7 @@ void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(int i_time_st
 
 void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
     
-    k--;
+//    k--;
     int n_terms;
     {
         if (k < n) {
@@ -463,7 +468,7 @@ void TPMRSSegregatedAnalysis::AccelerationGeo(int k, int n){
 
 void TPMRSSegregatedAnalysis::AccelerationRes(int k, int n){
     
-    k--;
+//    k--;
     int n_terms;
     {
         if (k < n) {
@@ -705,6 +710,9 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     std::cout << "TPMRSSegregatedAnalysis:: Begining for recurrent simulation process." <<std::endl;
     std::cout << std::endl << std::endl;
     
+    // Applying the selected nonlinear acceleration
+    ApplyAcceleration(0);
+    
     int64_t n_dof_geo = m_geomechanic_analysis->Solution().Rows();
     int64_t n_dof_res = m_reservoir_analysis->X_n().Rows();
     std::cout << "TPMRSSegregatedAnalysis:: Number of DoF for geomechanics module   = " << n_dof_geo <<std::endl;
@@ -727,7 +735,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
         ConfigureGeomechanicsBC(time_value);
         ConfigureReservoirBC(time_value);
         
-        CreateReservoirOperator();
+//        CreateReservoirOperator();
 //        CreateGeomechanicOperator();
         
         /// Reseting initial du == 0
@@ -1457,4 +1465,5 @@ TPZFMatrix<REAL> & TPMRSSegregatedAnalysis::TimeSummary(){
 TPZFMatrix<REAL> & TPMRSSegregatedAnalysis::ResidualsSummary(){
     return m_residuals_summary;
 }
+
 
