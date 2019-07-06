@@ -12,6 +12,7 @@ TPMRSGeomechanicAnalysis::TPMRSGeomechanicAnalysis() : TPZAnalysis(){
     m_simulation_data = NULL;
     m_X_n.Resize(0, 0);
     m_X.Resize(0, 0);
+    m_X_tilde.Resize(0, 0);
     m_error = 0;
     m_dx_norm = 0;
     m_k_iterations = 0;
@@ -95,6 +96,7 @@ void TPMRSGeomechanicAnalysis::ConfigurateAnalysis(DecomposeType decomposition, 
     this->SetSolver(step);
     this->Solution().Resize(Mesh()->Solution().Rows(), 1);
     m_X.Resize(Mesh()->Solution().Rows(), 1);
+    m_X_tilde.Resize(Mesh()->Solution().Rows(), 1);
     m_X_n.Resize(Mesh()->Solution().Rows(), 1);
     
     int n_threads = m_simulation_data->n_threads();
@@ -161,6 +163,57 @@ void TPMRSGeomechanicAnalysis::ExecuteM1Interation(REAL & norm_dx){
     
 }
 
+void TPMRSGeomechanicAnalysis::ExecuteMTInteration(REAL & norm_dx){
+    
+    TPZFMatrix<STATE> x_k;
+    x_k = m_X_n;
+    
+    // Newton method (SecantQ = false)
+    // Quase-Newton method (SecantQ = true)
+    bool SecantQ = m_simulation_data->Get_is_secant_geomechanics_Q();
+    
+    if (SecantQ) {
+        AssembleResidual();
+    }else{
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "First Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
+    }
+    
+    Rhs() *= -1.0;
+    Solve();
+    m_X_n = x_k +  m_alpha*Solution();
+    norm_dx = Norm(m_X_n - x_k);
+    LoadSolution(m_X_n);
+    
+    LoadMemorySolution();
+    AssembleResidual();
+    Rhs() *= -1.0;
+    Solve();
+    
+    m_X_tilde = Solution();
+    /// Compute the new alpha Equation 17.
+    
+    int n_equ = m_X_tilde.Rows();
+    REAL num = 0, dem = 0;
+    for (int i = 0; i < n_equ; i++) {
+        num += (m_X_n(i,0) - x_k(i,0))*(m_X_tilde(i,0));
+        dem += (m_X_n(i,0) - x_k(i,0))*(m_X_n(i,0) - x_k(i,0));
+    }
+    REAL s = num/dem;
+    m_alpha += s;
+    
+    /// Perform equation 15.
+    m_X_n += m_X_tilde;
+    norm_dx = Norm(m_X_n - x_k);
+    LoadSolution(m_X_n);
+}
+
+
 void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     
     TPZFMatrix<STATE> d_eps_x_x, d_eps_y_x ,x_k, y, dx;
@@ -185,7 +238,7 @@ void TPMRSGeomechanicAnalysis::ExecuteM3Interation(REAL & norm_dx){
     Rhs() *= -1.0;
     TPZFMatrix<REAL> r_x = Rhs();
     Solve();
-
+    
     d_eps_x_x = Solution();
     y = x_k + d_eps_x_x;
     
@@ -322,6 +375,12 @@ void TPMRSGeomechanicAnalysis::ExecuteInteration(REAL & norm_dx){
         ExecuteM1Interation(norm_dx);
         return;
     }
+
+    if (method.compare("MT") == 0) {
+        ExecuteMTInteration(norm_dx);
+        return;
+    }
+    
     
     if (method.compare("M3") == 0) {
         if (m_k_iterations <= 2) {

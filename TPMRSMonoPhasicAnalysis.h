@@ -36,6 +36,12 @@ private:
     /// Vector of compmesh pointers. fmeshvec[0] = flowHdiv, fmeshvec[1] = PressureL2 */
     TPZManVector<TPZCompMesh * , 2> m_mesh_vec;
     
+    /// Solution at n (past) state
+    TPZFMatrix<STATE> m_X_tilde;
+    
+    /// Modified Thomas cceleration factor
+    STATE m_alpha = 1.0;
+    
     /// Residue error
     STATE m_error;
     
@@ -84,6 +90,9 @@ public:
     
     /// Execute a single M1 iteration
     void ExecuteM1Interation(REAL & norm_dx);
+    
+    /// Execute a single Modified Thomas MT iteration
+    void ExecuteMTInteration(REAL & norm_dx);
 
     /// Execute a single M3 iteration
     void ExecuteM3Interation(REAL & norm_dx);

@@ -16,13 +16,13 @@
         <Iterations n_iterations="100" />
         <Residue res_tolerance="0.000001" />
         <Correction cor_tolerance="0.000001" />
-        <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,M6,M9}  -->
+        <OrderMetodQ nonlinear_method = "MT" /> <!-- nonlinear_method = {M1,MT}  -->
         <SecantResQ useSecantResQ="1" />
         <SecantGeoQ useSecantGeoQ="1" />
         <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
         <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
-        <InternalAccelerationRes useInternalAccelResQ="0" />
-        <InternalAccelerationGeo useInternalAccelGeoQ="1" />
+        <InternalAccelerationRes useInternalAccelResQ="0" /> <!-- deprecated >= 1  -->
+        <InternalAccelerationGeo useInternalAccelGeoQ="0" /> <!-- deprecated >= 1  -->
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
