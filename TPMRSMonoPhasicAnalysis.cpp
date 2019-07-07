@@ -206,7 +206,18 @@ void TPMRSMonoPhasicAnalysis::ExecuteMTInteration(REAL & norm_dx){
     norm_dx = Norm(m_X_n - x_k);
     
     LoadMemorySolution();
-    AssembleResidual();
+    if (SecantQ) {
+        AssembleResidual();
+    }else{
+        if ((m_k_iterations)%m_n_update_jac) {
+            AssembleResidual();
+        }else{
+            Assemble();
+            Solver().Matrix()->SetIsDecomposed(0);// Force numerical factorization
+            std::cout << "Second Jacobian updated at iteration = " << m_k_iterations << endl;
+        }
+    }
+    
     Rhs() *= -1.0;
     Solve();
     

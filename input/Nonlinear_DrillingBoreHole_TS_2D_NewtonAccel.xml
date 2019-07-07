@@ -16,9 +16,9 @@
         <Iterations n_iterations="100" />
         <Residue res_tolerance="0.000001" />
         <Correction cor_tolerance="0.000001" />
-        <OrderMetodQ nonlinear_method = "MT" /> <!-- nonlinear_method = {M1,MT}  -->
-        <SecantResQ useSecantResQ="1" />
-        <SecantGeoQ useSecantGeoQ="1" />
+        <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,MT}  -->
+        <SecantResQ useSecantResQ="0" />
+        <SecantGeoQ useSecantGeoQ="0" />
         <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
         <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
         <InternalAccelerationRes useInternalAccelResQ="0" /> <!-- deprecated >= 1  -->
@@ -60,7 +60,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_NClassical_MF_steady_state_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_FN_NT_MF_steady_state_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
