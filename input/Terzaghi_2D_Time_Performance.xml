@@ -13,9 +13,16 @@
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="50" />
+        <Iterations n_iterations="100" />
         <Residue res_tolerance="0.0000001" />
         <Correction cor_tolerance="0.000001" />
+        <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,MT}  -->
+        <SecantResQ useSecantResQ="0" />
+        <SecantGeoQ useSecantGeoQ="0" />
+        <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
+        <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
+        <InternalAccelerationRes useInternalAccelResQ="0" /> <!-- deprecated >= 1  -->
+        <InternalAccelerationGeo useInternalAccelGeoQ="0" /> <!-- deprecated >= 1  -->
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -27,11 +34,15 @@
     </FixedStressSplit>
     <!-- SubSteps controls  -->
     <SubSteps>
-        <MaxPlasticNorm max_plastic_norm_value="0.01" />
-    </SubSteps> 
+        <MaxPlasticNorm max_plastic_norm_value="0.5" />
+    </SubSteps>
+    <!-- Initialization controls  -->
+    <Initialization>
+        <ResetUndarinedResposeData reset_undrained_response_data="0" />
+    </Initialization>      
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="12" />
+        <Numthreads n_threads="24" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -125,8 +136,9 @@
             <Data t="0" un="0.0" />
             <Data t="1.0" un="0.0" />
         </Geomechanic>            
-        <Geomechanic bc_id="3" type="Ntn" n_data="2" >
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
             <Data t="0" tn="0.0" />
+            <Data t="0.0125" tn="0.0" />
             <Data t="1.0" tn="0.0" />
         </Geomechanic>
         <Geomechanic bc_id="4" type="Dun" n_data="2" >
