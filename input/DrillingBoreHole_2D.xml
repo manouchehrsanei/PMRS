@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="100" />
-        <Residue res_tolerance="0.000001" />
-        <Correction cor_tolerance="0.000001" />
+        <Residue res_tolerance="0.00001" />
+        <Correction cor_tolerance="0.00001" />
         <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,MT}  -->
         <SecantResQ useSecantResQ="0" />
         <SecantGeoQ useSecantGeoQ="0" />
@@ -28,8 +28,8 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="None" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
-        <NState n_state="2" /> <!-- NState = {2,4,6}  -->
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="6" /> <!-- NState = {2,4,6}  -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
@@ -60,7 +60,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="DrillingBoreHole_2D_MF" n_divisions="3" n_outputs_geo="3" n_outputs_res="3" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="DrillingBoreHole_2D_MF_sdm_3" n_divisions="2" n_outputs_geo="3" n_outputs_res="3" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var v_name="u" />
             <Var t_name="s" />
