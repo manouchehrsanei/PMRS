@@ -727,7 +727,7 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
     bool dx_stop_criterion_Q = false;
     
 
-    CreateGeomechanicOperator(); /// Assuming BC data does not change during the entire simulation.
+//    CreateGeomechanicOperator(); /// Assuming BC data does not change during the entire simulation.
     
     for (int it = 0; it < n_time_steps; it++) {
         
@@ -777,8 +777,8 @@ void TPMRSSegregatedAnalysis::ExecuteTimeEvolution(){
             /// Relative error http://mathworld.wolfram.com/RelativeError.html
             REAL p_error = Norm(m_reservoir_analysis->X_n() - m_p_m);
             REAL du_error = Norm(m_geomechanic_analysis->Solution() - m_u_m);
-            REAL last_p_norm = Norm(m_p_m);
-            REAL last_du_norm = Norm(m_u_m);
+            REAL last_p_norm = Norm(m_reservoir_analysis->X_n());
+            REAL last_du_norm = Norm(m_geomechanic_analysis->Solution());
             m_fss_p_norm  = p_error/last_p_norm;
             m_fss_du_norm = du_error/last_du_norm;
     
