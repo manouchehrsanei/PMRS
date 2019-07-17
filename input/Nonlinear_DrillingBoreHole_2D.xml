@@ -28,8 +28,8 @@
     <FixedStressSplit>
         <FssIterations n_max_fss_iterations="50" />
         <EnfFssIterations n_enforce_fss_iterations="0" />
-        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {SFI,FDM,SDM}  -->
-        <NState n_state="6" /> <!-- NState = {2,4,6} -> {3,5,7} -->
+        <NonlinearAcceleration n_nonlinear_acceleration="FDM" /> <!-- n_nonlinear_acceleration = {SFI,FDM,SDM}  -->
+        <NState n_state="2" /> <!-- NState = {2,4,6} -> {3,5,7} -->
         <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
     </FixedStressSplit>
     <!-- SubSteps controls  -->
@@ -60,7 +60,7 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="NDrilling_MT_MF_A_20_sdm_3" n_divisions="1" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
+        <PostProcessing vtk_file="NDrilling_MT_MF_A_20_fdm" n_divisions="1" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="1" performance_summary_Q="1" />
         <OutputControlsGeo>
             <Var s_name="alpha" />
             <Var v_name="u" />
