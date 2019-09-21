@@ -19,6 +19,8 @@
         <OrderMetodQ nonlinear_method = "MT" /> <!-- nonlinear_method = {M1,M6,M9}  -->
         <SecantResQ useSecantResQ="0" />
         <SecantGeoQ useSecantGeoQ="0" />
+        <InternalAccelerationRes useSecantGeoQ="0" />
+        <InternalAccelerationGeo useSecantGeoQ="0" />
         <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
         <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
     </NewtonControls>
