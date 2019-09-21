@@ -1,0 +1,186 @@
+<?xml version="1.0" ?>
+    <!-- Example 1: Simulating poroelastoplastic case -->
+<CaseData>
+    <!-- Geometry description -->
+    <Mesh>
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_2D_SEST2D.msh" />
+    </Mesh>
+    <!-- Time step controls  -->
+    <TimeControls>
+        <StepSize dt="2.0" />
+        <StepNumber n_time_steps="50" />
+        <CrankNicolsonQ useQ="0" />
+    </TimeControls>
+    <!-- Newton method controls  -->
+    <NewtonControls>
+        <Iterations n_iterations="100" />
+        <Residue res_tolerance="0.000001" />
+        <Correction cor_tolerance="0.000001" />
+        <OrderMetodQ nonlinear_method = "MT" /> <!-- nonlinear_method = {M1,M6,M9}  -->
+        <SecantResQ useSecantResQ="0" />
+        <SecantGeoQ useSecantGeoQ="0" />
+        <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
+        <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
+    </NewtonControls>
+    <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="50" />
+        <EnfFssIterations n_enforce_fss_iterations="0" />
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="6" /> <!-- NState = {2,4,6}  -->
+        <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
+    </FixedStressSplit>
+    <!-- SubSteps controls  -->
+    <SubSteps>
+        <MaxPlasticNorm max_plastic_norm_value="0.5" />
+    </SubSteps>  
+    <!-- Initialization controls  -->
+    <Initialization>
+        <ResetUndarinedResposeData reset_undrained_response_data="0" />
+    </Initialization>      
+    <!-- Parallel controls  -->
+    <ParallelControls>
+        <Numthreads n_threads="24" />
+    </ParallelControls>
+    <!-- Scale factor controls  -->
+    <ScaleFactor>
+        <Valscalefactor scalfac_value="1.0e-6" />
+    </ScaleFactor>    
+    <!-- Finite element controls  -->
+    <FEM>
+        <FullyCoupled useQs="0" />
+        <MixedFormulationQ useQ="1" />
+        <HRefine h_level="0" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
+    </FEM>
+    <!-- Settings for OutPut -->
+    <OutputControls>
+        <OutputFolder name="mkdir Output" />
+        <LogFolder name="mkdir Log" />
+        <PostProcessing vtk_file="NDrilling_SDM_3_2D_MF_A_20" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
+        <OutputControlsGeo>
+            <Var s_name="alpha" />
+            <Var v_name="u" />
+            <Var t_name="s" />
+            <Var t_name="s_t" />            
+            <Var t_name="e" />
+            <Var t_name="ep" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="div_q" />
+            <Var s_name="p" />
+            <Var s_name="phi" />
+            <Var s_name="kappa" />
+            <Var v_name="q" />            
+        </OutputControlsRes> 
+        <ReportingTimes>
+            <time t="10.0" />
+            <time t="20.0" />
+            <time t="30.0" />
+            <time t="40.0" />
+            <time t="50.0" />
+            <time t="60.0" />
+            <time t="70.0" />
+            <time t="80.0" />
+            <time t="90.0" />
+            <time t="100.0" />
+        </ReportingTimes>         
+    </OutputControls>
+    <Physics>
+        <GravityConstant gravity="0.0" />
+        <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
+    </Physics>
+    <!-- Material Settings -->
+    <ReservoirRegions>
+        <RegionNumber n_regions="1" />
+    </ReservoirRegions> 
+    <RegionsDefinition>
+        <!-- Region definition -->
+        <RegionData mat_id="1" n_boundaries_geo="4" n_boundaries_res ="4">
+            <InitialPoroMechParameters Eyoung_u="5000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="5000.0" nu="0.2" Ks="1.0e20" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
+            <PhiParameters phi_model="Linear" n_parameters="0"/>
+            <KappaParameters kappa_model="Petunin" n_parameters="1" a="20.0" />
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="8.75" friction="30.0"/>              
+            <GeoBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+            </ResBoundaries>            
+        </RegionData>          
+    </RegionsDefinition>
+    <!-- BCInitialGeomechanics -->
+    <BCInitialGeomechanics>
+        <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
+            <Data t="0" tn="-40.0" />
+        </InitialGeomechanic>            
+        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
+            <Data t="0" tn="-40.0" />
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="4" type="Dux" n_data="1" >
+            <Data t="0" ux="0.0" />            
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="5" type="Duy" n_data="1" >
+            <Data t="0" uy="0.0" />            
+        </InitialGeomechanic>            
+    </BCInitialGeomechanics>
+    <BCInitialReservoir>
+        <InitialReservoir bc_id="2" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="3" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />             
+        </InitialReservoir>
+        <InitialReservoir bc_id="4" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />             
+        </InitialReservoir>            
+        <InitialReservoir bc_id="5" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />             
+        </InitialReservoir>            
+    </BCInitialReservoir>  
+    <!-- Recurrent boundary contidions -->    
+    <BCGeomechanics>
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="2.0" tn="20.0" />
+            <Data t="100.0" tn="20.0" />
+        </Geomechanic>
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="2.0" tn="-0.00001" />
+            <Data t="100.0" tn="-0.00001" />
+        </Geomechanic>
+        <Geomechanic bc_id="4" type="Dux" n_data="1" >
+            <Data t="0" ux="0.0" />
+        </Geomechanic>
+        <Geomechanic bc_id="5" type="Duy" n_data="1" >
+            <Data t="0" uy="0.0" />               
+        </Geomechanic>
+    </BCGeomechanics> 
+    <BCReservoirs>
+        <Reservoir bc_id="2" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="2.0" p="20.0" />
+            <Data t="100.0" p="20.0" />
+        </Reservoir>
+        <Reservoir bc_id="3" type="Dp" n_data="3" >
+            <Data t="0" p="30.0" />
+            <Data t="2.0" p="30.0" />
+            <Data t="100.0" p="30.0" />
+        </Reservoir>            
+        <Reservoir bc_id="4" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />
+        </Reservoir>            
+        <Reservoir bc_id="5" type="Dp" n_data="1" >
+            <Data t="0" p="30.0" />  
+        </Reservoir>            
+    </BCReservoirs>       
+</CaseData>
