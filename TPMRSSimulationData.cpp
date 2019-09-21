@@ -328,16 +328,14 @@ void TPMRSSimulationData::ReadSimulationFile(char *simulation_file) {
     
     SetUpdateJacobianMethod(n_update_jac_res,n_update_jac_geo);
     
-    
-//    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationRes").ToElement();
-//    char_container = container->Attribute("useInternalAccelResQ");
-//    bool is_use_internal_accel_ResQ = std::atoi(char_container);
-//
-//
-//    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationGeo").ToElement();
-//    char_container = container->Attribute("useInternalAccelGeoQ");
-//    bool is_use_internal_accel_GeoQ = std::atoi(char_container);
-//    Set_use_internal_accel_Method(is_use_internal_accel_ResQ, is_use_internal_accel_GeoQ);
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationRes").ToElement();
+    char_container = container->Attribute("useInternalAccelResQ");
+    bool is_use_internal_accel_ResQ = std::atoi(char_container);
+
+    container = doc_handler.FirstChild("CaseData").FirstChild("NewtonControls").FirstChild("InternalAccelerationGeo").ToElement();
+    char_container = container->Attribute("useInternalAccelGeoQ");
+    bool is_use_internal_accel_GeoQ = std::atoi(char_container);
+    Set_use_internal_accel_Method(is_use_internal_accel_ResQ, is_use_internal_accel_GeoQ);
     
     /// End:: Newton method controls
     
