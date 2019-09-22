@@ -1364,6 +1364,15 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
                 plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
                 
+//                /// Compute Kep with expression 27
+//                TPZTensor<STATE> last_epsilon, last_sigma;
+//                last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
+//                last_sigma = this->MemItem(gp_index).GetSigma();
+//                
+//                REAL delta_sigma = (sigma.I1()-last_sigma.I1()) / 3.0;
+//                REAL delta_epsilon = (epsilon.I1()-last_epsilon.I1());
+//                REAL Kep = delta_sigma / delta_epsilon;
+                
                 REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
                 REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
                 REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
@@ -1372,12 +1381,9 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 REAL alpha = 1.0 - (Kep/Ks);
 
                 this->MemItem(gp_index).SetAlpha(alpha);
-                
                 this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
                 this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n()) ;
-                
                 this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
-                
                 this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                 this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
             
