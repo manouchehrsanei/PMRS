@@ -1396,12 +1396,19 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
             return;
         }
         
-
+//        TPZFNMatrix<36,REAL> Dep(6,6,0.0);
         TPZTensor<STATE> epsilon,sigma;
         Epsilon(data,epsilon);
         T plastic_integrator(m_plastic_integrator);
         plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
         plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma);
+        
+//        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+//        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+//        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+//        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
+//        REAL Ks = this->MemItem(gp_index).Ks();
+//        REAL alpha = 1.0 - (Kep/Ks);
         
         if (m_simulation_data->IsCurrentStateQ()) {
             
