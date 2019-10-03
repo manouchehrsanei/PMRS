@@ -1366,9 +1366,13 @@ void TPMRSElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, 
                 
 //                /// Compute Kep with expression 27
 //                TPZTensor<STATE> last_epsilon, last_sigma;
-//                last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
+//                if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
+//                    last_epsilon = this->MemItem(gp_index).GetPlasticStateSubStep().m_eps_t;
+//                }else{
+//                    last_epsilon = this->MemItem(gp_index).GetPlasticState().m_eps_t;
+//                }
 //                last_sigma = this->MemItem(gp_index).GetSigma();
-//                
+//
 //                REAL delta_sigma = (sigma.I1()-last_sigma.I1()) / 3.0;
 //                REAL delta_epsilon = (epsilon.I1()-last_epsilon.I1());
 //                REAL Kep = delta_sigma / delta_epsilon;
