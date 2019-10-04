@@ -14,8 +14,8 @@
     <!-- Newton method controls  -->
     <NewtonControls>
         <Iterations n_iterations="100" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.0001" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.001" />
         <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,MT}  -->
         <SecantResQ useSecantResQ="0" />
         <SecantGeoQ useSecantGeoQ="0" />
@@ -104,7 +104,7 @@
             <PoroMechParameters Eyoung="5000.0" nu="0.2" Ks="15000.0" c_f="0.0e-10" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
             <PhiParameters phi_model="Linear" n_parameters="0"/>
             <KappaParameters kappa_model="Petunin" n_parameters="1" a="20.0" />
-            <PlasticityParameters plasticity_model="MC" n_parameters="0" cohesion="6.75" friction="30.0"/>              
+            <PlasticityParameters plasticity_model="MC" n_parameters="2" cohesion="6.75" friction="30.0"/>              
             <GeoBoundaries>
                 <Boundary bc_id="2"/>
                 <Boundary bc_id="3"/>

@@ -555,11 +555,15 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
         Epsilon(datavec[m_u_b],epsilon);
         TPZFNMatrix<36,STATE> Dep(6,6,0.0);
         T plastic_integrator(m_plastic_integrator);
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
         plastic_integrator.ApplyStrainComputeSigma(epsilon,sigma,&Dep);
-        /// getting the elastoplastic Kdr_ep
-        REAL lambda = Dep(0,5);
-        REAL two_times_mu = Dep(1,1);
-        REAL Kdr_ep = lambda + two_times_mu/3.0;
+        
+        REAL K_ep_xx = (Dep(0,0) + Dep(3,0) + Dep(5,0))/3.0;
+        REAL K_ep_yy = (Dep(0,3) + Dep(3,3) + Dep(5,3))/3.0;
+        REAL K_ep_zz = (Dep(0,5) + Dep(3,5) + Dep(5,5))/3.0;
+        REAL Kep = (K_ep_xx + K_ep_yy + K_ep_zz) / 3.0;
+        REAL Ks = this->MemItem(gp_index).Ks();
+        REAL alpha = 1.0 - (Kep/Ks);
         
         if (m_simulation_data->IsCurrentStateQ()) {
             
@@ -616,13 +620,12 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
                     this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
                     this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n());
                 }else{
+                    this->MemItem(gp_index).SetAlpha(alpha);
                     this->MemItem(gp_index).SetPlasticStateSubStep(this->MemItem(gp_index).GetPlasticState_n());
                     this->MemItem(gp_index).Setu_sub_step(this->MemItem(gp_index).Getu_n()) ;
-                    
                     this->MemItem(gp_index).SetPlasticState(this->MemItem(gp_index).GetPlasticState_n());
                     this->MemItem(gp_index).SetSigma(this->MemItem(gp_index).GetSigma_n());
                     this->MemItem(gp_index).Setu(this->MemItem(gp_index).Getu_n());
-                    
                 }
                 
             }
@@ -1408,9 +1411,49 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Epsilon(TPZMaterialData &data, TPZTensor<RE
 
 template <class T, class TMEM>
 void TPMRSPoroElastoPlastic<T,TMEM>::Sigma(TPZMaterialData &data, TPZTensor<REAL> & epsilon_t, TPZTensor<REAL> & sigma, TPZFMatrix<REAL> * Dep){
-
+    
+    int gp_index = data.intGlobPtIndex;
     T plastic_integrator(m_plastic_integrator);
-    plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
+    bool SecantQ = true;
+    if(SecantQ)
+    {
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
+        plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma);
+        
+        /// Linear elastic tangent.
+        {
+            const REAL lambda = plastic_integrator.fER.Lambda();
+            const REAL mu = plastic_integrator.fER.G();
+            
+            // Linha 0
+            Dep->PutVal(_XX_,_XX_, lambda + 2. * mu);
+            Dep->PutVal(_XX_,_YY_, lambda);
+            Dep->PutVal(_XX_,_ZZ_, lambda);
+            
+            // Linha 1
+            Dep->PutVal(_XY_,_XY_, 2. * mu);
+            
+            // Linha 2
+            Dep->PutVal(_XZ_,_XZ_, 2. * mu);
+            
+            // Linha 3
+            Dep->PutVal(_YY_,_XX_, lambda);
+            Dep->PutVal(_YY_,_YY_, lambda + 2. * mu);
+            Dep->PutVal(_YY_,_ZZ_, lambda);
+            
+            // Linha 4
+            Dep->PutVal(_YZ_,_YZ_, 2. * mu);
+            
+            // Linha 5
+            Dep->PutVal(_ZZ_,_XX_, lambda);
+            Dep->PutVal(_ZZ_,_YY_, lambda);
+            Dep->PutVal(_ZZ_,_ZZ_, lambda + 2. * mu);
+        }
+    }
+    else{
+        plastic_integrator.SetState(this->MemItem(gp_index).GetPlasticState());
+        plastic_integrator.ApplyStrainComputeSigma(epsilon_t,sigma,Dep);
+    }
     
 }
 

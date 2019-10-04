@@ -300,7 +300,7 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
         
 #ifdef NMO9_Q
         /// https://www.sciencedirect.com/science/article/abs/pii/S0096300318302893
-        if (i <= 2) {
+        if (i <= 20) {
             this->ExecuteNewtonInteration();
             dx += Solution();
             norm_dx  = Norm(Solution());
@@ -337,12 +337,9 @@ bool TPMRSFullyCoupledAnalysis::ExcecuteOneStepApproximation(bool enforced_execu
         m_dx_norm = norm_dx;
         
         if (residual_stop_criterion_Q || correction_stop_criterion_Q) {
-#ifdef PZDEBUG
             std::cout << "TPMRSFullyCoupledAnalysis:: Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "TPMRSFullyCoupledAnalysis:: Correction norm = " << norm_dx << std::endl;
             std::cout << "TPMRSFullyCoupledAnalysis:: Number of iterations = " << i << std::endl;
-#endif
-            
             break;
         }
     }
