@@ -229,11 +229,11 @@ int main(int argc, char *argv[])
         { /// Initial states and postprocess them.
             /// Compute initial response
             SFI_analysis->ExecuteStaticSolution();
-            FC_analysis->PostProcessTimeStep(file);
+//            FC_analysis->PostProcessTimeStep(file);
             
             /// Compute undrained response
             SFI_analysis->ExecuteUndrainedStaticSolution();
-            FC_analysis->PostProcessTimeStep(file);
+//            FC_analysis->PostProcessTimeStep(file);
         }
         // Load initial conditions in FC for dof
         FC_analysis->Meshvec()[0]->Solution() = SFI_analysis->GetGeomechanicsSolver()->Solution();
