@@ -60,8 +60,9 @@
     <OutputControls>
         <OutputFolder name="mkdir Output" />
         <LogFolder name="mkdir Log" />
-        <PostProcessing vtk_file="NDrilling_SDM_3_2D_A_20" n_divisions="0" n_outputs_geo="5" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
+        <PostProcessing vtk_file="NDrilling_SDM_3_2D_A_20" n_divisions="0" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="0" draw_geometry_Q="0" performance_summary_Q="1" />
         <OutputControlsGeo>
+            <Var s_name="alpha" />
             <Var v_name="u" />
             <Var t_name="s" />
             <Var t_name="s_t" />            
