@@ -219,10 +219,6 @@ int main(int argc, char *argv[])
         // Liking the memory to FC solver
         SFI_analysis->ApplyMemoryLink(SFI_analysis->GetGeomechanicsSolver()->Mesh(), FC_analysis->Mesh());
         
-        REAL t_0 = 0;
-        SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
-        SFI_analysis->ConfigureReservoirBC(t_0,true);
-        
         /// vtk file
         std::string name = sim_data->name_vtk_file();
         std::string file = name + "_fc.vtk";
@@ -232,7 +228,6 @@ int main(int argc, char *argv[])
             SFI_analysis->ConfigureReservoirBC(t_0,true);
             SFI_analysis->ExecuteStaticSolution();
             SFI_analysis->ExecuteUndrainedStaticSolution();
-            SFI_analysis->ExecuteTimeEvolution();
             
         }
         // Load initial conditions in FC for dof

@@ -565,7 +565,6 @@ void TPMRSPoroElastoPlastic<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec
             
             this->MemItem(gp_index).SetPlasticState_n(plastic_integrator.fN);
             this->MemItem(gp_index).SetSigma_n(sigma);
-//            this->MemItem(gp_index).SetKdr(Kdr_ep);
             TPZManVector<STATE,3> delta_u    = datavec[m_u_b].sol[0];
             TPZManVector<STATE,3> u_n(m_dimension,0.0);
             if (m_simulation_data->Get_must_use_sub_stepping_Q()) {
