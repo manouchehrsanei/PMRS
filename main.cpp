@@ -227,13 +227,13 @@ int main(int argc, char *argv[])
         std::string name = sim_data->name_vtk_file();
         std::string file = name + "_fc.vtk";
         { /// Initial states and postprocess them.
-            /// Compute initial response
+            REAL t_0 = 0;
+            SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
+            SFI_analysis->ConfigureReservoirBC(t_0,true);
             SFI_analysis->ExecuteStaticSolution();
-//            FC_analysis->PostProcessTimeStep(file);
-            
-            /// Compute undrained response
             SFI_analysis->ExecuteUndrainedStaticSolution();
-//            FC_analysis->PostProcessTimeStep(file);
+            SFI_analysis->ExecuteTimeEvolution();
+            
         }
         // Load initial conditions in FC for dof
         FC_analysis->Meshvec()[0]->Solution() = SFI_analysis->GetGeomechanicsSolver()->Solution();
