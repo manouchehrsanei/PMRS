@@ -142,13 +142,13 @@
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+            <Data t="0" tn="-80.0" />
         </InitialGeomechanic>           
         <InitialGeomechanic bc_id="5" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="6" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+            <Data t="0" tn="-80.0" />
         </InitialGeomechanic>          
         <InitialGeomechanic bc_id="7" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
