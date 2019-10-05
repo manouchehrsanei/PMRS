@@ -3,7 +3,7 @@
 <CaseData>
     <!-- Geometry description -->
     <Mesh>
-       <MeshFile mesh_file="Wellbore_Cricular_3D_SEST2D.msh" />
+       <MeshFile mesh_file="/Users/omar/Documents/GitHub/PMRS/input/meshes/Wellbore_Cricular_3D_SEST2D.msh" />
     </Mesh>
     <!-- Time step controls  -->
     <TimeControls>
@@ -13,9 +13,16 @@
     </TimeControls>
     <!-- Newton method controls  -->
     <NewtonControls>
-        <Iterations n_iterations="80" />
-        <Residue res_tolerance="0.00001" />
-        <Correction cor_tolerance="0.00001" />
+        <Iterations n_iterations="100" />
+        <Residue res_tolerance="0.001" />
+        <Correction cor_tolerance="0.01" />
+        <OrderMetodQ nonlinear_method = "MT" /> <!-- nonlinear_method = {M1,MT}  -->
+        <SecantResQ useSecantResQ="1" />
+        <SecantGeoQ useSecantGeoQ="1" />
+        <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
+        <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
+        <InternalAccelerationRes useInternalAccelResQ="0" /> <!-- deprecated >= 1  -->
+        <InternalAccelerationGeo useInternalAccelGeoQ="0" /> <!-- deprecated >= 1  -->
     </NewtonControls>
     <!-- Fixed Stress Split Scheme  -->
     <FixedStressSplit>
@@ -35,7 +42,7 @@
     </Initialization>      
     <!-- Parallel controls  -->
     <ParallelControls>
-        <Numthreads n_threads="64" />
+        <Numthreads n_threads="24" />
     </ParallelControls>
     <!-- Scale factor controls  -->
     <ScaleFactor>
@@ -71,14 +78,14 @@
         </OutputControlsRes> 
         <ReportingTimes>
             <time t="10.0" />
-            <time t="20.0" />
+<!--             <time t="20.0" />
             <time t="30.0" />
             <time t="40.0" />
             <time t="50.0" />
             <time t="60.0" />
             <time t="70.0" />
             <time t="80.0" />
-            <time t="90.0" />
+            <time t="90.0" /> -->
             <time t="100.0" />
         </ReportingTimes>         
     </OutputControls>
@@ -135,13 +142,13 @@
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="4" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+            <Data t="0" tn="-80.0" />
         </InitialGeomechanic>           
         <InitialGeomechanic bc_id="5" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
         </InitialGeomechanic>
         <InitialGeomechanic bc_id="6" type="Ntn" n_data="1" >
-            <Data t="0" tn="-40.0" />
+            <Data t="0" tn="-80.0" />
         </InitialGeomechanic>          
         <InitialGeomechanic bc_id="7" type="Ntn" n_data="1" >
             <Data t="0" tn="-40.0" />
@@ -171,7 +178,7 @@
         </InitialReservoir>
         <InitialReservoir bc_id="4" type="Nq" n_data="1" >
             <Data t="0" qn="0.0" />             
-        </InitialReservoir>          
+        </InitialReservoir>           
         <InitialReservoir bc_id="5" type="Dp" n_data="1" >
             <Data t="0" p="30.0" />             
         </InitialReservoir> 
