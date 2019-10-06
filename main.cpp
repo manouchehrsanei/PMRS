@@ -222,6 +222,15 @@ int main(int argc, char *argv[])
         /// vtk file
         std::string name = sim_data->name_vtk_file();
         std::string file = name + "_fc.vtk";
+        
+        /// 3d control
+        int dimension = SFI_analysis->GetGeomechanicsSolver()->Mesh()->Reference()->Dimension();
+        REAL eps_res = sim_data->epsilon_res();
+        if (dimension == 3) {
+            std::cout << "Augmented tolerance during initialization." << std::endl;
+            sim_data->Set_epsilon_res(eps_res*100.0);
+        }
+        
         { /// Initial states and postprocess them.
             REAL t_0 = 0;
             SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
@@ -236,16 +245,22 @@ int main(int argc, char *argv[])
         TPZBuildMultiphysicsMesh::TransferFromMeshes(FC_analysis->Meshvec(), FC_analysis->Mesh());
         FC_analysis->Solution()=FC_analysis->Mesh()->Solution();
         
-        { ///  Printing FC bc conditions
-            
-            std::cout << "Begining:: Printing FC bc conditions " << std::endl;
-            for(auto i :sim_data->BCIdToConditionTypeFullyCoupled()){
-                std::cout << "BC id = " << i.first << std::endl;
-                std::cout << "BC type = " << i.second << std::endl;
-                std::cout << "BC index = " << sim_data->ConditionTypeToBCIndexFullyCoupled()[i.second].first << std::endl;
-            }
-            std::cout << "Ending:: Printing FC bc conditions " << std::endl;
+        /// 3d control
+        if (dimension == 3) {
+            std::cout << "Restored tolerance for transient solution." << std::endl;
+            sim_data->Set_epsilon_res(eps_res);
         }
+        
+//        { ///  Printing FC bc conditions
+//
+//            std::cout << "Begining:: Printing FC bc conditions " << std::endl;
+//            for(auto i :sim_data->BCIdToConditionTypeFullyCoupled()){
+//                std::cout << "BC id = " << i.first << std::endl;
+//                std::cout << "BC type = " << i.second << std::endl;
+//                std::cout << "BC index = " << sim_data->ConditionTypeToBCIndexFullyCoupled()[i.second].first << std::endl;
+//            }
+//            std::cout << "Ending:: Printing FC bc conditions " << std::endl;
+//        }
         
         FC_analysis->ExecuteTimeEvolution();
         
@@ -254,11 +269,27 @@ int main(int argc, char *argv[])
     {
 
         TPMRSSegregatedAnalysis * SFI_analysis = CreateSFISolver(sim_data);
+        
+        /// 3d control
+        int dimension = SFI_analysis->GetGeomechanicsSolver()->Mesh()->Reference()->Dimension();
+        REAL eps_res = sim_data->epsilon_res();
+        if (dimension == 3) {
+            std::cout << "Augmented tolerance during initialization." << std::endl;
+            sim_data->Set_epsilon_res(eps_res*100.0);
+        }
+        
         REAL t_0 = 0;
         SFI_analysis->ConfigureGeomechanicsBC(t_0,true);
         SFI_analysis->ConfigureReservoirBC(t_0,true);
         SFI_analysis->ExecuteStaticSolution();
         SFI_analysis->ExecuteUndrainedStaticSolution();
+        
+        /// 3d control
+        if (dimension == 3) {
+            std::cout << "Restored tolerance for transient solution." << std::endl;
+            sim_data->Set_epsilon_res(eps_res);
+        }
+        
         SFI_analysis->ExecuteTimeEvolution();
         
         /// Writing summaries

@@ -347,6 +347,12 @@ public:
     /// Get the number of iterations steps
     int n_iterations() { return m_n_iteraions; }
     
+    /// Set the residue overal tolerance
+    void Set_epsilon_res(REAL epsilon_res) { m_epsilon_res = epsilon_res; }
+    
+    /// Set the correction overal tolerance
+    void Set_epsilon_cor(REAL epsilon_cor) { m_epsilon_cor = epsilon_cor; }
+    
     /// Get the residue overal tolerance
     REAL epsilon_res() { return m_epsilon_res; }
     
