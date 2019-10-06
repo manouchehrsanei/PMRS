@@ -1049,6 +1049,7 @@ void TPMRSElastoPlastic<T,TMEM>::ContributeBC_3D(TPZMaterialData &data, REAL wei
     int in,jn;
     
     REAL BigNumber = TPZDiscontinuousGalerkin::gBigNumber;
+    BigNumber *= 0.001;
     
     switch (bc.Type())
     {
