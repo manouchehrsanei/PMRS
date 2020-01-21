@@ -329,7 +329,7 @@ void TPMRSSegregatedAnalysis::ExecuteTheGeomechanicalApproximation(int i_time_st
             m_simulation_data->Set_n_sub_step_level(n_level);
             n_sub_steps = power(2,n_level);
             if (n_level > 6) {
-                n_sub_steps = 128;
+                n_sub_steps = 256;
                 std::cout << "TPMRSSegregatedAnalysis:: The level for substepping is not enough = " << n_level << std::endl;
                 std::cout << "TPMRSSegregatedAnalysis:: The number of substeps is fixed at = " << n_sub_steps << std::endl;
                 std::cout << "--------------------- Reached the plasticity change tolerance -------------- " << std::endl;

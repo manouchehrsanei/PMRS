@@ -807,9 +807,9 @@ TPMRSSegregatedAnalysis * CreateSFISolver(TPMRSSimulationData * sim_data){
  
     TPMRSSegregatedAnalysis * sfi_analysis = new TPMRSSegregatedAnalysis;
     if (sim_data->Get_is_dual_formulation_Q()) {
-        sfi_analysis->ConfigurateAnalysis(ELDLt, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+        sfi_analysis->ConfigurateAnalysis(ELU, ELU, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }else{
-        sfi_analysis->ConfigurateAnalysis(ELDLt, ELDLt, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
+        sfi_analysis->ConfigurateAnalysis(ELU, ELDLt, sim_data, cmesh_geomechanic, cmesh_res, mesh_vector);
     }
     
     return sfi_analysis;

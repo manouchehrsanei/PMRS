@@ -99,7 +99,7 @@ EndIf
 If(Is3DQ)
 
 // Height
-Extrude {0, 0, h} { Surface{1,2,3,4,5}; Layers{nh}; Recombine;}
+Extrude {0, 0, h} { Surface{:}; Layers{nh}; Recombine;}
 
 // 3D mesh
 // BC, Physical tagging
