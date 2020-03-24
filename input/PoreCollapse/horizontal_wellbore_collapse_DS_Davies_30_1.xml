@@ -1,0 +1,259 @@
+<?xml version="1.0" ?>
+    <!-- Example 1: Simulating cylindrical_reservoir 2D case -->
+<CaseData>
+    <!-- Geometry description -->
+    <Mesh>
+       <MeshFile mesh_file="/Users/manouchehr/Documents/GitHub/PMRS/input/meshes/Reservoir_2D_3D_Collapse.msh" />
+    </Mesh>
+    <!-- Time step controls  -->
+    <TimeControls>
+        <StepSize dt="86400" />
+        <StepNumber n_time_steps="10" />
+        <CrankNicolsonQ useQ="0" />
+    </TimeControls>
+    <!-- Newton method controls  -->
+    <NewtonControls>
+        <Iterations n_iterations="100" />
+        <Residue res_tolerance="0.01" />
+        <Correction cor_tolerance="0.01" />
+        <OrderMetodQ nonlinear_method = "M1" /> <!-- nonlinear_method = {M1,M6,M9}  -->
+        <SecantResQ useSecantResQ="0" />
+        <SecantGeoQ useSecantGeoQ="0" />
+        <UpdateJacobianRes n_update_jac_res="1" /> <!--n_update_jac_res >= 1  -->
+        <UpdateJacobianGeo n_update_jac_geo="1" /> <!--n_update_jac_geo >= 1  -->
+        <InternalAccelerationRes useInternalAccelResQ="0" />
+        <InternalAccelerationGeo useInternalAccelGeoQ="0" />
+    </NewtonControls>
+    <!-- Fixed Stress Split Scheme  -->
+    <FixedStressSplit>
+        <FssIterations n_max_fss_iterations="50" />
+        <EnfFssIterations n_enforce_fss_iterations="0" />
+        <NonlinearAcceleration n_nonlinear_acceleration="SDM" /> <!-- n_nonlinear_acceleration = {None,FDM,SDM}  -->
+        <NState n_state="6" /> <!-- NState = {2,4,6}  -->
+        <MaxThetaRatio max_theta_value="0.5" /> <!-- max_theta_value = {0.0-1.0}  -->
+    </FixedStressSplit>
+    <!-- SubSteps controls  -->
+    <SubSteps>
+        <MaxPlasticNorm max_plastic_norm_value="0.5" />
+    </SubSteps>  
+    <!-- Initialization controls  -->
+    <Initialization>
+        <ResetUndarinedResposeData reset_undrained_response_data="0" />
+    </Initialization>      
+    <!-- Parallel controls  -->
+    <ParallelControls>
+        <Numthreads n_threads="24" />
+    </ParallelControls>
+    <!-- Scale factor controls  -->
+    <ScaleFactor>
+        <Valscalefactor scalfac_value="1.0e-6" />
+    </ScaleFactor>    
+    <!-- Finite element controls  -->
+    <FEM>
+        <FullyCoupled useQs="0" />
+        <MixedFormulationQ useQ="1" />
+        <HRefine h_level="0" />
+        <Elasticity p_order="2" />
+        <Diffusion p_order="1" />
+    </FEM>
+    <!-- Settings for OutPut -->
+    <OutputControls>
+        <OutputFolder name="mkdir Output" />
+        <LogFolder name="mkdir Log" />
+        <PostProcessing vtk_file="reservoir_collapse_prod_DS_Petunin" n_divisions="2" n_outputs_geo="6" n_outputs_res="5" draw_initial_data_Q="1" draw_geometry_Q="0" performance_summary_Q="0" />
+        <OutputControlsGeo>
+            <Var s_name="alpha" />
+            <Var v_name="u" />
+            <Var t_name="s" />
+            <Var t_name="s_t" />            
+            <Var t_name="e" />
+            <Var t_name="ep" />
+        </OutputControlsGeo>
+        <OutputControlsRes>
+            <Var s_name="div_q" />
+            <Var s_name="p" />
+            <Var s_name="phi" />
+            <Var s_name="kappa" />
+            <Var v_name="q" />            
+        </OutputControlsRes> 
+        <ReportingTimes>
+            <time t="0.0" />
+            <time t="86400.0" />
+            <time t="172800.0" />
+            <time t="259200.0" />
+            <time t="345600.0" />
+            <time t="432000.0" />
+            <time t="518400.0" />
+            <time t="604800.0" />
+            <time t="691200.0" />
+            <time t="777600.0" />
+            <time t="864000.0" />
+        </ReportingTimes>         
+    </OutputControls>
+    <Physics>
+        <GravityConstant gravity="0.0" />
+        <GravityDirection x_direction="0.0" y_direction="0.0" z_direction="-1.0" />
+    </Physics>
+    <!-- Material Settings -->
+    <ReservoirRegions>
+        <RegionNumber n_regions="1" />
+    </ReservoirRegions> 
+    <RegionsDefinition>
+        <!-- Region definition -->
+        <RegionData mat_id="1" n_boundaries_geo="7" n_boundaries_res ="7">
+            <InitialPoroMechParameters Eyoung_u="4000.0" nu_u="0.2" phi_0="0.1" kappa_0="1.0e-13" />            
+            <PoroMechParameters Eyoung="4000.0" nu="0.2" Ks="1.0e20" c_f="0.0e-9" eta="0.001" rho_f="1000.0" rho_s="2500.0" />
+            <PhiParameters phi_model="Linear" n_parameters="0"/>
+            <KappaParameters kappa_model="Davies" n_parameters="1" c="30.0" />
+            <PlasticityParameters plasticity_model="DS" n_parameters="7" a="50.0" b="0.028" c="40.0" d="0.001" r="3.0" w="0.002" x0="-65.0"/>            
+            <GeoBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+                <Boundary bc_id="6"/>
+                <Boundary bc_id="7"/>
+                <Boundary bc_id="8"/>
+            </GeoBoundaries>
+            <ResBoundaries>
+                <Boundary bc_id="2"/>
+                <Boundary bc_id="3"/>
+                <Boundary bc_id="4"/>
+                <Boundary bc_id="5"/>
+                <Boundary bc_id="6"/>
+                <Boundary bc_id="7"/>
+                <Boundary bc_id="8"/>
+            </ResBoundaries>            
+        </RegionData>          
+    </RegionsDefinition>
+    <!-- BCInitialGeomechanics -->
+    <BCInitialGeomechanics>
+        <InitialGeomechanic bc_id="2" type="Ntn" n_data="1" >
+            <Data t="0" tn="-60.0" />
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="3" type="Ntn" n_data="1" >
+            <Data t="0" tn="-60.0" />
+        </InitialGeomechanic> 
+        <InitialGeomechanic bc_id="4" type="Ntn" n_data="1" >
+            <Data t="0" tn="-60.0" />
+        </InitialGeomechanic> 
+        <InitialGeomechanic bc_id="5" type="Ntn" n_data="1" >
+            <Data t="0" tn="-60.0" />
+        </InitialGeomechanic>             
+        <InitialGeomechanic bc_id="6" type="Ntn" n_data="1" >
+            <Data t="0" tn="-60.0" />
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="7" type="Dux" n_data="1" >
+            <Data t="0" ux="0.0" />            
+        </InitialGeomechanic>
+        <InitialGeomechanic bc_id="8" type="Duy" n_data="1" >
+            <Data t="0" uy="0.0" />            
+        </InitialGeomechanic>            
+    </BCInitialGeomechanics>
+    <BCInitialReservoir>
+        <InitialReservoir bc_id="2" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="3" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="4" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="5" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />              
+        </InitialReservoir>
+        <InitialReservoir bc_id="6" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />             
+        </InitialReservoir>
+        <InitialReservoir bc_id="7" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />             
+        </InitialReservoir>            
+        <InitialReservoir bc_id="8" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />             
+        </InitialReservoir>            
+    </BCInitialReservoir>  
+    <!-- Recurrent boundary contidions -->    
+    <BCGeomechanics>
+        <Geomechanic bc_id="2" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="86400.0" tn="-0.00001" />
+            <Data t="864000.0" tn="-0.00001" />
+        </Geomechanic>
+        <Geomechanic bc_id="3" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="86400.0" tn="-0.00001" />
+            <Data t="864000.0" tn="-0.00001" />
+        </Geomechanic>
+        <Geomechanic bc_id="4" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="86400.0" tn="-0.00001" />
+            <Data t="864000.0" tn="-0.00001" />
+        </Geomechanic>
+        <Geomechanic bc_id="5" type="Ntn" n_data="3" >
+            <Data t="0" tn="0.0" />
+            <Data t="86400.0" tn="-0.00001" />
+            <Data t="864000.0" tn="-0.00001" />
+        </Geomechanic>
+        <Geomechanic bc_id="6" type="Ntn" n_data="11" >
+            <Data t="0" tn="0.0" />
+            <Data t="86400.0" tn="20.0" />
+            <Data t="172800.0" tn="20.0" />
+            <Data t="259200.0" tn="20.0" />
+            <Data t="345600.0" tn="20.0" />
+            <Data t="432000.0" tn="20.0" />
+            <Data t="518400.0" tn="20.0" />
+            <Data t="604800.0" tn="20.0" />
+            <Data t="691200.0" tn="20.0" />
+            <Data t="777600.0" tn="20.0" />
+            <Data t="864000.0" tn="20.0" />
+        </Geomechanic>
+        <Geomechanic bc_id="7" type="Dux" n_data="1" >
+            <Data t="0" ux="0.0" />
+        </Geomechanic>
+        <Geomechanic bc_id="8" type="Duy" n_data="1" >
+            <Data t="0" uy="0.0" />               
+        </Geomechanic>
+    </BCGeomechanics> 
+    <BCReservoirs>
+        <Reservoir bc_id="2" type="Dp" n_data="3" >
+            <Data t="0" p="40.0" />
+            <Data t="86400.0" p="40.0" />
+            <Data t="864000.0" p="40.0" />
+        </Reservoir> 
+        <Reservoir bc_id="3" type="Dp" n_data="3" >
+            <Data t="0" p="40.0" />
+            <Data t="86400.0" p="40.0" />
+            <Data t="864000.0" p="40.0" />
+        </Reservoir> 
+        <Reservoir bc_id="4" type="Dp" n_data="3" >
+            <Data t="0" p="40.0" />
+            <Data t="86400.0" p="40.0" />
+            <Data t="864000.0" p="40.0" />
+        </Reservoir> 
+        <Reservoir bc_id="5" type="Dp" n_data="3" >
+            <Data t="0" p="40.0" />
+            <Data t="86400.0" p="40.0" />
+            <Data t="864000.0" p="40.0" />
+        </Reservoir> 
+        <Reservoir bc_id="6" type="Dp" n_data="11" >
+            <Data t="0" p="40.0" />
+            <Data t="86400.0" p="40.0" />
+            <Data t="172800.0" p="38.0" />
+            <Data t="259200.0" p="36.0" />
+            <Data t="345600.0" p="34.0" />
+            <Data t="432000.0" p="32.0" />
+            <Data t="518400.0" p="30.0" />
+            <Data t="604800.0" p="28.0" />
+            <Data t="691200.0" p="26.0" />
+            <Data t="777600.0" p="24.0" />
+            <Data t="864000.0" p="22.0" />
+        </Reservoir>           
+        <Reservoir bc_id="7" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />
+        </Reservoir>            
+        <Reservoir bc_id="8" type="Dp" n_data="1" >
+            <Data t="0" p="40.0" />  
+        </Reservoir>            
+    </BCReservoirs>       
+</CaseData>
